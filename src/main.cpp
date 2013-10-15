@@ -55,7 +55,14 @@ int main(int ac, char** av)
         std::cout << "Exception of unknown type!" << std::endl;
     }
 
-    boost::scoped_ptr<ramen::Core> x(new ramen::Core());
+    boost::scoped_ptr<ramen::Core> core(new ramen::Core());
+
+    if (!core->initialize(vm["width"].as<uint32_t>(), vm["height"].as<uint32_t>())) {
+        std::cout << "Failed to initialize Core, exiting..." << std::endl;
+        return 1;
+    }
+
+    core->run();
 
     return 0;
 }

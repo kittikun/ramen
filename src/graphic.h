@@ -14,34 +14,31 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef GRAPHIC_H
+#define GRAPHIC_H
 
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
 #include <boost/utility.hpp>
+
+struct SDL_Window;
 
 namespace ramen
 {
-    class Graphic;
+   class Graphic : boost::noncopyable
+   {
+   public:
+       Graphic();
+       ~Graphic();
 
-    class Core : boost::noncopyable
-    {
-    public:
-        Core();
-        ~Core();
+       bool initialize(const int width, const int height);
+       void run();
 
-        bool initialize(const int width, const int height);
-        void run();
-
-    private:
-        boost::thread_group m_threads;
-        boost::shared_ptr<Graphic> m_graphic;
-    };
-
+   private:
+       void* m_pContext;
+       SDL_Window* m_pWindow;
+   };
 
 } // namespace ramen
 
-#endif // CORE_H
+#endif // GRAPHIC_H
 
 

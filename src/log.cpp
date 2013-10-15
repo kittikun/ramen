@@ -39,6 +39,7 @@ namespace ramen
         {
             "generic",
             "core",
+            "gfx",
             "WARNING",
             "ERROR",
         };
@@ -52,7 +53,7 @@ namespace ramen
     }
 
     BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", ELogLevel)
-    
+
     void Log::initialize()
     {
         logging::add_console_log(std::cout, keywords::format = (expr::format("%1%: [%2%] %3%")

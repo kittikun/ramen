@@ -26,6 +26,7 @@
 
 #define LOG BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Generic)
 #define LOGC BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Core)
+#define LOGGFX BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_GFX)
 #define LOGW BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Warning)
 #define LOGE BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Error)
 
@@ -35,9 +36,9 @@ namespace ramen
     {
         Log_Generic,
         Log_Core,
+        Log_GFX,
         Log_Warning,
-        Log_Error,
-        Log_Critical
+        Log_Error
     };
 
     BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(boost_log, boost::log::sources::severity_logger_mt<ELogLevel>)
