@@ -35,6 +35,13 @@ namespace ramen
    private:
        void* m_pContext;
        SDL_Window* m_pWindow;
+
+#if defined(_WIN32)
+	   void* m_eglDisplay;
+	   void* m_eglSurface;
+	   void* m_eglContext;
+#endif
+
    };
 
 } // namespace ramen

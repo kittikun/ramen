@@ -1,0 +1,7 @@
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
+!ramen.sln
+!ramen.vcxproj
+!external.7z
