@@ -25,6 +25,7 @@
 #endif
 
 #include "log.h"
+#include "utility.h"
 
 namespace ramen
 {
@@ -117,7 +118,6 @@ namespace ramen
             LOGE << "eglCreateContext failed";
 			return false;
 		}
-
 #endif
 
         return true;
@@ -150,6 +150,8 @@ namespace ramen
         while (1) {
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            VERIFYGL();
 
 #if defined(_WIN32)
 			eglSwapBuffers(m_eglDisplay, m_eglSurface);
