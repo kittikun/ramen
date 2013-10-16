@@ -99,11 +99,13 @@ namespace ramen
 
     const bool VerifyEGL(EGLint expectedError, const char* file, unsigned line)
     {
+#if defined(_WIN32)
         EGLint eglError = eglGetError();
         if (eglError != expectedError) {
             LOGE << "Unexpected EGL Error at " << file << ":" << line << ":" << "Got " << eglErrorEnumToString(eglError) << " expected " << eglErrorEnumToString(expectedError);
             return false;
         }
+#endif
         return true;
     }
 #endif

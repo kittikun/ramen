@@ -27,24 +27,16 @@
 
 #if VERIFY_GL_ON
     #define VERIFYGL() VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
+	#define VERIFYEGL() VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
 #else
     #define VERIFYGL() (true)
-#endif
-
-// for Windows, we also use EGL directly
-#if defined(_WIN32)
-    #if VERIFY_GL_ON
-        #define VERIFYEGL() VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
-    #else
-        #define VERIFYEGL() (true)
-    #endif
-
-        const bool ramen::VerifyEGL(EGLint expectedError, const char *file, unsigned line);
+	#define VERIFYEGL() (true)
 #endif
 
 namespace ramen {
 
-    const bool VerifyGL(GLenum expectedError, const char *file, unsigned line);
+	const bool VerifyEGL(EGLint expectedError, const char *file, unsigned line);
+	const bool VerifyGL(GLenum expectedError, const char *file, unsigned line);
      
 } // namespace ramen
 
