@@ -17,12 +17,16 @@
 #ifndef GRAPHIC_H
 #define GRAPHIC_H
 
+#include <atomic>
+#include <memory>
 #include <boost/utility.hpp>
 
 struct SDL_Window;
 
 namespace ramen
 {
+   class TextRenderer;
+
    class Graphic : boost::noncopyable
    {
    public:
@@ -32,8 +36,18 @@ namespace ramen
        bool initialize(const int width, const int height);
        void run();
 
+        // slots
+		void slotState(const bool state);
+
    private:
+       bool createWindow(const int width, const int height);
+       bool createContext();
+       void swapbuffers();
+
+   private:
+       std::atomic<bool> m_bState;
        void* m_pContext;
+       std::unique_ptr<TextRenderer> m_pTextRenderer;
        SDL_Window* m_pWindow;
 
 #if defined(_WIN32)

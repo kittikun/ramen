@@ -25,7 +25,8 @@ namespace ramen
 {
 
     Core::Core()
-       : m_graphic(new Graphic())
+       : m_bState(false)
+       , m_pGraphic(new Graphic())
     {
         Log::initialize();
         LOGC << "Creating core...";
@@ -44,8 +45,11 @@ namespace ramen
             return false;
         }
 
-        if (!m_graphic->initialize(width, height))
+        if (!m_pGraphic->initialize(width, height))
             return false;
+
+        // connect signals
+        m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));
 
         return true;
     }
@@ -53,21 +57,44 @@ namespace ramen
     void Core::run()
     {
         SDL_Event e;
-        bool quit = false; 
 
-        m_threads.create_thread(boost::bind(&Graphic::run, m_graphic));
+        m_threads.create_thread(boost::bind(&Graphic::run, m_pGraphic.get()));
+
         LOGC << "Starting main loop..";
-        while (!quit) {
+        m_bState = true;
+
+        while (m_bState) {
             while (SDL_PollEvent(&e)) {
-                if (e.type == SDL_QUIT)
-                    quit = true;
-                if (e.type == SDL_KEYDOWN)
-                    quit = true;
-                if (e.type == SDL_MOUSEBUTTONDOWN)
-                    quit = true;
+                switch (e.type) {
+                case SDL_QUIT:
+                    {
+                        stop();
+                    }
+                    break;
+
+                case SDL_KEYDOWN:
+                    {
+                        stop();
+                    }
+                    break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                    {
+                        stop();
+                    }
+                    break;
+                }
             }
         }
         LOGC << "Exiting main loop..";
+    }
+
+    void Core::stop()
+    {
+        LOGC << "Requesting core shutdown..";
+        m_bState = false;
+        m_sigState(false);
+        m_threads.join_all();
     }
 
 } // namespace ramen

@@ -17,7 +17,9 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <memory>
 #include <boost/shared_ptr.hpp>
+#include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
@@ -35,8 +37,18 @@ namespace ramen
         void run();
 
     private:
+        void stop();
+
+    private:
+        // members
+        bool m_bState;
         boost::thread_group m_threads;
-        boost::shared_ptr<Graphic> m_graphic;
+        boost::shared_ptr<Graphic> m_pGraphic;
+
+        // signals
+        typedef boost::signals2::signal<void(const bool)> SigState;
+        SigState m_sigState;
+
     };
 
 

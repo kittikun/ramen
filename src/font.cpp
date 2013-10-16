@@ -14,26 +14,36 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#include "font.h"
 
-// Enable VERIFY_GL_ON in order to get detailed information about failing tests,
-// such as the line number and failure circumstances.
-#define VERIFY_GL_ON 1
+#include "log.h"
 
-#if VERIFY_GL_ON
-    #define VERIFYGL() VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
-	#define VERIFYEGL() VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
-#else
-    #define VERIFYGL() (true)
-	#define VERIFYEGL() (true)
-#endif
+namespace ramen
+{
+    TextRenderer::TextRenderer()
+    : m_freetype(nullptr)
+    {
 
-namespace ramen {
+    }
 
-	const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
-	const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
-     
+    TextRenderer::~TextRenderer()
+    {
+        LOGGFX << "Destroying text renderer..";
+
+        if (m_freetype) {
+            FT_Done_FreeType(m_freetype);
+        }
+    }
+
+    bool TextRenderer::initialize()
+    {
+        LOGGFX << "Initializing text renderer..";
+        if (FT_Init_FreeType(&m_freetype)) {
+            LOGE << "Could not init freetype library";
+            return false;
+        }
+
+        return true;
+    }
+
 } // namespace ramen
-
-#endif // UTILITY_H

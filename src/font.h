@@ -14,26 +14,29 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef FONT_H
+#define FONT_H
 
-// Enable VERIFY_GL_ON in order to get detailed information about failing tests,
-// such as the line number and failure circumstances.
-#define VERIFY_GL_ON 1
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <boost/utility.hpp>
 
-#if VERIFY_GL_ON
-    #define VERIFYGL() VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
-	#define VERIFYEGL() VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
-#else
-    #define VERIFYGL() (true)
-	#define VERIFYEGL() (true)
-#endif
+namespace ramen
+{
 
-namespace ramen {
+    class TextRenderer : boost::noncopyable
+    {
+    public:
+        TextRenderer();
+        ~TextRenderer();
 
-	const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
-	const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
-     
+        bool initialize();
+
+    private:
+        FT_Library m_freetype;
+    };
+
 } // namespace ramen
 
-#endif // UTILITY_H
+#endif // FONT_H
+

@@ -16,7 +16,10 @@
 
 #include "utility.h"
 
+#include <string>
 #include <sstream>
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
 
 #include "log.h"
 
@@ -44,7 +47,7 @@ namespace ramen
         return stream.str();
     }
 
-    const bool VerifyGL(GLenum expectedError, const char* file, unsigned line)
+    const bool VerifyGL(const unsigned int expectedError, const char* file, unsigned line)
     {
         GLenum glError = glGetError();
         if (glError != expectedError) {
@@ -97,7 +100,7 @@ namespace ramen
         return stream.str();
     }
 
-    const bool VerifyEGL(EGLint expectedError, const char* file, unsigned line)
+    const bool VerifyEGL(const int expectedError, const char* file, unsigned line)
     {
 #if defined(_WIN32)
         EGLint eglError = eglGetError();
