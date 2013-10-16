@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\core.cpp" />
+    <ClCompile Include="..\..\src\font.cpp" />
     <ClCompile Include="..\..\src\graphic.cpp" />
     <ClCompile Include="..\..\src\log.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
@@ -19,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h" />
+    <ClInclude Include="..\..\src\font.h" />
     <ClInclude Include="..\..\src\graphic.h" />
     <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\utility.h" />
@@ -68,13 +70,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>./external/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./external/include;./external/include/sdl;./external/include/freetype</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>./external/lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;libEGL.lib;libGLESv2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;libEGL.lib;libGLESv2.lib;freetype250_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)external\dll\* $(SolutionDir)$(Configuration)</Command>
