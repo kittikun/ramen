@@ -16,12 +16,13 @@
 
 #include "font.h"
 
+#include "font_DIN.h"
 #include "log.h"
 
 namespace ramen
 {
     TextRenderer::TextRenderer()
-    : m_freetype(nullptr)
+    : m_pFTLibrary(nullptr)
     {
 
     }
@@ -30,16 +31,23 @@ namespace ramen
     {
         LOGGFX << "Destroying text renderer..";
 
-        if (m_freetype) {
-            FT_Done_FreeType(m_freetype);
+        if (m_pFTLibrary) {
+            FT_Done_FreeType(m_pFTLibrary);
         }
     }
 
     bool TextRenderer::initialize()
     {
         LOGGFX << "Initializing text renderer..";
-        if (FT_Init_FreeType(&m_freetype)) {
+        if (FT_Init_FreeType(&m_pFTLibrary)) {
             LOGE << "Could not init freetype library";
+            return false;
+        }
+
+        FT_Face face;
+
+        if (FT_New_Memory_Face(m_pFTLibrary, DIN_Light_ttf, DIN_Light_ttf_len, 0, &face)) {
+            LOGE << "Could not open font DIN";
             return false;
         }
 

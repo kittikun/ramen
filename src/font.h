@@ -33,7 +33,7 @@ namespace ramen
         bool initialize();
 
     private:
-        FT_Library m_freetype;
+        FT_Library m_pFTLibrary;
     };
 
 } // namespace ramen
