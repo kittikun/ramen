@@ -18,12 +18,11 @@
 
 #include <SDL.h>
 
-#include "graphic.h"
+#include "graphic/graphic.h"
 #include "log.h"
 
 namespace ramen
 {
-
     Core::Core()
        : m_bState(false)
        , m_pGraphic(new Graphic())
@@ -45,7 +44,7 @@ namespace ramen
             return false;
         }
 
-        if (!m_pGraphic->initialize(width, height))
+        if (!m_pGraphic->initialize(this, width, height))
             return false;
 
         // connect signals
@@ -61,9 +60,9 @@ namespace ramen
         m_threads.create_thread(boost::bind(&Graphic::run, m_pGraphic.get()));
 
         LOGC << "Starting main loop..";
-        m_bState = true;
+        m_bState.store(true);
 
-        while (m_bState) {
+        while (m_bState.load()) {
             while (SDL_PollEvent(&e)) {
                 switch (e.type) {
                 case SDL_QUIT:
@@ -87,14 +86,20 @@ namespace ramen
             }
         }
         LOGC << "Exiting main loop..";
+		m_threads.join_all();
     }
+
+	void Core::slotError()
+	{
+		LOGC << "Error signal received";
+		stop();
+	}
 
     void Core::stop()
     {
         LOGC << "Requesting core shutdown..";
-        m_bState = false;
+        m_bState.store(false);
         m_sigState(false);
-        m_threads.join_all();
     }
 
 } // namespace ramen

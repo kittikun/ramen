@@ -14,50 +14,58 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef GRAPHIC_H
+#define GRAPHIC_H
 
 #include <atomic>
 #include <memory>
-#include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
-#include <boost/thread.hpp>
 #include <boost/utility.hpp>
+
+struct SDL_Window;
 
 namespace ramen
 {
-    class Graphic;
+	class Core;
+	class TextRenderer;
 
-    class Core : boost::noncopyable
-    {
-    public:
-        Core();
-        ~Core();
+	class Graphic : boost::noncopyable, public boost::signals2::trackable
+	{
+	public:
+		Graphic();
+		~Graphic();
 
-        bool initialize(const int width, const int height);
-        void run();
+		bool initialize(Core* core, const int width, const int height);
+		void run();
 
 		// slots
-		void slotError();
+		void slotState(const bool state);
 
-    private:
-        void stop();
+	private:
+		bool createWindow(const int width, const int height);
+		bool createContext();
+		void swapbuffers();
+		bool initializeThreadDependents();
 
-    private:
-        // members
-        std::atomic<bool> m_bState;
-        boost::thread_group m_threads;
-        boost::shared_ptr<Graphic> m_pGraphic;
+	private:
+		std::atomic<bool> m_bState;
+		void* m_pContext;
+		std::unique_ptr<TextRenderer> m_pTextRenderer;
+		SDL_Window* m_pWindow;
 
-        // signals
-        typedef boost::signals2::signal<void(const bool)> SigState;
-        SigState m_sigState;
+		// signals
+		typedef boost::signals2::signal<void()> SigError;
+		SigError m_sigError;
 
-    };
-
+#if defined(_WIN32)
+		void* m_eglDisplay;
+		void* m_eglSurface;
+		void* m_eglContext;
+#endif
+	};
 
 } // namespace ramen
 
-#endif // CORE_H
+#endif // GRAPHIC_H
 
 

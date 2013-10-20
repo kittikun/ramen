@@ -14,50 +14,35 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef FONT_H
+#define FONT_H
 
-#include <atomic>
-#include <memory>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include <boost/shared_ptr.hpp>
-#include <boost/signals2.hpp>
-#include <boost/thread.hpp>
 #include <boost/utility.hpp>
+#include <GLES2/gl2.h>
 
 namespace ramen
 {
-    class Graphic;
+	class Program;
 
-    class Core : boost::noncopyable
+    class TextRenderer : boost::noncopyable
     {
     public:
-        Core();
-        ~Core();
+        TextRenderer();
+        ~TextRenderer();
 
-        bool initialize(const int width, const int height);
-        void run();
-
-		// slots
-		void slotError();
+        bool initialize();
 
     private:
-        void stop();
-
-    private:
-        // members
-        std::atomic<bool> m_bState;
-        boost::thread_group m_threads;
-        boost::shared_ptr<Graphic> m_pGraphic;
-
-        // signals
-        typedef boost::signals2::signal<void(const bool)> SigState;
-        SigState m_sigState;
-
+        FT_Library m_pFTLibrary;
+		boost::shared_ptr<Program> m_program;
+		GLuint m_vbo;
     };
-
 
 } // namespace ramen
 
-#endif // CORE_H
-
+#endif // FONT_H
 

@@ -14,50 +14,51 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef SHADER_H
+#define SHADER_H
 
-#include <atomic>
-#include <memory>
 #include <boost/shared_ptr.hpp>
-#include <boost/signals2.hpp>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
+#include <GLES2/gl2.h>
+#include <map>
 
 namespace ramen
 {
-    class Graphic;
+	class Shader
+	{
+	public:
+		Shader(const GLenum type);
+		~Shader();
 
-    class Core : boost::noncopyable
-    {
-    public:
-        Core();
-        ~Core();
+		bool compile(const GLchar** data);
+		bool isFragment() { return m_eType == GL_FRAGMENT_SHADER; }
 
-        bool initialize(const int width, const int height);
-        void run();
+		GLuint getShaderID() { return m_iShader; }
+		GLenum getType() { return m_eType; }
 
-		// slots
-		void slotError();
+	private:
+		GLenum m_eType;
+		GLuint m_iShader;
+	};
 
-    private:
-        void stop();
+	class Program
+	{
+	public:
+		Program();
+		~Program();
 
-    private:
-        // members
-        std::atomic<bool> m_bState;
-        boost::thread_group m_threads;
-        boost::shared_ptr<Graphic> m_pGraphic;
+		bool attachShader(boost::shared_ptr<Shader> shader);
+		bool link();
 
-        // signals
-        typedef boost::signals2::signal<void(const bool)> SigState;
-        SigState m_sigState;
+		GLint getAttribLocation(const char* name);
+		GLint getUniformLocation(const char* name);
 
-    };
+	private:
+		typedef std::map<GLuint, boost::shared_ptr<Shader> > ShaderMap;
 
+		GLuint m_iProgram;
+		ShaderMap m_shaders;
+	};
 
 } // namespace ramen
 
-#endif // CORE_H
-
-
+#endif // SHADER_H
