@@ -12,18 +12,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\core.cpp" />
-    <ClCompile Include="..\..\src\font.cpp" />
-    <ClCompile Include="..\..\src\graphic.cpp" />
+    <ClCompile Include="..\..\src\graphic\font.cpp" />
+    <ClCompile Include="..\..\src\graphic\graphic.cpp" />
+    <ClCompile Include="..\..\src\graphic\shader.cpp" />
+    <ClCompile Include="..\..\src\graphic\utility.cpp" />
     <ClCompile Include="..\..\src\log.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
-    <ClCompile Include="..\..\src\utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h" />
-    <ClInclude Include="..\..\src\font.h" />
-    <ClInclude Include="..\..\src\graphic.h" />
+    <ClInclude Include="..\..\src\graphic\font.h" />
+    <ClInclude Include="..\..\src\graphic\font_DIN.h" />
+    <ClInclude Include="..\..\src\graphic\graphic.h" />
+    <ClInclude Include="..\..\src\graphic\shader.h" />
+    <ClInclude Include="..\..\src\graphic\utility.h" />
     <ClInclude Include="..\..\src\log.h" />
-    <ClInclude Include="..\..\src\utility.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
