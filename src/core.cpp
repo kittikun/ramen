@@ -65,6 +65,14 @@ namespace ramen
         while (m_bState.load()) {
             while (SDL_PollEvent(&e)) {
                 switch (e.type) {
+				case SDL_WINDOWEVENT:
+					{
+						if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+							LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
+						}
+					}
+					break;
+
                 case SDL_QUIT:
                     {
                         stop();

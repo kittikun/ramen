@@ -34,9 +34,10 @@ namespace ramen
     Graphic::Graphic()
        : m_bState(false)
        , m_pContext(nullptr)
-       , m_pTextRenderer(new TextRenderer())
        , m_pWindow(nullptr)
     {
+		m_pTextRenderer.reset(new TextRenderer(this));
+		
     }
 
     Graphic::~Graphic()
@@ -157,6 +158,15 @@ namespace ramen
         return true;
     }
 
+	const glm::ivec2 Graphic::getWindowSize() const
+	{
+		glm::ivec2 toto;
+
+		SDL_GetWindowSize(m_pWindow, &toto.x, &toto.y);
+
+		return toto;
+	}
+
     bool Graphic::initialize(Core* core, const int width, const int height)
     {
         if (!createWindow(width, height)) {
@@ -195,6 +205,8 @@ namespace ramen
         while (m_bState.load()) {
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+			m_pTextRenderer->display();
 
             VERIFYGL();
             swapbuffers();

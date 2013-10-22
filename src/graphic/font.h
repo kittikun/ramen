@@ -27,18 +27,24 @@
 namespace ramen
 {
 	class Program;
+	class Graphic;
 
     class TextRenderer : boost::noncopyable
     {
     public:
-        TextRenderer();
+        TextRenderer(Graphic* pGraphic);
         ~TextRenderer();
 
         bool initialize();
+		void display();
+
+		void render_text(const char *text, float x, float y, float sx, float sy);
 
     private:
+		Graphic* m_pGraphic;
         FT_Library m_pFTLibrary;
-		boost::shared_ptr<Program> m_program;
+		FT_Face m_pFTFace;
+		boost::shared_ptr<Program> m_pProgram;
 		GLuint m_vbo;
     };
 

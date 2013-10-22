@@ -48,6 +48,7 @@ namespace ramen
 
 		bool attachShader(boost::shared_ptr<Shader> shader);
 		bool link();
+		bool use();
 
 		GLint getAttribLocation(const char* name);
 		GLint getUniformLocation(const char* name);

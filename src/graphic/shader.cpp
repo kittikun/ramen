@@ -146,4 +146,13 @@ namespace ramen
 		return true;
 	}
 
+
+	bool Program::use()
+	{
+		glUseProgram(m_iProgram);
+		VERIFYGL_RET();
+
+		return true;
+	}
+
 } // namespace ramen

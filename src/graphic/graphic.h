@@ -21,6 +21,8 @@
 #include <memory>
 #include <boost/signals2.hpp>
 #include <boost/utility.hpp>
+#include <glm/glm.hpp>
+
 
 struct SDL_Window;
 
@@ -37,6 +39,8 @@ namespace ramen
 
 		bool initialize(Core* core, const int width, const int height);
 		void run();
+
+		const glm::ivec2 getWindowSize() const;
 
 		// slots
 		void slotState(const bool state);
