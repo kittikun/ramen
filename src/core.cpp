@@ -18,8 +18,9 @@
 
 #include <SDL.h>
 
-#include "graphic/graphic.h"
 #include "log.h"
+#include "profiler.h"
+#include "graphic/graphic.h"
 
 namespace ramen
 {
@@ -34,10 +35,12 @@ namespace ramen
     Core::~Core()
     {
         LOGC << "Destroying core...";
+		Profiler::dump();
     }
 
-    bool Core::initialize(const int width, const int height)
+    const bool Core::initialize(const int width, const int height)
     {
+		PROFILE
         LOGC << "Initializing SDL..";
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
             LOGE << SDL_GetError();
@@ -74,18 +77,6 @@ namespace ramen
 					break;
 
                 case SDL_QUIT:
-                    {
-                        stop();
-                    }
-                    break;
-
-                case SDL_KEYDOWN:
-                    {
-                        stop();
-                    }
-                    break;
-
-                case SDL_MOUSEBUTTONDOWN:
                     {
                         stop();
                     }

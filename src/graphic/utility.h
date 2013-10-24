@@ -34,6 +34,7 @@ namespace ramen {
 
 	const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
 	const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
+	const int findNearestPowerofTwo(const int value);
      
 } // namespace ramen
 

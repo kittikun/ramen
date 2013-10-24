@@ -29,15 +29,16 @@ namespace ramen
 		Shader(const GLenum type);
 		~Shader();
 
-		bool compile(const GLchar** data);
-		bool isFragment() { return m_eType == GL_FRAGMENT_SHADER; }
+		const bool compile(const GLchar** data);
 
-		GLuint getShaderID() { return m_iShader; }
-		GLenum getType() { return m_eType; }
+		const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
+
+		const GLuint getShaderID() const { return m_iShaderID; }
+		const GLenum getType() const { return m_eType; }
 
 	private:
 		GLenum m_eType;
-		GLuint m_iShader;
+		GLuint m_iShaderID;
 	};
 
 	class Program
@@ -46,18 +47,16 @@ namespace ramen
 		Program();
 		~Program();
 
-		bool attachShader(boost::shared_ptr<Shader> shader);
-		bool link();
-		bool use();
+		const bool attachShader(boost::shared_ptr<Shader> shader);
+		const bool link();
+		const bool use();
 
-		GLint getAttribLocation(const char* name);
-		GLint getUniformLocation(const char* name);
+		const GLint getAttribLocation(const char* name) const;
+		const GLint getUniformLocation(const char* name) const;
 
 	private:
-		typedef std::map<GLuint, boost::shared_ptr<Shader> > ShaderMap;
-
 		GLuint m_iProgram;
-		ShaderMap m_shaders;
+		std::map<GLuint, boost::shared_ptr<Shader> > m_shaders;
 	};
 
 } // namespace ramen

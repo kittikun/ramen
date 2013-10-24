@@ -48,7 +48,7 @@ namespace ramen
 	private:
 		bool createWindow(const int width, const int height);
 		bool createContext();
-		void swapbuffers();
+		void swapbuffers() const;
 		bool initializeThreadDependents();
 
 	private:

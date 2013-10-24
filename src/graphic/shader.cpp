@@ -21,41 +21,46 @@
 
 namespace ramen
 {
+
+//-------------------------------------------------------------------------------------
+// SHADER
+//-------------------------------------------------------------------------------------
+
 	Shader::Shader(const GLenum type)
 		: m_eType(type)
-		, m_iShader(-1)
+		, m_iShaderID(-1)
 	{
-		m_iShader = glCreateShader(m_eType);
+		m_iShaderID = glCreateShader(m_eType);
 	}
 
 	Shader::~Shader()
 	{
-		glDeleteShader(m_iShader);
+		glDeleteShader(m_iShaderID);
 	}
 
-	bool Shader::compile(const GLchar** data)
+	const bool Shader::compile(const GLchar** data)
 	{
 		GLint compiled;
 
-		assert(m_iShader != 0);
+		assert(m_iShaderID != 0);
 
-		glShaderSource(m_iShader, 1, data, nullptr);
+		glShaderSource(m_iShaderID, 1, data, nullptr);
 		VERIFYGL();
 		// Compile the shader
-		glCompileShader(m_iShader);
+		glCompileShader(m_iShaderID);
 		// Check the compile status
-		glGetShaderiv(m_iShader, GL_COMPILE_STATUS, &compiled);
+		glGetShaderiv(m_iShaderID, GL_COMPILE_STATUS, &compiled);
 
 		if(!compiled) 
 		{
 			GLint infoLen = 0;
-			glGetShaderiv(m_iShader, GL_INFO_LOG_LENGTH, &infoLen);
+			glGetShaderiv(m_iShaderID, GL_INFO_LOG_LENGTH, &infoLen);
 
 			if(infoLen > 1)
 			{
 				char* infoLog = new char[infoLen];
 
-				glGetShaderInfoLog(m_iShader, infoLen, NULL, infoLog);
+				glGetShaderInfoLog(m_iShaderID, infoLen, NULL, infoLog);
 				LOGE << "Error compiling shader: " << infoLog;
 				delete(infoLog);
 
@@ -74,6 +79,7 @@ namespace ramen
 //-------------------------------------------------------------------------------------
 // PROGRAM
 //-------------------------------------------------------------------------------------
+
 	Program::Program()
 	{
 		m_iProgram = glCreateProgram();
@@ -84,11 +90,11 @@ namespace ramen
 		glDeleteProgram(m_iProgram);
 	}
 
-	bool Program::attachShader(boost::shared_ptr<Shader> shader)
+	const bool Program::attachShader(boost::shared_ptr<Shader> shader)
 	{
 		// Check if the shader wasn't already attached
 		GLuint id = shader->getShaderID();
-		ShaderMap::const_iterator iter = m_shaders.find(id);
+		auto iter = m_shaders.find(id);
 
 		if (iter != m_shaders.end()) {
 			LOGE << "Shader " << id << " was already attached";
@@ -103,7 +109,7 @@ namespace ramen
 		return true;
 	}
 
-	GLint Program::getAttribLocation(const char* name)
+	const GLint Program::getAttribLocation(const char* name) const
 	{
 		GLint ret = glGetAttribLocation(m_iProgram, name);
 		VERIFYGL();
@@ -111,7 +117,7 @@ namespace ramen
 		return ret;
 	}
 
-	GLint Program::getUniformLocation(const char* name)
+	const GLint Program::getUniformLocation(const char* name) const
 	{
 		GLint ret = glGetUniformLocation(m_iProgram, name);
 		VERIFYGL();
@@ -119,7 +125,7 @@ namespace ramen
 		return ret;
 	}
 
-	bool Program::link()
+	const bool Program::link()
 	{
 		GLint linked;
 
@@ -147,7 +153,7 @@ namespace ramen
 	}
 
 
-	bool Program::use()
+	const bool Program::use()
 	{
 		glUseProgram(m_iProgram);
 		VERIFYGL_RET();

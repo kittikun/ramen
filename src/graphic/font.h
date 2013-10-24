@@ -20,6 +20,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 #include <GLES2/gl2.h>
@@ -29,21 +30,52 @@ namespace ramen
 	class Program;
 	class Graphic;
 
+	struct FontAtlasCharacter
+	{
+		float ax;	// advance.x
+		float ay;	// advance.y
+		float bw;	// bitmap.width;
+		float bh;	// bitmap.height;
+		float bl;	// bitmap_left;
+		float bt;	// bitmap_top;
+		float tx;	// x offset of glyph in texture coordinates
+		float ty;	// y offset of glyph in texture coordinates
+	};
+
+	class FontAtlas : boost::noncopyable
+	{
+	public:
+		FontAtlas(FT_Face face, const int fontSize);
+		~FontAtlas();
+
+		const GLuint getTexture() const { return m_iTexture; }
+		const FontAtlasCharacter& getChar(const unsigned int index) const { return m_characters[index]; }
+		const int getTexWidth() const { return m_iTexWidth; }
+		const int getTexHeight() const { return m_iTexHeight; }
+
+	private:
+		GLuint m_iTexture;
+		int m_iTexWidth;
+		int m_iTexHeight;
+		std::vector<FontAtlasCharacter> m_characters;
+	};
+
     class TextRenderer : boost::noncopyable
     {
     public:
         TextRenderer(Graphic* pGraphic);
         ~TextRenderer();
 
-        bool initialize();
-		void display();
+        const bool initialize();
+		void display() const;
 
-		void render_text(const char *text, float x, float y, float sx, float sy);
+		void render_text(const std::string& text, float x, float y, float sx, float sy) const;
 
     private:
 		Graphic* m_pGraphic;
         FT_Library m_pFTLibrary;
 		FT_Face m_pFTFace;
+		boost::shared_ptr<FontAtlas> m_pAtlas;
 		boost::shared_ptr<Program> m_pProgram;
 		GLuint m_vbo;
     };

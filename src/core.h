@@ -34,7 +34,7 @@ namespace ramen
         Core();
         ~Core();
 
-        bool initialize(const int width, const int height);
+        const bool initialize(const int width, const int height);
         void run();
 
 		// slots

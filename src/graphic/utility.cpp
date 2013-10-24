@@ -16,6 +16,7 @@
 
 #include "utility.h"
 
+#include <cmath>
 #include <string>
 #include <sstream>
 #include <EGL/egl.h>
@@ -25,6 +26,14 @@
 
 namespace ramen
 {
+	const int findNearestPowerofTwo(const int value)
+	{
+		double power = ceil(log(value)/log(2));
+		double res = pow(2, power);
+
+		return int(res);
+	}
+
     const std::string glErrorEnumToString(GLenum err)
     {
         switch (err) {

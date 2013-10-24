@@ -92,6 +92,7 @@ namespace ramen
         EGLBoolean ret;
         EGLConfig eglConfig;
         EGLint configSize;
+		EGLint major, minor;
         EGLNativeWindowType hWnd;
         SDL_bool resWMInfo;
         SDL_SysWMinfo info;
@@ -123,11 +124,13 @@ namespace ramen
             return false;
         }
 
-        ret = eglInitialize(m_eglDisplay, NULL, NULL);
+        ret = eglInitialize(m_eglDisplay, &major, &minor);
         if (ret != EGL_TRUE) {
             VERIFYEGL();
             return false;
         }
+
+		LOGGFX << "EGL version " << major << "." << minor;
 
         ret = eglChooseConfig(m_eglDisplay, eglConfigAttribs, &eglConfig, 1, &configSize);
         assert(configSize == 1);
@@ -219,7 +222,7 @@ namespace ramen
         m_bState.store(state);
     }
 
-    void Graphic::swapbuffers()
+    void Graphic::swapbuffers() const
     {
 #if defined(_WIN32)
         if (eglSwapBuffers(m_eglDisplay, m_eglSurface) != EGL_TRUE) {
