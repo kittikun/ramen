@@ -16,14 +16,17 @@
 
 #include "profiler.h"
 
+#include <sstream>
+#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-
+#include <boost/range/adaptor/map.hpp>
 #include "log.h"
+#include "utility.h"
 
 namespace ramen
 {
 	boost::mutex Profiler::m_mutex;
-	std::map<std::string, ProfileData> Profiler::m_profiles;
+	boost::unordered_map<std::string, ProfileData> Profiler::m_profiles;
 
 	Profile::Profile(const std::string& name)
 		: m_start(boost::chrono::system_clock::now())
@@ -34,7 +37,28 @@ namespace ramen
 
 	Profile::~Profile()
 	{
-		Profiler::update(m_strName, boost::chrono::duration_cast<boost::chrono::milliseconds>(boost::chrono::system_clock::now() - m_start));
+		Profiler::update(m_strName, boost::chrono::duration_cast<boost::chrono::microseconds>(boost::chrono::system_clock::now() - m_start));
+	}
+
+	const std::string Profiler::getRoundedDuration(const boost::chrono::duration<long long, boost::micro>& duration)
+	{
+		std::stringstream stream;
+		int digits = utility::calcNumDigits(duration.count(), false);
+
+		stream << boost::chrono::duration_short;
+
+		if (digits <= 3) {
+			stream << duration;
+		} else if ((digits > 3) && (digits < 6)) {
+			stream << boost::chrono::duration_cast<boost::chrono::milliseconds>(duration);
+		} else if ((digits > 6) && (digits < 9)) {
+			stream << boost::chrono::duration_cast<boost::chrono::seconds>(duration);
+		} else if (digits > 9)
+		{
+			stream << boost::chrono::duration_cast<boost::chrono::minutes>(duration);
+		}
+
+		return stream.str();
 	}
 
 	void Profiler::dump()
@@ -42,16 +66,20 @@ namespace ramen
 		boost::lock_guard<boost::mutex> guard(m_mutex);
 		auto end = m_profiles.end();
 
-		LOG << "Dumping profiling information";
+		LOGP << "Dumping profiling information";
 
-		for (auto iter = m_profiles.begin(); iter != end; ++iter) {
-			ProfileData& data = iter->second;
+		BOOST_FOREACH(auto profile, m_profiles | boost::adaptors::map_values ) {
+			ProfileData& data = profile;
 
-			LOG << boost::format("%1%\navg:%2%\nmin:%3%\nmax:%4%\ncount:%5%\ntotal:%6%") % data.strName % (data.totalTime / data.iCount) % data.min % data.max % data.iCount % data.totalTime;
+			// trying to print chrono duration with log or format will not work with short duration so fallback to standard streams	
+			LOGP << boost::format("%1% avg:%2% min:%3% max:%4% cnt:%5% tot:%6%") % data.strName
+																				% getRoundedDuration(data.totalTime / data.iCount)
+																				% getRoundedDuration(data.min) % getRoundedDuration(data.max)
+																				% data.iCount % getRoundedDuration(data.totalTime);
 		}
 	}
 
-	void Profiler::update(const std::string& name, boost::chrono::duration<long long, boost::milli> duration)
+	void Profiler::update(const std::string& name, boost::chrono::duration<long long, boost::micro> duration)
 	{
 		boost::lock_guard<boost::mutex> guard(m_mutex);
 
@@ -73,7 +101,7 @@ namespace ramen
 		} else {
 			ProfileData data;
 
-			data.totalTime += duration;
+			data.totalTime = duration;
 			data.min = duration;
 			data.max = duration;
 			data.strName = name;

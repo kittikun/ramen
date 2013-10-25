@@ -40,7 +40,7 @@ namespace ramen
 
     const bool Core::initialize(const int width, const int height)
     {
-		PROFILE
+		PROFILE;
         LOGC << "Initializing SDL..";
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
             LOGE << SDL_GetError();
@@ -73,6 +73,12 @@ namespace ramen
 						if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
 							LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
 						}
+					}
+					break;
+
+				case SDL_KEYDOWN:
+					{
+						stop();
 					}
 					break;
 

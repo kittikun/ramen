@@ -17,7 +17,7 @@
 #include "shader.h"
 
 #include "../log.h"
-#include "utility.h"
+#include "graphicUtility.h"
 
 namespace ramen
 {
@@ -28,7 +28,6 @@ namespace ramen
 
 	Shader::Shader(const GLenum type)
 		: m_eType(type)
-		, m_iShaderID(-1)
 	{
 		m_iShaderID = glCreateShader(m_eType);
 	}

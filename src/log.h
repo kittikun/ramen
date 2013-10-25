@@ -24,9 +24,9 @@
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 
-#define LOG BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Generic)
 #define LOGC BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Core)
 #define LOGGFX BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_GFX)
+#define LOGP BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Profiler)
 #define LOGW BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Warning)
 #define LOGE BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Error)
 
@@ -34,9 +34,9 @@ namespace ramen
 {
     enum ELogLevel
     {
-        Log_Generic,
         Log_Core,
         Log_GFX,
+		Log_Profiler,
         Log_Warning,
         Log_Error
     };

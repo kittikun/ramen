@@ -14,28 +14,32 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef GRAPHIC_UTILITY_H
+#define GRAPHIC_UTILITY_H
 
 // Enable VERIFY_GL_ON in order to get detailed information about failing tests,
 // such as the line number and failure circumstances.
 #define VERIFY_GL_ON 1
 
 #if VERIFY_GL_ON
-    #define VERIFYGL() VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
-	#define VERIFYGL_RET() if (!VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)) return false
-	#define VERIFYEGL() VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
+    #define VERIFYGL() graphicUtility::VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
+	#define VERIFYGL_RET() if (!graphicUtility::VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)) return false
+	#define VERIFYEGL() graphicUtility::VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
 #else
-    #define VERIFYGL() (true)
-	#define VERIFYEGL() (true)
+    #define VERIFYGL()
+	#define VERIFYEGL()
+	#define VERIFYGL_RET()
 #endif
 
-namespace ramen {
+namespace ramen
+{
+	namespace graphicUtility
+	{
 
-	const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
-	const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
-	const int findNearestPowerofTwo(const int value);
-     
+		const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
+		const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
+
+	} // namespace graphicUtility    
 } // namespace ramen
 
-#endif // UTILITY_H
+#endif // GRAPHIC_UTILITY_H

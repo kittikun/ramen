@@ -29,7 +29,7 @@ struct SDL_Window;
 namespace ramen
 {
 	class Core;
-	class TextRenderer;
+	class FontManager;
 
 	class Graphic : boost::noncopyable, public boost::signals2::trackable
 	{
@@ -40,7 +40,7 @@ namespace ramen
 		bool initialize(Core* core, const int width, const int height);
 		void run();
 
-		const glm::ivec2 getWindowSize() const;
+		const glm::ivec2 windowSize() const;
 
 		// slots
 		void slotState(const bool state);
@@ -54,7 +54,7 @@ namespace ramen
 	private:
 		std::atomic<bool> m_bState;
 		void* m_pContext;
-		std::unique_ptr<TextRenderer> m_pTextRenderer;
+		std::unique_ptr<FontManager> m_pFontManager;
 		SDL_Window* m_pWindow;
 
 		// signals

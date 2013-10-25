@@ -37,9 +37,9 @@ namespace ramen
     {
         static const char* strings[] =
         {
-            "generic",
             "core",
             "gfx",
+			"prof",
             "WARNING",
             "ERROR",
         };

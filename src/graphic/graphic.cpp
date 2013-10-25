@@ -17,7 +17,7 @@
 #include "graphic.h"
 
 #include <SDL.h>
-#include <GLES2/gl2.h>
+#include <gles2/gl2.h>
 
 #if defined(_WIN32)
 #include <EGL/egl.h>
@@ -27,17 +27,17 @@
 #include "../core.h"
 #include "../log.h"
 #include "font.h"
-#include "utility.h"
+#include "font_DIN.h"
+#include "graphicUtility.h"
 
 namespace ramen
 {
     Graphic::Graphic()
        : m_bState(false)
        , m_pContext(nullptr)
+	   , m_pFontManager(new FontManager())
        , m_pWindow(nullptr)
-    {
-		m_pTextRenderer.reset(new TextRenderer(this));
-		
+    {		
     }
 
     Graphic::~Graphic()
@@ -161,15 +161,6 @@ namespace ramen
         return true;
     }
 
-	const glm::ivec2 Graphic::getWindowSize() const
-	{
-		glm::ivec2 toto;
-
-		SDL_GetWindowSize(m_pWindow, &toto.x, &toto.y);
-
-		return toto;
-	}
-
     bool Graphic::initialize(Core* core, const int width, const int height)
     {
         if (!createWindow(width, height)) {
@@ -187,9 +178,16 @@ namespace ramen
 			return false;
 		}
 
-		if (!m_pTextRenderer->initialize()) {
+		// All the following need a valid GLES context
+		if (!m_pFontManager->initialize(windowSize())) {
 			return false;
 		}
+
+		if (!m_pFontManager->loadFontFamillyFromMemory("dim", DIN_Light_ttf, DIN_Light_ttf_len)) {
+			return false;
+		}
+
+		m_pFontManager->makeFont("dim48", "dim", 48);
 
 		return true;
 	}
@@ -201,7 +199,6 @@ namespace ramen
 			return;
 		}
 			
-
         LOGC << "Starting graphic loop..";
         m_bState = true;
 
@@ -209,7 +206,7 @@ namespace ramen
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-			m_pTextRenderer->display();
+			m_pFontManager->drawText("The Quick Brown Fox Jumps Over The Lazy Dog", glm::vec2(10.f, 10.f));
 
             VERIFYGL();
             swapbuffers();
@@ -232,5 +229,14 @@ namespace ramen
         SDL_GL_SwapWindow(m_pWindow);
 #endif
     }
+
+	const glm::ivec2 Graphic::windowSize() const
+	{
+		glm::ivec2 toto;
+
+		SDL_GetWindowSize(m_pWindow, &toto.x, &toto.y);
+
+		return toto;
+	}
 
 } // namespace ramen

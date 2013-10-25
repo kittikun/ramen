@@ -17,12 +17,12 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <map>
+#include <boost/unordered_map.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
-#define PROFILE Profile profile(__FUNCTION__);
+#define PROFILE Profile profile(__FUNCTION__)
 
 namespace ramen
 {
@@ -30,9 +30,9 @@ namespace ramen
 	{
 		unsigned int iCount;
 		std::string strName;
-		boost::chrono::duration<long long, boost::milli> totalTime;
-		boost::chrono::duration<long long, boost::milli> min;
-		boost::chrono::duration<long long, boost::milli> max;
+		boost::chrono::duration<long long, boost::micro> totalTime;
+		boost::chrono::duration<long long, boost::micro> min;
+		boost::chrono::duration<long long, boost::micro> max;
 	};
 
 	class Profile : boost::noncopyable
@@ -50,12 +50,13 @@ namespace ramen
 	class Profiler : boost::noncopyable
 	{
 	public:
-		static void update(const std::string& name, boost::chrono::duration<long long, boost::milli> duration);
+		static const std::string Profiler::getRoundedDuration(const boost::chrono::duration<long long, boost::micro>& duration);
+		static void update(const std::string& name, boost::chrono::duration<long long, boost::micro> duration);
 		static void dump();
 
 	private:
 		static boost::mutex m_mutex;
-		static std::map<std::string, ProfileData> m_profiles;
+		static boost::unordered_map<std::string, ProfileData> m_profiles;
 	};
 
 } // namespace ramen

@@ -21,43 +21,74 @@
 #include FT_FREETYPE_H
 
 #include <vector>
+#include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <boost/utility.hpp>
-#include <GLES2/gl2.h>
+#include <gles2/gl2.h>
+#include <glm/glm.hpp>
+
 
 namespace ramen
 {
 	class Program;
 	class Graphic;
 
-	struct FontAtlasCharacter
-	{
-		float ax;	// advance.x
-		float ay;	// advance.y
-		float bw;	// bitmap.width;
-		float bh;	// bitmap.height;
-		float bl;	// bitmap_left;
-		float bt;	// bitmap_top;
-		float tx;	// x offset of glyph in texture coordinates
-		float ty;	// y offset of glyph in texture coordinates
-	};
-
 	class FontAtlas : boost::noncopyable
 	{
 	public:
-		FontAtlas(FT_Face face, const int fontSize);
+		struct Character
+		{
+			glm::vec2 advance;
+			glm::vec2 bmpSize;
+			glm::vec2 bmpTopLeft;
+			glm::vec2 texOffset;
+		};
+
+		FontAtlas();
 		~FontAtlas();
 
-		const GLuint getTexture() const { return m_iTexture; }
-		const FontAtlasCharacter& getChar(const unsigned int index) const { return m_characters[index]; }
-		const int getTexWidth() const { return m_iTexWidth; }
-		const int getTexHeight() const { return m_iTexHeight; }
+		void initialize(const FT_Face fontFamilly, const unsigned char size);
+
+		const GLuint texture() const { return m_iTexture; }
+		const Character& charAt(const unsigned int index) const { return m_characters[index]; }
+		const glm::ivec2 texSize() const { return m_texSize; }
+
+	private:
+		void calcRequiredTexSize(const FT_Face fontFamilly);
+		void createTexture(const FT_Face fontFamilly);
 
 	private:
 		GLuint m_iTexture;
-		int m_iTexWidth;
-		int m_iTexHeight;
-		std::vector<FontAtlasCharacter> m_characters;
+		glm::ivec2 m_texSize;
+		std::vector<Character> m_characters;
+	};
+
+	class FontManager : boost::noncopyable
+	{
+	public:
+		FontManager();
+		~FontManager();
+
+		const bool initialize(const glm::ivec2& windowSize);
+
+		const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
+		const bool makeFont(const std::string& name, const std::string& fontFamilly, const int size);
+
+		void drawText(const std::string& text, glm::vec2 pos) const;
+
+		const bool setActiveFont(const std::string& name);
+		const void setFontColor(const glm::vec4& color) { m_color = color; }
+
+	private:
+		boost::shared_ptr<Program> m_pProgram;
+		boost::weak_ptr<FontAtlas> m_currentFont;
+		FT_Library m_FTLibrary;
+		GLuint m_vbo;
+		glm::vec2 m_scaleFactor;
+		glm::vec4 m_color;
+		boost::unordered_map<std::string, FT_Face> m_fonts;
+		boost::unordered_map<std::string, boost::shared_ptr<FontAtlas>> m_fontAtlases;
 	};
 
     class TextRenderer : boost::noncopyable
@@ -69,15 +100,11 @@ namespace ramen
         const bool initialize();
 		void display() const;
 
-		void render_text(const std::string& text, float x, float y, float sx, float sy) const;
+		void render_text(const std::string& text, const glm::vec2& pos, const glm::vec2& scale) const;
 
     private:
 		Graphic* m_pGraphic;
-        FT_Library m_pFTLibrary;
-		FT_Face m_pFTFace;
 		boost::shared_ptr<FontAtlas> m_pAtlas;
-		boost::shared_ptr<Program> m_pProgram;
-		GLuint m_vbo;
     };
 
 } // namespace ramen

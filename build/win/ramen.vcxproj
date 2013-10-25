@@ -15,10 +15,11 @@
     <ClCompile Include="..\..\src\graphic\font.cpp" />
     <ClCompile Include="..\..\src\graphic\graphic.cpp" />
     <ClCompile Include="..\..\src\graphic\shader.cpp" />
-    <ClCompile Include="..\..\src\graphic\utility.cpp" />
+    <ClCompile Include="..\..\src\graphic\graphicUtility.cpp" />
     <ClCompile Include="..\..\src\log.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\profiler.cpp" />
+    <ClCompile Include="..\..\src\utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h" />
@@ -26,9 +27,10 @@
     <ClInclude Include="..\..\src\graphic\font_DIN.h" />
     <ClInclude Include="..\..\src\graphic\graphic.h" />
     <ClInclude Include="..\..\src\graphic\shader.h" />
-    <ClInclude Include="..\..\src\graphic\utility.h" />
+    <ClInclude Include="..\..\src\graphic\graphicUtility.h" />
     <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\profiler.h" />
+    <ClInclude Include="..\..\src\utility.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
@@ -76,6 +78,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./external/include;./external/include/sdl;./external/include/freetype</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild />
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

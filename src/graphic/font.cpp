@@ -1,4 +1,4 @@
-//  Copyright (C) 2013  kittikun
+//  Copyright (count) 2013  kittikun
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -18,15 +18,14 @@
 
 #include <algorithm>
 #include <vector>
-#include <glm/glm.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "../log.h"
 #include "../profiler.h"
-#include "font_DIN.h"
+#include "../utility.h"
 #include "graphic.h"
 #include "shader.h"
-#include "utility.h"
+#include "graphicUtility.h"
 
 static const char* g_strVertexFont[] = {
 	"attribute vec4 coord;\n"
@@ -45,61 +44,74 @@ static const char* g_strFragFont[] = {
 	"uniform vec4 color;\n"
 
 	"void main(void) {\n"
-	"  gl_FragColor = vec4(texpos, 0, 1);\n"
+	//"  gl_FragColor = vec4(texpos, 0, 1);\n"
 	//"  gl_FragColor = vec4(texture2D(tex, texpos).a, texture2D(tex, texpos).a, texture2D(tex, texpos).a, 1) * color;\n"
-	//"  gl_FragColor = vec4(1, 1, 1, texture2D(tex, texpos).a) * color;\n"
+	"  gl_FragColor = vec4(1, 1, 1, texture2D(tex, texpos).a) * color;\n"
 	"}\n"
 };
 
 namespace ramen
 {
+	static const int g_fontAtlasTexMaxWidth = 1024; // TODO: put in config file later ?
 
 //-------------------------------------------------------------------------------------
 // FONTATLAS
 //-------------------------------------------------------------------------------------
 
-	FontAtlas::FontAtlas(FT_Face face, const int fontSize)
+	FontAtlas::FontAtlas()
+		: m_iTexture(-1)
 	{
-		static const int MaxWidth = 1024;
-		int rowW = 0;
-		int rowH = 0;
-		int w = 0;
-		int h = 0;
-		FT_GlyphSlot glyph = face->glyph;
-
 		m_characters.resize(128);
-		// Make a simple texture storing all glyph on width
-		FT_Set_Pixel_Sizes(face, 0, fontSize);
+	}
+
+	FontAtlas::~FontAtlas()
+	{
+		if (m_iTexture != -1) {
+			glDeleteTextures(1, &m_iTexture);
+		}
+	}
+
+	void FontAtlas::calcRequiredTexSize(const FT_Face fontFamilly)
+	{
+		FT_GlyphSlot glyph = fontFamilly->glyph;
+		glm::ivec2 pos;
+		glm::ivec2 rowSize;
 
 		// Find minimum size for a texture holding all visible ASCII characters
 		for (int i = 32; i < 128; i++) {
-			if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-				LOGE << "Loading character " << i << "failed";
+			if (FT_Load_Char(fontFamilly, i, FT_LOAD_RENDER)) {
+				LOGE << "FontAltas loading of character " << i << "failed";
 				continue;
 			}
 
-			if (rowW + glyph->bitmap.width + 1 >= MaxWidth) {
-				w = std::max(w, rowW);
-				h += rowH;
-				rowW = 0;
-				rowH = 0;
+			if (rowSize.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
+				pos.x = std::max(pos.x, rowSize.x);
+				pos.y += rowSize.y;
+				rowSize.x = 0;
+				rowSize.y = 0;
 			}
-			rowW += glyph->bitmap.width + 1;
-			rowH = std::max(rowH, glyph->bitmap.rows);
+			rowSize.x += glyph->bitmap.width + 1;
+			rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
 		}
 
-		w = findNearestPowerofTwo(std::max(w, rowW));
-		h = findNearestPowerofTwo(h + rowH);
-		m_iTexWidth = w;
-		m_iTexHeight = h;
+		m_texSize.x = utility::calcNearestPowerofTwo(std::max(pos.x, rowSize.x));
+		m_texSize.y = utility::calcNearestPowerofTwo(pos.y + rowSize.y);
+	}
 
-		// Create a texture that will be used to hold all ASCII glyphs
+	void FontAtlas::createTexture(const FT_Face fontFamilly)
+	{
+		FT_GlyphSlot glyph = fontFamilly->glyph;
+		glm::ivec2 offset;
+		glm::ivec2 pos;
+		glm::ivec2 rowSize;
+
+		// Create texture
 		glGenTextures(1, &m_iTexture);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_iTexture);
 		VERIFYGL();
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, m_texSize.x, m_texSize.y, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
 		VERIFYGL();
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -109,92 +121,141 @@ namespace ramen
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		VERIFYGL();
 
-		/* Paste all glyph bitmaps into the texture, remembering the offset */
-		int ox = 0;
-		int oy = 0;
+		LOGGFX << boost::format("Generated FontAtlas with %1%x%2% (%3% kb) texture") % m_texSize.x % m_texSize.y % (m_texSize.x * m_texSize.y / 1024);
 
-		rowH = 0;
-
+		// Fill texture with data from freetype
 		for (int i = 32; i < 128; i++) {
-			FontAtlasCharacter& ch = m_characters[i];
+			FontAtlas::Character& ch = m_characters[i];
 
-			if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-				LOGE << "Loading character " << i << " failed!";
+			if (FT_Load_Char(fontFamilly, i, FT_LOAD_RENDER)) {
+				LOGE << "FontAltas loading of character " << i << "failed";
 				continue;
 			}
 
-			if (ox + glyph->bitmap.width + 1 >= MaxWidth) {
-				oy += rowH;
-				rowH = 0;
-				ox = 0;
+			if (offset.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
+				offset.x = 0;
+				offset.y += rowSize.y;
+				rowSize.y = 0;
 			}
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, ox, oy, glyph->bitmap.width, glyph->bitmap.rows, GL_ALPHA, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, offset.x, offset.y, glyph->bitmap.width, glyph->bitmap.rows, GL_ALPHA, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
 			VERIFYGL();
 
-			ch.ax = float(glyph->advance.x >> 6);
-			ch.ay = float(glyph->advance.y >> 6);
+			// Fill char info
+			ch.advance.x = float(glyph->advance.x >> 6);
+			ch.advance.y = float(glyph->advance.y >> 6);
+			ch.bmpSize.x = float(glyph->bitmap.width);
+			ch.bmpSize.y = float(glyph->bitmap.rows);
+			ch.bmpTopLeft.x = float(glyph->bitmap_left);
+			ch.bmpTopLeft.y = float(glyph->bitmap_top);
+			ch.texOffset.s = offset.x / (float)m_texSize.x;
+			ch.texOffset.t = offset.y / (float)m_texSize.y;
 
-			ch.bw = float(glyph->bitmap.width);
-			ch.bh = float(glyph->bitmap.rows);
-
-			ch.bl = float(glyph->bitmap_left);
-			ch.bt = float(glyph->bitmap_top);
-
-			ch.tx = ox / (float)w;
-			ch.ty = oy / (float)h;
-
-			rowH = std::max(rowH, glyph->bitmap.rows);
-			ox += glyph->bitmap.width + 1;
+			rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
+			offset.x += glyph->bitmap.width + 1;
 		}
-
-		LOGGFX << boost::format("Generated FontAtlas with %1%x%2% (%3% kb) texture") % w % h % (w * h / 1024);
 	}
 
-	FontAtlas::~FontAtlas()
+	void FontAtlas::initialize(const FT_Face fontFamilly, const unsigned char size)
 	{
-		glDeleteTextures(1, &m_iTexture);
+		FT_Set_Pixel_Sizes(fontFamilly, 0, size);
+
+		calcRequiredTexSize(fontFamilly);
+		createTexture(fontFamilly);
 	}
 
 //-------------------------------------------------------------------------------------
-// TEXTRENDER
+// FONTMANAGER
 //-------------------------------------------------------------------------------------
-
-	TextRenderer::TextRenderer(Graphic* pGraphic)
-		: m_pGraphic(pGraphic)
-		, m_pFTLibrary(nullptr)
+	FontManager::FontManager()
+		: m_FTLibrary(nullptr)
+		, m_color(1.0f)
 		, m_vbo(-1)
 	{
-
 	}
 
-	TextRenderer::~TextRenderer()
+	FontManager::~FontManager()
 	{
-		LOGGFX << "Destroying text renderer..";
+		LOGGFX << "Destroying font manager..";
 
-		if (m_pFTLibrary) {
-			FT_Done_FreeType(m_pFTLibrary);
+		if (m_FTLibrary) {
+			FT_Done_FreeType(m_FTLibrary);
+		}
+
+		if (m_vbo != 0) {
+			glDeleteBuffers(1, &m_vbo);
 		}
 	}
 
-	const bool TextRenderer::initialize()
+	void FontManager::drawText(const std::string& text, glm::vec2 pos) const
 	{
-		PROFILE
-		LOGGFX << "Initializing text renderer..";
+		PROFILE;
+		auto font = m_currentFont.lock();
+		pos = glm::vec2(-1 + 8 * m_scaleFactor.x, 1 - 50 * m_scaleFactor.y);
+		m_pProgram->use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, font->texture());
+		glUniform1i(m_pProgram->getUniformLocation("tex"), 0);
+		VERIFYGL();
 
-		if (FT_Init_FreeType(&m_pFTLibrary)) {
-			LOGE << "Could not init freetype library";
-			return false;
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		glEnableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
+		glVertexAttribPointer(m_pProgram->getAttribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
+		VERIFYGL();
+
+		std::vector<glm::vec4> coords(6 * text.size());
+		int count = 0;
+
+		/* Loop through all characters */
+		for (unsigned int i = 0; i < text.size(); ++i) {
+			const FontAtlas::Character& ch = font->charAt(text[i]);
+			glm::vec2 pos2;
+			glm::vec2 size;
+			/* Calculate the vertex and texture coordinates */
+
+			pos2.x = pos.x + ch.bmpTopLeft.x * m_scaleFactor.x;
+			pos2.y = -pos.y - ch.bmpTopLeft.y * m_scaleFactor.y;
+			float w = ch.bmpSize.x * m_scaleFactor.x;
+			float h = ch.bmpSize.y * m_scaleFactor.y;
+
+			/* Advance the cursor to the start of the next character */
+			pos.x += ch.advance.x * m_scaleFactor.x;
+			pos.y += ch.advance.y * m_scaleFactor.y;
+
+			/* Skip glyphs that have no pixels */
+			if (!w || !h)
+				continue;
+
+			coords[count++] = glm::vec4(pos2.x, -pos2.y, ch.texOffset.s, ch.texOffset.t);
+			coords[count++] = glm::vec4(pos2.x + w, -pos2.y, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t);
+			coords[count++] = glm::vec4(pos2.x, -pos2.y - h, ch.texOffset.s, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
+			coords[count++] = glm::vec4(pos2.x + w, -pos2.y, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t);
+			coords[count++] = glm::vec4(pos2.x, -pos2.y - h, ch.texOffset.s, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
+			coords[count++] = glm::vec4(pos2.x + w, -pos2.y - h, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
 		}
 
-		if (FT_New_Memory_Face(m_pFTLibrary, DIN_Light_ttf, DIN_Light_ttf_len, 0, &m_pFTFace)) {
-			LOGE << "Could not open font DIN";
-			return false;
-		}
+		/* Draw all the character on the screen in one go */
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * coords.size(), &coords.front(), GL_DYNAMIC_DRAW);
+		glDrawArrays(GL_TRIANGLES, 0, count);
+		VERIFYGL();
 
+		glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
+	}
+
+	const bool FontManager::initialize(const glm::ivec2& windowSize)
+	{
+		PROFILE;
 		boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
 		boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
 
+		LOGGFX << "Initializing text renderer..";
+
+		if (FT_Init_FreeType(&m_FTLibrary)) {
+			LOGE << "Could not initialize Freetype library";
+			return false;
+		}
+
+		// Shaders/Program to be use for all font drawing
 		if (!vtx->compile(g_strVertexFont) || !frg->compile(g_strFragFont)) {
 			return false;
 		}
@@ -208,105 +269,80 @@ namespace ramen
 		}
 
 		glGenBuffers(1, &m_vbo);
+		VERIFYGL_RET();
 
-		m_pAtlas.reset(new FontAtlas(m_pFTFace, 48));
-		VERIFYGL();
+		m_scaleFactor = glm::vec2(2.0 / float(windowSize.x), 2.0 / float(windowSize.y));
 
 		return true;
 	}
 
-	void TextRenderer::render_text(const std::string& text, float x, float y, float sx, float sy) const
+	const bool FontManager::loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size)
 	{
-		PROFILE
-		const uint8_t *p;
+		FT_Face face;
 
-		/* Use the texture containing the atlas */
-		glBindTexture(GL_TEXTURE_2D, m_pAtlas->getTexture());
-		glUniform1i(m_pProgram->getUniformLocation("tex"), 0);
-		VERIFYGL();
+		LOGGFX << "Loading font familly " << name << "..";
 
-		/* Set up the VBO for our vertex data */
-		glEnableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glVertexAttribPointer(m_pProgram->getAttribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
-		VERIFYGL();
-
-		std::vector<glm::vec4> coords(6 * text.size());
-		int c = 0;
-
-		/* Loop through all characters */
-		for (p = (const uint8_t *)text.c_str(); *p; p++) {
-			const FontAtlasCharacter& ch = m_pAtlas->getChar(*p);
-			/* Calculate the vertex and texture coordinates */
-			float x2 = x + ch.bl * sx;
-			float y2 = -y - ch.bt * sy;
-			float w = ch.bw * sx;
-			float h = ch.bh * sy;
-
-			/* Advance the cursor to the start of the next character */
-			x += ch.ax * sx;
-			y += ch.ay * sy;
-
-			/* Skip glyphs that have no pixels */
-			if (!w || !h)
-				continue;
-
-			coords[c++] = glm::vec4(x2, -y2, ch.tx, ch.ty);
-			coords[c++] = glm::vec4(x2 + w, -y2, (ch.tx + ch.bw) / m_pAtlas->getTexWidth(), ch.ty);
-			coords[c++] = glm::vec4(x2, -y2 - h, ch.tx, (ch.ty + ch.bh) / m_pAtlas->getTexHeight());
-			coords[c++] = glm::vec4(x2 + w, -y2, (ch.tx + ch.bw) / m_pAtlas->getTexWidth(), ch.ty);
-			coords[c++] = glm::vec4(x2, -y2 - h, ch.tx, (ch.ty + ch.bh) / m_pAtlas->getTexHeight());
-			coords[c++] = glm::vec4(x2 + w, -y2 - h, (ch.tx + ch.bw) / m_pAtlas->getTexWidth(), ch.ty + ch.bh / m_pAtlas->getTexHeight());
+		if (FT_New_Memory_Face(m_FTLibrary, data, size, 0, &face)) {
+			LOGE << "Could not open font familly " << name << " from memory";
+			return false;
 		}
 
-		/* Draw all the character on the screen in one go */
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * coords.size(), &coords.front(), GL_DYNAMIC_DRAW);
-		glDrawArrays(GL_TRIANGLES, 0, c);
-		VERIFYGL();
+		m_fonts.insert(std::make_pair(name, face));
 
-		glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
+		return true;
 	}
 
-	void TextRenderer::display() const
+	const bool FontManager::makeFont(const std::string& name, const std::string& fontFamilly, const int size)
 	{
-		PROFILE
-		glm::ivec2 windowSize = m_pGraphic->getWindowSize();
-		float sx = 2.0f / float(windowSize.x);
-		float sy = 2.0f / float(windowSize.y);
+		auto foundFamilly = m_fonts.find(fontFamilly);
 
-		m_pProgram->use();
+		LOGGFX << boost::format("Generating %1% from %2% at %3%pts..") % name % fontFamilly % size;
 
-		/* Enable blending, necessary for our alpha texture */
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		if (foundFamilly == m_fonts.end()) {
+			LOGE << "Font familly \"" << fontFamilly << "\" doesn't exist";
+			return false;
+		}
 
-		GLfloat black[4] = { 0, 0, 0, 1 };
-		GLfloat red[4] = { 1, 0, 0, 1 };
-		GLfloat transparent_green[4] = { 0, 1, 0, 0.5 };
+		// make sure name isn't already used
+		auto foundDup = m_fontAtlases.find(name);
 
-		/* Set color to black */
-		glUniform4fv(m_pProgram->getUniformLocation("color"), 1, black);
+		if (foundDup != m_fontAtlases.end()) {
+			LOGW << "A fot named " << name << " already exists, abording";
+			return false;
+		}
 
-		/* Effects of alignment */
-		render_text("The Quick Brown Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 50 * sy, sx, sy);
-		render_text("The Misaligned Fox Jumps Over The Lazy Dog", -1 + 8.5 * sx, 1 - 100.5 * sy, sx, sy);
+		boost::shared_ptr<FontAtlas> atlas(new FontAtlas());
 
-		/* Scaling the texture versus changing the font size */
-		render_text("The Small Texture Scaled Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 175 * sy, sx * 0.5, sy * 0.5);
-		render_text("The Small Font Sized Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 200 * sy, sx, sy);
-		render_text("The Tiny Texture Scaled Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 235 * sy, sx * 0.25, sy * 0.25);
-		render_text("The Tiny Font Sized Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 250 * sy, sx, sy);
+		atlas->initialize(foundFamilly->second, size);
+		m_fontAtlases.insert(std::make_pair(name, atlas));
 
-		/* Colors and transparency */
-		render_text("The Solid Black Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 430 * sy, sx, sy);
+		// Set first added font as active
+		if (m_fontAtlases.size() == 1) {
+			m_currentFont = atlas;
+		}
 
-		glUniform4fv(m_pProgram->getUniformLocation("color"), 1, red);
-		render_text("The Solid Red Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 330 * sy, sx, sy);
-		render_text("The Solid Red Fox Jumps Over The Lazy Dog", -1 + 28 * sx, 1 - 450 * sy, sx, sy);
+		return true;
+	}
 
-		glUniform4fv(m_pProgram->getUniformLocation("color"), 1, transparent_green);
-		render_text("The Transparent Green Fox Jumps Over The Lazy Dog", -1 + 8 * sx, 1 - 380 * sy, sx, sy);
-		render_text("The Transparent Green Fox Jumps Over The Lazy Dog", -1 + 18 * sx, 1 - 440 * sy, sx, sy);
+	const bool FontManager::setActiveFont(const std::string& name)
+	{
+		auto found = m_fontAtlases.find(name);
+
+		LOGGFX << "Setting current active font to " << name;
+
+		if (found == m_fontAtlases.end()) {
+			LOGE << "Cannot find font " << name;
+			return false;
+		}
+
+		if (found->second == m_currentFont.lock()) {
+			LOGW << name << " was already the active font";
+			return false;
+		}
+
+		m_currentFont = found->second;
+
+		return true;
 	}
 
 } // namespace ramen
