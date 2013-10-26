@@ -31,8 +31,8 @@ int main(int ac, char** av)
 
         desc.add_options()
            ("help,h", "output help message")
-           ("width,w", po::value<uint32_t>()->default_value(800)->required(), "window width")
-           ("height,g", po::value<uint32_t>()->default_value(600)->required(), "window height")
+           ("width,w", po::value<uint32_t>()->default_value(1024)->required(), "window width")
+           ("height,g", po::value<uint32_t>()->default_value(768)->required(), "window height")
         ;
 
         p.add("width", 1);

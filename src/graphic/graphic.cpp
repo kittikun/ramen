@@ -188,6 +188,7 @@ namespace ramen
 		}
 
 		m_pFontManager->makeFont("dim48", "dim", 48);
+		m_pFontManager->makeFont("dim16", "dim", 16);
 
 		return true;
 	}
@@ -206,7 +207,12 @@ namespace ramen
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-			m_pFontManager->drawText("The Quick Brown Fox Jumps Over The Lazy Dog", glm::vec2(10.f, 10.f));
+			m_pFontManager->setActiveFont("dim48");
+			m_pFontManager->setFontColor(1, 1, 0, 1);
+			m_pFontManager->drawText("Ramen Framework", glm::vec2(0, 700));
+			m_pFontManager->setActiveFont("dim16");
+			m_pFontManager->setFontColor(0, 1, 1, 1);
+			m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
 
             VERIFYGL();
             swapbuffers();

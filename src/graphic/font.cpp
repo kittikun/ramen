@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <glm/ext.hpp>
 
 #include "../log.h"
 #include "../profiler.h"
@@ -52,7 +53,7 @@ static const char* g_strFragFont[] = {
 
 namespace ramen
 {
-	static const int g_fontAtlasTexMaxWidth = 1024; // TODO: put in config file later ?
+	static const int g_fontAtlasTexMaxWidth = 512; // TODO: put in config file later ?
 
 //-------------------------------------------------------------------------------------
 // FONTATLAS
@@ -187,20 +188,26 @@ namespace ramen
 		}
 	}
 
-	void FontManager::drawText(const std::string& text, glm::vec2 pos) const
+	void FontManager::drawText(const std::string& text, const glm::vec2& pos) const
 	{
 		PROFILE;
 		auto font = m_currentFont.lock();
-		pos = glm::vec2(-1 + 8 * m_scaleFactor.x, 1 - 50 * m_scaleFactor.y);
+		glm::vec2 posScaled = glm::vec2(-1 + pos.x * m_scaleFactor.x, 1 - pos.y * m_scaleFactor.y);
+
 		m_pProgram->use();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, font->texture());
 		glUniform1i(m_pProgram->getUniformLocation("tex"), 0);
+		glUniform4fv(m_pProgram->getUniformLocation("color"), 1, glm::value_ptr(m_color));
 		VERIFYGL();
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glEnableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
 		glVertexAttribPointer(m_pProgram->getAttribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
+		VERIFYGL();
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		VERIFYGL();
 
 		std::vector<glm::vec4> coords(6 * text.size());
@@ -213,14 +220,14 @@ namespace ramen
 			glm::vec2 size;
 			/* Calculate the vertex and texture coordinates */
 
-			pos2.x = pos.x + ch.bmpTopLeft.x * m_scaleFactor.x;
-			pos2.y = -pos.y - ch.bmpTopLeft.y * m_scaleFactor.y;
+			pos2.x = posScaled.x + ch.bmpTopLeft.x * m_scaleFactor.x;
+			pos2.y = -posScaled.y - ch.bmpTopLeft.y * m_scaleFactor.y;
 			float w = ch.bmpSize.x * m_scaleFactor.x;
 			float h = ch.bmpSize.y * m_scaleFactor.y;
 
 			/* Advance the cursor to the start of the next character */
-			pos.x += ch.advance.x * m_scaleFactor.x;
-			pos.y += ch.advance.y * m_scaleFactor.y;
+			posScaled.x += ch.advance.x * m_scaleFactor.x;
+			posScaled.y += ch.advance.y * m_scaleFactor.y;
 
 			/* Skip glyphs that have no pixels */
 			if (!w || !h)

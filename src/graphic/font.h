@@ -75,10 +75,11 @@ namespace ramen
 		const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
 		const bool makeFont(const std::string& name, const std::string& fontFamilly, const int size);
 
-		void drawText(const std::string& text, glm::vec2 pos) const;
+		void drawText(const std::string& text, const glm::vec2& pos) const;
 
 		const bool setActiveFont(const std::string& name);
 		const void setFontColor(const glm::vec4& color) { m_color = color; }
+		const void setFontColor(const float r, const float g, const float b, const float a) { m_color = glm::vec4(r, g, b, a); }
 
 	private:
 		boost::shared_ptr<Program> m_pProgram;
