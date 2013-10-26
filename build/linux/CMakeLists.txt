@@ -18,13 +18,14 @@ SET(EXE_SRC	${SRC_PATH}/core.cpp
 		${SRC_PATH}/graphic/font.cpp
 		${SRC_PATH}/graphic/graphic.cpp
 		${SRC_PATH}/graphic/shader.cpp
-		${SRC_PATH}/graphic/graphicUtility.cpp)
+		${SRC_PATH}/graphic/graphicUtility.cpp
+		${SRC_PATH}/io/filesystem.cpp)
 
 SET(EXECUTABLE_NAME ramen)
 
 ADD_EXECUTABLE(${EXECUTABLE_NAME} ${EXE_SRC})
 
-FIND_PACKAGE(Boost 1.54.0 COMPONENTS chrono log program_options system thread REQUIRED)
+FIND_PACKAGE(Boost 1.54.0 COMPONENTS chrono filesystem log program_options system thread REQUIRED)
 IF (Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
   ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)

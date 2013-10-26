@@ -49,9 +49,9 @@ namespace ramen
 
 		if (digits <= 3) {
 			stream << duration;
-		} else if ((digits > 3) && (digits < 6)) {
+		} else if ((digits > 3) && (digits <= 6)) {
 			stream << boost::chrono::duration_cast<boost::chrono::milliseconds>(duration);
-		} else if ((digits > 6) && (digits < 9)) {
+		} else if ((digits > 6) && (digits <= 9)) {
 			stream << boost::chrono::duration_cast<boost::chrono::seconds>(duration);
 		} else if (digits > 9)
 		{

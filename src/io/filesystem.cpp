@@ -25,74 +25,80 @@
 namespace ramen
 {
 
-	void Filesystem::findResourcePath()
-	{
-		boost::filesystem::directory_iterator end;
-		boost::filesystem::path path = m_workingDir;
-		bool found = false;
+    void Filesystem::findResourcePath()
+    {
+        boost::filesystem::directory_iterator end;
+        boost::filesystem::path path = m_workingDir;
+        bool found = false;
 
-		while (!found) {
-			for(boost::filesystem::directory_iterator iter(path) ; iter != end ; ++iter) {
-				if (boost::filesystem::is_directory(*iter)) {
-					if (iter->path().leaf() == "resources") {
-						m_resourcePath = iter->path();
-						found = true;
-						break;
-					}
-				}
-			}
+        while (!found) {
+            for (boost::filesystem::directory_iterator iter(path); iter != end; ++iter) {
+                if (boost::filesystem::is_directory(*iter)) {
+                    if (iter->path().leaf() == "resources") {
+                        m_resourcePath = iter->path();
+                        found = true;
+                        break;
+                    }
+                }
+            }
 
-			if (!found) {
-				path = path.parent_path();
-			}
-		}
+            if (!found) {
+                path = path.parent_path();
+            }
+        }
 
-		LOGI << "Resource directory: " << m_resourcePath;
-	}
+        LOGI << "Resource directory: " << m_resourcePath;
+    }
 
-	void Filesystem::findWorkingDir()
-	{
+    void Filesystem::findWorkingDir()
+    {
+        std::vector<char> exePath(64);
+
 #if defined(_WIN32)
-		std::vector<char> exePath(64);
-		DWORD res = ::GetModuleFileNameA(nullptr, &exePath[0], static_cast<DWORD>(exePath.size()));
+        DWORD res = ::GetModuleFileNameA(nullptr, &exePath[0], static_cast<DWORD>(exePath.size()));
 
-		// buffer might be too short
-		while(res == exePath.size()) {
-			exePath.resize(exePath.size() * 2);
-			res = ::GetModuleFileNameA(nullptr, &exePath[0], static_cast<DWORD>(exePath.size()));
-		}
+        while (res == exePath.size()) {
+            exePath.resize(exePath.size() * 2);
+            res = ::GetModuleFileNameA(nullptr, &exePath[0], static_cast<DWORD>(exePath.size()));
+        }
+#elif defined(__linux__)
+        std::string cmd = boost::str(boost::format("/proc/%1%/exe") % getpid());
+        size_t res = readlink(cmd.c_str(), &exePath[0], exePath.size());
 
-		m_workingDir = std::string(exePath.begin(), exePath.begin() + res);
+        while (res == exePath.size()) {
+            exePath.resize(exePath.size() * 2);
+            res = readlink(cmd.c_str(), &exePath[0], exePath.size());
+        }
 #endif
+        m_workingDir = std::string(exePath.begin(), exePath.begin() + res); 
+        m_workingDir = m_workingDir.remove_filename();
+        LOGI << "Working directory: " << m_workingDir;
+    }
 
-		m_workingDir = m_workingDir.remove_filename();
-		LOGI << "Working directory: " << m_workingDir;
-	}
+    const bool Filesystem::initialize()
+    {
+        findWorkingDir();
+        findResourcePath();
 
-	const bool Filesystem::initialize()
-	{
-		findWorkingDir();
-		findResourcePath();
+        return true;
+    }
 
-		return true;
-	}
+    const std::string Filesystem::resourcePathStr(uint32_t type, const std::string& filename) const
+    {
+        std::string pathStr;
+        boost::filesystem::path pathFS;
 
-	const std::string Filesystem::resourcePathStr(uint32_t type, const std::string& filename) const
-	{
-		std::string pathStr;
-		boost::filesystem::path pathFS;
+        if (type == TYPE_FONT) {
+            pathFS = m_resourcePath / "font" / filename;
 
-		if (type == TYPE_FONT) {
-			pathFS = m_resourcePath / "font" / filename;
+            if (!boost::filesystem::exists(pathFS)) {
+                LOGE << pathFS << " does not exists";
+            }
 
-			if (!boost::filesystem::exists(pathFS)) {
-				LOGE << pathFS << " does not exists";
-			}
+            pathStr = pathFS.string();
+        }
 
-			pathStr = pathFS.string();
-		}
-
-		return pathStr;
-	}
+        return pathStr;
+    }
 
 } // namespace ramen

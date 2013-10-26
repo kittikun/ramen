@@ -290,7 +290,7 @@ namespace ramen
 	{
         FT_Face face;
 
-        LOGGFX << "Loading font familly " << name << "..";
+        LOGGFX << boost::format("Loading font familly \"%1%\" from %2%..") % name % filename;
 
         if (FT_New_Face(m_FTLibrary, m_pFilesystem.lock()->resourcePathStr(Filesystem::TYPE_FONT, filename).c_str() , 0, &face)) {
             LOGE << "Could not open font familly " << name << " from memory";
@@ -298,13 +298,15 @@ namespace ramen
         }
 
         m_fonts.insert(std::make_pair(name, face));
+
+        return true;
 	}
 
     const bool FontManager::loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const uint32_t size)
     {
         FT_Face face;
 
-        LOGGFX << "Loading font familly " << name << "..";
+        LOGGFX << "Loading font familly \"" << name << "\"..";
 
         if (FT_New_Memory_Face(m_FTLibrary, data, size, 0, &face)) {
             LOGE << "Could not open font familly " << name << " from memory";

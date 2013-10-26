@@ -50,8 +50,8 @@ namespace ramen
         // members
         std::atomic<bool> m_bState;
         boost::thread_group m_threads;
+        boost::shared_ptr<Filesystem> m_pFilesystem;
         boost::shared_ptr<Graphic> m_pGraphic;
-		boost::shared_ptr<Filesystem> m_pFilesystem;
 
         // signals
         typedef boost::signals2::signal<void(const bool)> SigState;
