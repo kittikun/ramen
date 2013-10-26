@@ -21,23 +21,24 @@
 #include <memory>
 #include <boost/signals2.hpp>
 #include <boost/utility.hpp>
+#include <boost/weak_ptr.hpp>
 #include <glm/glm.hpp>
-
 
 struct SDL_Window;
 
 namespace ramen
 {
 	class Core;
+	class Filesystem;
 	class FontManager;
 
-	class Graphic : boost::noncopyable, public boost::signals2::trackable
+	class Graphic : boost::noncopyable
 	{
 	public:
 		Graphic();
 		~Graphic();
 
-		bool initialize(Core* core, const int width, const int height);
+		bool initialize(const glm::ivec2& winSize, Core* core, boost::weak_ptr<Filesystem> filesystem);
 		void run();
 
 		const glm::ivec2 windowSize() const;
@@ -46,16 +47,17 @@ namespace ramen
 		void slotState(const bool state);
 
 	private:
-		bool createWindow(const int width, const int height);
+		bool createWindow(const glm::ivec2& size);
 		bool createContext();
 		void swapbuffers() const;
 		bool initializeThreadDependents();
 
 	private:
-		std::atomic<bool> m_bState;
-		void* m_pContext;
-		std::unique_ptr<FontManager> m_pFontManager;
+		boost::weak_ptr<Filesystem> m_pFilesystem;
 		SDL_Window* m_pWindow;
+		std::atomic<bool> m_bState;
+		std::unique_ptr<FontManager> m_pFontManager;
+		void* m_pContext;
 
 		// signals
 		typedef boost::signals2::signal<void()> SigError;

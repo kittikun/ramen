@@ -24,6 +24,7 @@
 #include "../log.h"
 #include "../profiler.h"
 #include "../utility.h"
+#include "../io/filesystem.h"
 #include "graphic.h"
 #include "shader.h"
 #include "graphicUtility.h"
@@ -142,14 +143,14 @@ namespace ramen
             VERIFYGL();
 
             // Fill char info
-            ch.advance.x = float(glyph->advance.x >> 6);
-            ch.advance.y = float(glyph->advance.y >> 6);
-            ch.bmpSize.x = float(glyph->bitmap.width);
-            ch.bmpSize.y = float(glyph->bitmap.rows);
-            ch.bmpTopLeft.x = float(glyph->bitmap_left);
-            ch.bmpTopLeft.y = float(glyph->bitmap_top);
-            ch.texOffset.s = offset.x / (float)m_texSize.x;
-            ch.texOffset.t = offset.y / (float)m_texSize.y;
+            ch.advance.x = static_cast<float>(glyph->advance.x >> 6);
+            ch.advance.y = static_cast<float>(glyph->advance.y >> 6);
+            ch.bmpSize.x = static_cast<float>(glyph->bitmap.width);
+            ch.bmpSize.y = static_cast<float>(glyph->bitmap.rows);
+            ch.bmpTopLeft.x = static_cast<float>(glyph->bitmap_left);
+            ch.bmpTopLeft.y = static_cast<float>(glyph->bitmap_top);
+            ch.texOffset.s = offset.x / static_cast<float>(m_texSize.x);
+            ch.texOffset.t = offset.y / static_cast<float>(m_texSize.y);
 
             rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
             offset.x += glyph->bitmap.width + 1;
@@ -190,7 +191,7 @@ namespace ramen
     void FontManager::drawText(const std::string& text, const glm::vec2& pos) const
     {
         PROFILE;
-        auto font = m_currentFont.lock();
+        auto font = m_activeFont.lock();
         glm::vec2 posScaled = glm::vec2(-1 + pos.x * m_scaleFactor.x, 1 - pos.y * m_scaleFactor.y);
 
         m_pProgram->use();
@@ -247,13 +248,16 @@ namespace ramen
         glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
     }
 
-    const bool FontManager::initialize(const glm::ivec2& windowSize)
+    const bool FontManager::initialize(const glm::ivec2& windowSize, boost::weak_ptr<Filesystem> filesystem)
     {
         PROFILE;
         boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
         boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
 
         LOGGFX << "Initializing text renderer..";
+
+		m_pFilesystem = filesystem;
+		m_pFilesystem.lock()->resourcePathStr(Filesystem::TYPE_FONT, "DIN Light.ttf");
 
         if (FT_Init_FreeType(&m_FTLibrary)) {
             LOGE << "Could not initialize Freetype library";
@@ -273,13 +277,28 @@ namespace ramen
             return false;
         }
 
+		// Buffer that will be used for all text drawing
         glGenBuffers(1, &m_vbo);
         VERIFYGL_RET();
 
-        m_scaleFactor = glm::vec2(2.0 / float(windowSize.x), 2.0 / float(windowSize.y));
+        m_scaleFactor = glm::vec2(2.0 / static_cast<float>(windowSize.x), 2.0 / static_cast<float>(windowSize.y));
 
         return true;
     }
+
+	const bool FontManager::loadFontFamillyFromFile(const std::string& name, const std::string& filename)
+	{
+        FT_Face face;
+
+        LOGGFX << "Loading font familly " << name << "..";
+
+        if (FT_New_Face(m_FTLibrary, m_pFilesystem.lock()->resourcePathStr(Filesystem::TYPE_FONT, filename).c_str() , 0, &face)) {
+            LOGE << "Could not open font familly " << name << " from memory";
+            return false;
+        }
+
+        m_fonts.insert(std::make_pair(name, face));
+	}
 
     const bool FontManager::loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const uint32_t size)
     {
@@ -321,11 +340,6 @@ namespace ramen
         atlas->initialize(foundFamilly->second, size);
         m_fontAtlases.insert(std::make_pair(name, atlas));
 
-        // Set first added font as active
-        if (m_fontAtlases.size() == 1) {
-            m_currentFont = atlas;
-        }
-
         return true;
     }
 
@@ -333,19 +347,17 @@ namespace ramen
     {
         auto found = m_fontAtlases.find(name);
 
-        LOGGFX << "Setting current active font to " << name;
-
         if (found == m_fontAtlases.end()) {
             LOGE << "Cannot find font " << name;
             return false;
         }
 
-        if (found->second == m_currentFont.lock()) {
+        if (found->second == m_activeFont.lock()) {
             LOGW << name << " was already the active font";
             return false;
         }
 
-        m_currentFont = found->second;
+        m_activeFont = found->second;
 
         return true;
     }

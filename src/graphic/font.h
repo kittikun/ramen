@@ -33,6 +33,7 @@ namespace ramen
 {
 	class Program;
 	class Graphic;
+	class Filesystem;
 
 	class FontAtlas : boost::noncopyable
 	{
@@ -70,8 +71,9 @@ namespace ramen
 		FontManager();
 		~FontManager();
 
-		const bool initialize(const glm::ivec2& windowSize);
+		const bool initialize(const glm::ivec2& windowSize, boost::weak_ptr<Filesystem> filesystem);
 
+		const bool loadFontFamillyFromFile(const std::string& name, const std::string& filename);
 		const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
 		const bool makeFont(const std::string& name, const std::string& fontFamilly, const int size);
 
@@ -82,8 +84,9 @@ namespace ramen
 		const void setFontColor(const float r, const float g, const float b, const float a) { m_color = glm::vec4(r, g, b, a); }
 
 	private:
-        boost::weak_ptr<FontAtlas> m_currentFont;
 		boost::shared_ptr<Program> m_pProgram;
+        boost::weak_ptr<FontAtlas> m_activeFont;
+		boost::weak_ptr<Filesystem> m_pFilesystem;
 		FT_Library m_FTLibrary;
         glm::vec4 m_color;
 		glm::vec2 m_scaleFactor;
@@ -91,22 +94,6 @@ namespace ramen
 		boost::unordered_map<std::string, FT_Face> m_fonts;
 		boost::unordered_map<std::string, boost::shared_ptr<FontAtlas>> m_fontAtlases;
 	};
-
-    class TextRenderer : boost::noncopyable
-    {
-    public:
-        TextRenderer(Graphic* pGraphic);
-        ~TextRenderer();
-
-        const bool initialize();
-		void display() const;
-
-		void render_text(const std::string& text, const glm::vec2& pos, const glm::vec2& scale) const;
-
-    private:
-		Graphic* m_pGraphic;
-		boost::shared_ptr<FontAtlas> m_pAtlas;
-    };
 
 } // namespace ramen
 

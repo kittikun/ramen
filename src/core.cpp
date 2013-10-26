@@ -21,11 +21,13 @@
 #include "log.h"
 #include "profiler.h"
 #include "graphic/graphic.h"
+#include "io/filesystem.h"
 
 namespace ramen
 {
     Core::Core()
        : m_bState(false)
+	   , m_pFilesystem(new Filesystem())
        , m_pGraphic(new Graphic())
     {
         Log::initialize();
@@ -38,7 +40,7 @@ namespace ramen
 		Profiler::dump();
     }
 
-    const bool Core::initialize(const int width, const int height)
+    const bool Core::initialize(const glm::ivec2& winSize)
     {
 		PROFILE;
         LOGC << "Initializing SDL..";
@@ -47,8 +49,13 @@ namespace ramen
             return false;
         }
 
-        if (!m_pGraphic->initialize(this, width, height))
+		if (!m_pFilesystem->initialize()) {
+			return false;
+		}
+
+		if (!m_pGraphic->initialize(winSize, this, m_pFilesystem)) {
             return false;
+		}
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));

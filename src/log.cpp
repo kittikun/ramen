@@ -39,6 +39,7 @@ namespace ramen
         {
             "core",
             "gfx",
+			"io",
 			"prof",
             "WARNING",
             "ERROR",

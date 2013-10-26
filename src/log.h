@@ -26,6 +26,7 @@
 
 #define LOGC BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Core)
 #define LOGGFX BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_GFX)
+#define LOGI BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Io)
 #define LOGP BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Profiler)
 #define LOGW BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Warning)
 #define LOGE BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Error)
@@ -36,6 +37,7 @@ namespace ramen
     {
         Log_Core,
         Log_GFX,
+		Log_Io,
 		Log_Profiler,
         Log_Warning,
         Log_Error

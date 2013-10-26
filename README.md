@@ -18,10 +18,10 @@ For GLES/EGL emulation, angleproject was used during developement.
 Angleproject: https://code.google.com/p/angleproject/
 
 Some features about the framework:
-- Fonts with Freetype
 - SDL for window and context creation. Also for input handling
   Note that on windows, SDL is only used to create the windows. EGL context is then created manually.
-
+- Fonts drawing with Freetype. A font atlas texture is generated and text is drawn with a single VBO
+- Simple profiler
 
 TODO:
 -----

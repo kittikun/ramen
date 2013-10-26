@@ -18,14 +18,15 @@
 #define CORE_H
 
 #include <atomic>
-#include <memory>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
+#include <glm/glm.hpp>
 
 namespace ramen
 {
+	class Filesystem;
     class Graphic;
 
     class Core : boost::noncopyable
@@ -34,8 +35,10 @@ namespace ramen
         Core();
         ~Core();
 
-        const bool initialize(const int width, const int height);
+        const bool initialize(const glm::ivec2& winSize);
         void run();
+
+		boost::weak_ptr<Filesystem> filesystem() { return m_pFilesystem; }
 
 		// slots
 		void slotError();
@@ -48,6 +51,7 @@ namespace ramen
         std::atomic<bool> m_bState;
         boost::thread_group m_threads;
         boost::shared_ptr<Graphic> m_pGraphic;
+		boost::shared_ptr<Filesystem> m_pFilesystem;
 
         // signals
         typedef boost::signals2::signal<void(const bool)> SigState;

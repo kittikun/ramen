@@ -18,6 +18,7 @@
 #define UTILITY_H
 
 #include <cmath>
+#include <boost/type_traits.hpp>
 
 namespace ramen {
 	namespace utility
@@ -26,6 +27,8 @@ namespace ramen {
 		template <class T>
 		const int calcNumDigits(T value, const bool includeMinus)
 		{
+			BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
+
 			int digits = 0;
 
 			// do we need to cound minus sign
@@ -44,7 +47,9 @@ namespace ramen {
 		template <class T>
 		const T calcNearestPowerofTwo(const T value)
 		{
-            double dValue = value;
+			BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
+
+            double dValue = static_cast<double>(value);
 			double power = ceil(log(dValue)/log(2));
 			double res = pow(2, power);
 

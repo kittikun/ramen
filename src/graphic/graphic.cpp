@@ -26,6 +26,7 @@
 
 #include "../core.h"
 #include "../log.h"
+#include "../io/filesystem.h"
 #include "font.h"
 #include "font_DIN.h"
 #include "graphicUtility.h"
@@ -33,10 +34,10 @@
 namespace ramen
 {
     Graphic::Graphic()
-       : m_bState(false)
-       , m_pContext(nullptr)
+       : m_pWindow(nullptr)
+       , m_bState(false)
        , m_pFontManager(new FontManager())
-       , m_pWindow(nullptr)
+       , m_pContext(nullptr)
     {
     }
 
@@ -77,10 +78,10 @@ namespace ramen
         return true;
     }
 
-    bool Graphic::createWindow(const int width, const int height)
+    bool Graphic::createWindow(const glm::ivec2& size)
     {
         LOGGFX << "Initializing window...";
-        m_pWindow = SDL_CreateWindow("ramen", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        m_pWindow = SDL_CreateWindow("ramen", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, size.x, size.y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
         if (m_pWindow == nullptr) {
             LOGE << "Failed to initialize window...";
@@ -113,9 +114,9 @@ namespace ramen
 
         SDL_VERSION(&info.version); // initialize info structure with SDL version info
         resWMInfo = SDL_GetWindowWMInfo(m_pWindow, &info);
-        if (resWMInfo == nullptr) {
+        if (!resWMInfo) {
             LOGE << "Failed to get window info from SDL";
-            return false:
+            return false;
         }
 
         hWnd = info.info.win.window;
@@ -168,11 +169,13 @@ namespace ramen
         return true;
     }
 
-    bool Graphic::initialize(Core* core, const int width, const int height)
+    bool Graphic::initialize(const glm::ivec2& winSize, Core* core, boost::weak_ptr<Filesystem> filesystem)
     {
-        if (!createWindow(width, height)) {
+        if (!createWindow(winSize)) {
             return false;
         }
+
+		m_pFilesystem = filesystem;
 
         m_sigError.connect(SigError::slot_type(&Core::slotError, core));
 
@@ -186,11 +189,11 @@ namespace ramen
         }
 
         // All the following need a valid GLES context
-        if (!m_pFontManager->initialize(windowSize())) {
+        if (!m_pFontManager->initialize(windowSize(), m_pFilesystem)) {
             return false;
         }
 
-        if (!m_pFontManager->loadFontFamillyFromMemory("dim", DIN_Light_ttf, DIN_Light_ttf_len)) {
+        if (!m_pFontManager->loadFontFamillyFromFile("dim", "DIN Light.ttf")) {
             return false;
         }
 

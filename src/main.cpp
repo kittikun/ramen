@@ -16,6 +16,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <glm/glm.hpp>
 
 #include "core.h"
 
@@ -56,8 +57,9 @@ int main(int ac, char** av)
     }
 
     boost::scoped_ptr<ramen::Core> core(new ramen::Core());
+	glm::ivec2 winSize(vm["width"].as<uint32_t>(), vm["height"].as<uint32_t>());
 
-    if (!core->initialize(vm["width"].as<uint32_t>(), vm["height"].as<uint32_t>())) {
+    if (!core->initialize(winSize)) {
         std::cout << "Failed to initialize Core, exiting..." << std::endl;
         return 1;
     }
