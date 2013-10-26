@@ -18,7 +18,7 @@
 #define SHADER_H
 
 #include <boost/shared_ptr.hpp>
-#include <gles2/gl2.h>
+#include <GLES2/gl2.h>
 #include <map>
 
 namespace ramen

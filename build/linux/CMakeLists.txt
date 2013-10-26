@@ -14,10 +14,11 @@ SET(EXE_SRC	${SRC_PATH}/core.cpp
 		${SRC_PATH}/main.cpp
 		${SRC_PATH}/log.cpp
 		${SRC_PATH}/profiler.cpp
+		${SRC_PATH}/utility.cpp
 		${SRC_PATH}/graphic/font.cpp
 		${SRC_PATH}/graphic/graphic.cpp
 		${SRC_PATH}/graphic/shader.cpp
-		${SRC_PATH}/graphic/utility.cpp)
+		${SRC_PATH}/graphic/graphicUtility.cpp)
 
 SET(EXECUTABLE_NAME ramen)
 

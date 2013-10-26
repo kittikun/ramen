@@ -25,139 +25,136 @@ namespace ramen
 //-------------------------------------------------------------------------------------
 // SHADER
 //-------------------------------------------------------------------------------------
+    Shader::Shader(const GLenum type)
+       : m_eType(type)
+    {
+        m_iShaderID = glCreateShader(m_eType);
+    }
 
-	Shader::Shader(const GLenum type)
-		: m_eType(type)
-	{
-		m_iShaderID = glCreateShader(m_eType);
-	}
+    Shader::~Shader()
+    {
+        glDeleteShader(m_iShaderID);
+    }
 
-	Shader::~Shader()
-	{
-		glDeleteShader(m_iShaderID);
-	}
+    const bool Shader::compile(const GLchar** data)
+    {
+        GLint compiled;
 
-	const bool Shader::compile(const GLchar** data)
-	{
-		GLint compiled;
+        if (m_iShaderID == 0) {
+            LOGE << "Cannot compile shader with an ID of 0";
+        }
 
-		assert(m_iShaderID != 0);
+        glShaderSource(m_iShaderID, 1, data, nullptr);
+        glCompileShader(m_iShaderID);
+        VERIFYGL();
 
-		glShaderSource(m_iShaderID, 1, data, nullptr);
-		VERIFYGL();
-		// Compile the shader
-		glCompileShader(m_iShaderID);
-		// Check the compile status
-		glGetShaderiv(m_iShaderID, GL_COMPILE_STATUS, &compiled);
+        // Check the compile status
+        glGetShaderiv(m_iShaderID, GL_COMPILE_STATUS, &compiled);
 
-		if(!compiled) 
-		{
-			GLint infoLen = 0;
-			glGetShaderiv(m_iShaderID, GL_INFO_LOG_LENGTH, &infoLen);
+        if (!compiled) {
+            GLint infoLen = 0;
+            glGetShaderiv(m_iShaderID, GL_INFO_LOG_LENGTH, &infoLen);
 
-			if(infoLen > 1)
-			{
-				char* infoLog = new char[infoLen];
+            if (infoLen > 1) {
+                char* infoLog = new char[infoLen];
 
-				glGetShaderInfoLog(m_iShaderID, infoLen, NULL, infoLog);
-				LOGE << "Error compiling shader: " << infoLog;
-				delete(infoLog);
+                glGetShaderInfoLog(m_iShaderID, infoLen, NULL, infoLog);
+                LOGE << "Error compiling shader: " << infoLog;
+                delete(infoLog);
 
-				LOGE << "Shader Source:";
-				for (int i = 0; i < (sizeof(data) / sizeof(const char*)); ++i) {
-					LOGE << data[i];
-				}
-			}
+                LOGE << "Shader Source:";
+                for (uint32_t i = 0; i < (sizeof(data) / sizeof(const char*)); ++i) {
+                    LOGE << data[i];
+                }
+            }
 
-			return false;
-		}
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
 //-------------------------------------------------------------------------------------
 // PROGRAM
 //-------------------------------------------------------------------------------------
+    Program::Program()
+    {
+        m_iProgram = glCreateProgram();
+    }
 
-	Program::Program()
-	{
-		m_iProgram = glCreateProgram();
-	}
+    Program::~Program()
+    {
+        glDeleteProgram(m_iProgram);
+    }
 
-	Program::~Program()
-	{
-		glDeleteProgram(m_iProgram);
-	}
+    const bool Program::attachShader(boost::shared_ptr<Shader> shader)
+    {
+        // Check if the shader wasn't already attached
+        GLuint id = shader->getShaderID();
+        auto iter = m_shaders.find(id);
 
-	const bool Program::attachShader(boost::shared_ptr<Shader> shader)
-	{
-		// Check if the shader wasn't already attached
-		GLuint id = shader->getShaderID();
-		auto iter = m_shaders.find(id);
+        if (iter != m_shaders.end()) {
+            LOGE << "Shader " << id << " was already attached";
+            return false;
+        }
 
-		if (iter != m_shaders.end()) {
-			LOGE << "Shader " << id << " was already attached";
-			return false;
-		}
+        glAttachShader(m_iProgram, id);
+        VERIFYGL_RET();
 
-		glAttachShader(m_iProgram, id);
-		VERIFYGL_RET();
+        m_shaders.insert(std::make_pair(id, shader));
 
-		m_shaders.insert(std::make_pair(id, shader));
+        return true;
+    }
 
-		return true;
-	}
+    const GLint Program::getAttribLocation(const char* name) const
+    {
+        GLint ret = glGetAttribLocation(m_iProgram, name);
+        VERIFYGL();
 
-	const GLint Program::getAttribLocation(const char* name) const
-	{
-		GLint ret = glGetAttribLocation(m_iProgram, name);
-		VERIFYGL();
+        return ret;
+    }
 
-		return ret;
-	}
+    const GLint Program::getUniformLocation(const char* name) const
+    {
+        GLint ret = glGetUniformLocation(m_iProgram, name);
+        VERIFYGL();
 
-	const GLint Program::getUniformLocation(const char* name) const
-	{
-		GLint ret = glGetUniformLocation(m_iProgram, name);
-		VERIFYGL();
+        return ret;
+    }
 
-		return ret;
-	}
+    const bool Program::link()
+    {
+        GLint linked;
 
-	const bool Program::link()
-	{
-		GLint linked;
+        glLinkProgram(m_iProgram);
+        glGetProgramiv(m_iProgram, GL_LINK_STATUS, &linked);
 
-		glLinkProgram(m_iProgram);
-		glGetProgramiv(m_iProgram, GL_LINK_STATUS, &linked);
+        if (!linked) {
+            GLint infoLen = 0;
+            glGetProgramiv(m_iProgram, GL_INFO_LOG_LENGTH, &infoLen);
 
-		if (!linked) {
-			GLint infoLen = 0;
-			glGetProgramiv(m_iProgram, GL_INFO_LOG_LENGTH, &infoLen);
+            if (infoLen > 1) {
+                char* infoLog = new char[infoLen];
 
-			if(infoLen > 1)
-			{
-				char* infoLog = new char[infoLen];
+                glGetProgramInfoLog(m_iProgram, infoLen, NULL, infoLog);
+                LOGE << "Error linking program " << infoLog;
 
-				glGetProgramInfoLog(m_iProgram, infoLen, NULL, infoLog);
-				LOGE << "Error linking program " << infoLog;
+                delete(infoLog);
+            }
 
-				delete(infoLog);
-			}
+            return false;
+        }
 
-			return false;
-		}
-
-		return true;
-	}
+        return true;
+    }
 
 
-	const bool Program::use()
-	{
-		glUseProgram(m_iProgram);
-		VERIFYGL_RET();
+    const bool Program::use()
+    {
+        glUseProgram(m_iProgram);
+        VERIFYGL_RET();
 
-		return true;
-	}
+        return true;
+    }
 
 } // namespace ramen

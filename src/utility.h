@@ -17,6 +17,8 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include <cmath>
+
 namespace ramen {
 	namespace utility
 	{
@@ -42,7 +44,8 @@ namespace ramen {
 		template <class T>
 		const T calcNearestPowerofTwo(const T value)
 		{
-			double power = ceil(log(value)/log(2));
+            double dValue = value;
+			double power = ceil(log(dValue)/log(2));
 			double res = pow(2, power);
 
 			// cast in case T type is integral

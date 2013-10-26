@@ -29,327 +29,325 @@
 #include "graphicUtility.h"
 
 static const char* g_strVertexFont[] = {
-	"attribute vec4 coord;\n"
-	"varying vec2 texpos;\n"
+    "attribute vec4 coord;\n"
+    "varying vec2 texpos;\n"
 
-	"void main() {\n"
-	"  gl_Position = vec4(coord.xy, 0, 1);\n"
-	"  texpos = coord.zw;\n"
-	"}\n"
+    "void main() {\n"
+    "  gl_Position = vec4(coord.xy, 0, 1);\n"
+    "  texpos = coord.zw;\n"
+    "}\n"
 };
 
 static const char* g_strFragFont[] = {
-	"precision mediump float;\n"
-	"varying vec2 texpos;\n"
-	"uniform sampler2D tex;\n"
-	"uniform vec4 color;\n"
+    "precision mediump float;\n"
+    "varying vec2 texpos;\n"
+    "uniform sampler2D tex;\n"
+    "uniform vec4 color;\n"
 
-	"void main(void) {\n"
-	//"  gl_FragColor = vec4(texpos, 0, 1);\n"
-	//"  gl_FragColor = vec4(texture2D(tex, texpos).a, texture2D(tex, texpos).a, texture2D(tex, texpos).a, 1) * color;\n"
-	"  gl_FragColor = vec4(1, 1, 1, texture2D(tex, texpos).a) * color;\n"
-	"}\n"
+    "void main(void) {\n"
+    //"  gl_FragColor = vec4(texpos, 0, 1);\n"
+    //"  gl_FragColor = vec4(texture2D(tex, texpos).a, texture2D(tex, texpos).a, texture2D(tex, texpos).a, 1) * color;\n"
+    "  gl_FragColor = vec4(1, 1, 1, texture2D(tex, texpos).a) * color;\n"
+    "}\n"
 };
 
 namespace ramen
 {
-	static const int g_fontAtlasTexMaxWidth = 512; // TODO: put in config file later ?
+    static const int g_fontAtlasTexMaxWidth = 512; // TODO: put in config file later ?
 
 //-------------------------------------------------------------------------------------
 // FONTATLAS
 //-------------------------------------------------------------------------------------
+    FontAtlas::FontAtlas()
+       : m_iTexture(0)
+    {
+        m_characters.resize(128);
+    }
 
-	FontAtlas::FontAtlas()
-		: m_iTexture(-1)
-	{
-		m_characters.resize(128);
-	}
+    FontAtlas::~FontAtlas()
+    {
+        if (m_iTexture != 0) {
+            glDeleteTextures(1, &m_iTexture);
+        }
+    }
 
-	FontAtlas::~FontAtlas()
-	{
-		if (m_iTexture != -1) {
-			glDeleteTextures(1, &m_iTexture);
-		}
-	}
+    void FontAtlas::calcRequiredTexSize(const FT_Face fontFamilly)
+    {
+        FT_GlyphSlot glyph = fontFamilly->glyph;
+        glm::ivec2 pos;
+        glm::ivec2 rowSize;
 
-	void FontAtlas::calcRequiredTexSize(const FT_Face fontFamilly)
-	{
-		FT_GlyphSlot glyph = fontFamilly->glyph;
-		glm::ivec2 pos;
-		glm::ivec2 rowSize;
+        // Find minimum size for a texture holding all visible ASCII characters
+        for (int i = 32; i < 128; i++) {
+            if (FT_Load_Char(fontFamilly, i, FT_LOAD_RENDER)) {
+                LOGE << "FontAltas loading of character " << i << "failed";
+                continue;
+            }
 
-		// Find minimum size for a texture holding all visible ASCII characters
-		for (int i = 32; i < 128; i++) {
-			if (FT_Load_Char(fontFamilly, i, FT_LOAD_RENDER)) {
-				LOGE << "FontAltas loading of character " << i << "failed";
-				continue;
-			}
+            if (rowSize.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
+                pos.x = std::max(pos.x, rowSize.x);
+                pos.y += rowSize.y;
+                rowSize.x = 0;
+                rowSize.y = 0;
+            }
+            rowSize.x += glyph->bitmap.width + 1;
+            rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
+        }
 
-			if (rowSize.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
-				pos.x = std::max(pos.x, rowSize.x);
-				pos.y += rowSize.y;
-				rowSize.x = 0;
-				rowSize.y = 0;
-			}
-			rowSize.x += glyph->bitmap.width + 1;
-			rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
-		}
+        m_texSize.x = utility::calcNearestPowerofTwo(std::max(pos.x, rowSize.x));
+        m_texSize.y = utility::calcNearestPowerofTwo(pos.y + rowSize.y);
+    }
 
-		m_texSize.x = utility::calcNearestPowerofTwo(std::max(pos.x, rowSize.x));
-		m_texSize.y = utility::calcNearestPowerofTwo(pos.y + rowSize.y);
-	}
+    void FontAtlas::createTexture(const FT_Face fontFamilly)
+    {
+        FT_GlyphSlot glyph = fontFamilly->glyph;
+        glm::ivec2 offset;
+        glm::ivec2 pos;
+        glm::ivec2 rowSize;
 
-	void FontAtlas::createTexture(const FT_Face fontFamilly)
-	{
-		FT_GlyphSlot glyph = fontFamilly->glyph;
-		glm::ivec2 offset;
-		glm::ivec2 pos;
-		glm::ivec2 rowSize;
+        // Create texture
+        glGenTextures(1, &m_iTexture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_iTexture);
+        VERIFYGL();
 
-		// Create texture
-		glGenTextures(1, &m_iTexture);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_iTexture);
-		VERIFYGL();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, m_texSize.x, m_texSize.y, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
+        VERIFYGL();
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, m_texSize.x, m_texSize.y, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
-		VERIFYGL();
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        VERIFYGL();
 
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		VERIFYGL();
+        LOGGFX << boost::format("Generated FontAtlas with %1%x%2% (%3% kb) texture") % m_texSize.x % m_texSize.y % (m_texSize.x * m_texSize.y / 1024);
 
-		LOGGFX << boost::format("Generated FontAtlas with %1%x%2% (%3% kb) texture") % m_texSize.x % m_texSize.y % (m_texSize.x * m_texSize.y / 1024);
+        // Fill texture with data from freetype
+        for (int i = 32; i < 128; i++) {
+            FontAtlas::Character& ch = m_characters[i];
 
-		// Fill texture with data from freetype
-		for (int i = 32; i < 128; i++) {
-			FontAtlas::Character& ch = m_characters[i];
+            if (FT_Load_Char(fontFamilly, i, FT_LOAD_RENDER)) {
+                LOGE << "FontAltas loading of character " << i << "failed";
+                continue;
+            }
 
-			if (FT_Load_Char(fontFamilly, i, FT_LOAD_RENDER)) {
-				LOGE << "FontAltas loading of character " << i << "failed";
-				continue;
-			}
+            if (offset.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
+                offset.x = 0;
+                offset.y += rowSize.y;
+                rowSize.y = 0;
+            }
 
-			if (offset.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
-				offset.x = 0;
-				offset.y += rowSize.y;
-				rowSize.y = 0;
-			}
+            glTexSubImage2D(GL_TEXTURE_2D, 0, offset.x, offset.y, glyph->bitmap.width, glyph->bitmap.rows, GL_ALPHA, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
+            VERIFYGL();
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, offset.x, offset.y, glyph->bitmap.width, glyph->bitmap.rows, GL_ALPHA, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
-			VERIFYGL();
+            // Fill char info
+            ch.advance.x = float(glyph->advance.x >> 6);
+            ch.advance.y = float(glyph->advance.y >> 6);
+            ch.bmpSize.x = float(glyph->bitmap.width);
+            ch.bmpSize.y = float(glyph->bitmap.rows);
+            ch.bmpTopLeft.x = float(glyph->bitmap_left);
+            ch.bmpTopLeft.y = float(glyph->bitmap_top);
+            ch.texOffset.s = offset.x / (float)m_texSize.x;
+            ch.texOffset.t = offset.y / (float)m_texSize.y;
 
-			// Fill char info
-			ch.advance.x = float(glyph->advance.x >> 6);
-			ch.advance.y = float(glyph->advance.y >> 6);
-			ch.bmpSize.x = float(glyph->bitmap.width);
-			ch.bmpSize.y = float(glyph->bitmap.rows);
-			ch.bmpTopLeft.x = float(glyph->bitmap_left);
-			ch.bmpTopLeft.y = float(glyph->bitmap_top);
-			ch.texOffset.s = offset.x / (float)m_texSize.x;
-			ch.texOffset.t = offset.y / (float)m_texSize.y;
+            rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
+            offset.x += glyph->bitmap.width + 1;
+        }
+    }
 
-			rowSize.y = std::max(rowSize.y, glyph->bitmap.rows);
-			offset.x += glyph->bitmap.width + 1;
-		}
-	}
+    void FontAtlas::initialize(const FT_Face fontFamilly, const unsigned char size)
+    {
+        FT_Set_Pixel_Sizes(fontFamilly, 0, size);
 
-	void FontAtlas::initialize(const FT_Face fontFamilly, const unsigned char size)
-	{
-		FT_Set_Pixel_Sizes(fontFamilly, 0, size);
-
-		calcRequiredTexSize(fontFamilly);
-		createTexture(fontFamilly);
-	}
+        calcRequiredTexSize(fontFamilly);
+        createTexture(fontFamilly);
+    }
 
 //-------------------------------------------------------------------------------------
 // FONTMANAGER
 //-------------------------------------------------------------------------------------
-	FontManager::FontManager()
-		: m_FTLibrary(nullptr)
-		, m_color(1.0f)
-		, m_vbo(-1)
-	{
-	}
+    FontManager::FontManager()
+       : m_FTLibrary(nullptr)
+       , m_color(1.0f)
+       , m_vbo(0)
+    {
+    }
 
-	FontManager::~FontManager()
-	{
-		LOGGFX << "Destroying font manager..";
+    FontManager::~FontManager()
+    {
+        LOGGFX << "Destroying font manager..";
 
-		if (m_FTLibrary) {
-			FT_Done_FreeType(m_FTLibrary);
-		}
+        if (m_FTLibrary) {
+            FT_Done_FreeType(m_FTLibrary);
+        }
 
-		if (m_vbo != 0) {
-			glDeleteBuffers(1, &m_vbo);
-		}
-	}
+        if (m_vbo != 0) {
+            glDeleteBuffers(1, &m_vbo);
+        }
+    }
 
-	void FontManager::drawText(const std::string& text, const glm::vec2& pos) const
-	{
-		PROFILE;
-		auto font = m_currentFont.lock();
-		glm::vec2 posScaled = glm::vec2(-1 + pos.x * m_scaleFactor.x, 1 - pos.y * m_scaleFactor.y);
+    void FontManager::drawText(const std::string& text, const glm::vec2& pos) const
+    {
+        PROFILE;
+        auto font = m_currentFont.lock();
+        glm::vec2 posScaled = glm::vec2(-1 + pos.x * m_scaleFactor.x, 1 - pos.y * m_scaleFactor.y);
 
-		m_pProgram->use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, font->texture());
-		glUniform1i(m_pProgram->getUniformLocation("tex"), 0);
-		glUniform4fv(m_pProgram->getUniformLocation("color"), 1, glm::value_ptr(m_color));
-		VERIFYGL();
+        m_pProgram->use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, font->texture());
+        glUniform1i(m_pProgram->getUniformLocation("tex"), 0);
+        glUniform4fv(m_pProgram->getUniformLocation("color"), 1, glm::value_ptr(m_color));
+        VERIFYGL();
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glEnableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
-		glVertexAttribPointer(m_pProgram->getAttribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
-		VERIFYGL();
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glEnableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
+        glVertexAttribPointer(m_pProgram->getAttribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
+        VERIFYGL();
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		VERIFYGL();
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        VERIFYGL();
 
-		std::vector<glm::vec4> coords(6 * text.size());
-		int count = 0;
+        std::vector<glm::vec4> coords(6 * text.size());
+        int count = 0;
 
-		/* Loop through all characters */
-		for (unsigned int i = 0; i < text.size(); ++i) {
-			const FontAtlas::Character& ch = font->charAt(text[i]);
-			glm::vec2 pos2;
-			glm::vec2 size;
-			/* Calculate the vertex and texture coordinates */
+        for (uint32_t i = 0; i < text.size(); ++i) {
+            const FontAtlas::Character& ch = font->charAt(text[i]);
+            glm::vec2 pos2;
+            glm::vec2 size;
 
-			pos2.x = posScaled.x + ch.bmpTopLeft.x * m_scaleFactor.x;
-			pos2.y = -posScaled.y - ch.bmpTopLeft.y * m_scaleFactor.y;
-			float w = ch.bmpSize.x * m_scaleFactor.x;
-			float h = ch.bmpSize.y * m_scaleFactor.y;
+            // Calculate the vertex and texture coordinates
+            pos2.x = posScaled.x + ch.bmpTopLeft.x * m_scaleFactor.x;
+            pos2.y = -posScaled.y - ch.bmpTopLeft.y * m_scaleFactor.y;
+            float w = ch.bmpSize.x * m_scaleFactor.x;
+            float h = ch.bmpSize.y * m_scaleFactor.y;
 
-			/* Advance the cursor to the start of the next character */
-			posScaled.x += ch.advance.x * m_scaleFactor.x;
-			posScaled.y += ch.advance.y * m_scaleFactor.y;
+            // Advance the cursor to the start of the next character
+            posScaled.x += ch.advance.x * m_scaleFactor.x;
+            posScaled.y += ch.advance.y * m_scaleFactor.y;
 
-			/* Skip glyphs that have no pixels */
-			if (!w || !h)
-				continue;
+            // Skip glyphs that have no pixels
+            if (!w || !h)
+                continue;
 
-			coords[count++] = glm::vec4(pos2.x, -pos2.y, ch.texOffset.s, ch.texOffset.t);
-			coords[count++] = glm::vec4(pos2.x + w, -pos2.y, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t);
-			coords[count++] = glm::vec4(pos2.x, -pos2.y - h, ch.texOffset.s, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
-			coords[count++] = glm::vec4(pos2.x + w, -pos2.y, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t);
-			coords[count++] = glm::vec4(pos2.x, -pos2.y - h, ch.texOffset.s, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
-			coords[count++] = glm::vec4(pos2.x + w, -pos2.y - h, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
-		}
+            coords[count++] = glm::vec4(pos2.x, -pos2.y, ch.texOffset.s, ch.texOffset.t);
+            coords[count++] = glm::vec4(pos2.x + w, -pos2.y, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t);
+            coords[count++] = glm::vec4(pos2.x, -pos2.y - h, ch.texOffset.s, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
+            coords[count++] = glm::vec4(pos2.x + w, -pos2.y, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t);
+            coords[count++] = glm::vec4(pos2.x, -pos2.y - h, ch.texOffset.s, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
+            coords[count++] = glm::vec4(pos2.x + w, -pos2.y - h, ch.texOffset.s + ch.bmpSize.x / font->texSize().x, ch.texOffset.t + ch.bmpSize.y / font->texSize().y);
+        }
 
-		/* Draw all the character on the screen in one go */
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * coords.size(), &coords.front(), GL_DYNAMIC_DRAW);
-		glDrawArrays(GL_TRIANGLES, 0, count);
-		VERIFYGL();
+        // Draw all the character on the screen in one go
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * coords.size(), &coords.front(), GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, count);
+        VERIFYGL();
 
-		glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
-	}
+        glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
+    }
 
-	const bool FontManager::initialize(const glm::ivec2& windowSize)
-	{
-		PROFILE;
-		boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
-		boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
+    const bool FontManager::initialize(const glm::ivec2& windowSize)
+    {
+        PROFILE;
+        boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
+        boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
 
-		LOGGFX << "Initializing text renderer..";
+        LOGGFX << "Initializing text renderer..";
 
-		if (FT_Init_FreeType(&m_FTLibrary)) {
-			LOGE << "Could not initialize Freetype library";
-			return false;
-		}
+        if (FT_Init_FreeType(&m_FTLibrary)) {
+            LOGE << "Could not initialize Freetype library";
+            return false;
+        }
 
-		// Shaders/Program to be use for all font drawing
-		if (!vtx->compile(g_strVertexFont) || !frg->compile(g_strFragFont)) {
-			return false;
-		}
+        // Shaders/Program to be use for all font drawing
+        if (!vtx->compile(g_strVertexFont) || !frg->compile(g_strFragFont)) {
+            return false;
+        }
 
-		m_pProgram.reset(new Program());
-		m_pProgram->attachShader(vtx);
-		m_pProgram->attachShader(frg);
+        m_pProgram.reset(new Program());
+        m_pProgram->attachShader(vtx);
+        m_pProgram->attachShader(frg);
 
-		if (!m_pProgram->link()) {
-			return false;
-		}
+        if (!m_pProgram->link()) {
+            return false;
+        }
 
-		glGenBuffers(1, &m_vbo);
-		VERIFYGL_RET();
+        glGenBuffers(1, &m_vbo);
+        VERIFYGL_RET();
 
-		m_scaleFactor = glm::vec2(2.0 / float(windowSize.x), 2.0 / float(windowSize.y));
+        m_scaleFactor = glm::vec2(2.0 / float(windowSize.x), 2.0 / float(windowSize.y));
 
-		return true;
-	}
+        return true;
+    }
 
-	const bool FontManager::loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size)
-	{
-		FT_Face face;
+    const bool FontManager::loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const uint32_t size)
+    {
+        FT_Face face;
 
-		LOGGFX << "Loading font familly " << name << "..";
+        LOGGFX << "Loading font familly " << name << "..";
 
-		if (FT_New_Memory_Face(m_FTLibrary, data, size, 0, &face)) {
-			LOGE << "Could not open font familly " << name << " from memory";
-			return false;
-		}
+        if (FT_New_Memory_Face(m_FTLibrary, data, size, 0, &face)) {
+            LOGE << "Could not open font familly " << name << " from memory";
+            return false;
+        }
 
-		m_fonts.insert(std::make_pair(name, face));
+        m_fonts.insert(std::make_pair(name, face));
 
-		return true;
-	}
+        return true;
+    }
 
-	const bool FontManager::makeFont(const std::string& name, const std::string& fontFamilly, const int size)
-	{
-		auto foundFamilly = m_fonts.find(fontFamilly);
+    const bool FontManager::makeFont(const std::string& name, const std::string& fontFamilly, const int size)
+    {
+        auto foundFamilly = m_fonts.find(fontFamilly);
 
-		LOGGFX << boost::format("Generating %1% from %2% at %3%pts..") % name % fontFamilly % size;
+        LOGGFX << boost::format("Generating %1% from %2% at %3%pts..") % name % fontFamilly % size;
 
-		if (foundFamilly == m_fonts.end()) {
-			LOGE << "Font familly \"" << fontFamilly << "\" doesn't exist";
-			return false;
-		}
+        if (foundFamilly == m_fonts.end()) {
+            LOGE << "Font familly \"" << fontFamilly << "\" doesn't exist";
+            return false;
+        }
 
-		// make sure name isn't already used
-		auto foundDup = m_fontAtlases.find(name);
+        // Make sure name isn't already used
+        auto foundDup = m_fontAtlases.find(name);
 
-		if (foundDup != m_fontAtlases.end()) {
-			LOGW << "A fot named " << name << " already exists, abording";
-			return false;
-		}
+        if (foundDup != m_fontAtlases.end()) {
+            LOGW << "A fot named " << name << " already exists, abording";
+            return false;
+        }
 
-		boost::shared_ptr<FontAtlas> atlas(new FontAtlas());
+        boost::shared_ptr<FontAtlas> atlas(new FontAtlas());
 
-		atlas->initialize(foundFamilly->second, size);
-		m_fontAtlases.insert(std::make_pair(name, atlas));
+        atlas->initialize(foundFamilly->second, size);
+        m_fontAtlases.insert(std::make_pair(name, atlas));
 
-		// Set first added font as active
-		if (m_fontAtlases.size() == 1) {
-			m_currentFont = atlas;
-		}
+        // Set first added font as active
+        if (m_fontAtlases.size() == 1) {
+            m_currentFont = atlas;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	const bool FontManager::setActiveFont(const std::string& name)
-	{
-		auto found = m_fontAtlases.find(name);
+    const bool FontManager::setActiveFont(const std::string& name)
+    {
+        auto found = m_fontAtlases.find(name);
 
-		LOGGFX << "Setting current active font to " << name;
+        LOGGFX << "Setting current active font to " << name;
 
-		if (found == m_fontAtlases.end()) {
-			LOGE << "Cannot find font " << name;
-			return false;
-		}
+        if (found == m_fontAtlases.end()) {
+            LOGE << "Cannot find font " << name;
+            return false;
+        }
 
-		if (found->second == m_currentFont.lock()) {
-			LOGW << name << " was already the active font";
-			return false;
-		}
+        if (found->second == m_currentFont.lock()) {
+            LOGW << name << " was already the active font";
+            return false;
+        }
 
-		m_currentFont = found->second;
+        m_currentFont = found->second;
 
-		return true;
-	}
+        return true;
+    }
 
 } // namespace ramen

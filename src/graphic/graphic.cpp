@@ -17,7 +17,7 @@
 #include "graphic.h"
 
 #include <SDL.h>
-#include <gles2/gl2.h>
+#include <GLES2/gl2.h>
 
 #if defined(_WIN32)
 #include <EGL/egl.h>
@@ -35,9 +35,9 @@ namespace ramen
     Graphic::Graphic()
        : m_bState(false)
        , m_pContext(nullptr)
-	   , m_pFontManager(new FontManager())
+       , m_pFontManager(new FontManager())
        , m_pWindow(nullptr)
-    {		
+    {
     }
 
     Graphic::~Graphic()
@@ -49,7 +49,7 @@ namespace ramen
 
     bool Graphic::createContext()
     {
-		LOGGFX << "Creating GL context...";
+        LOGGFX << "Creating GL context...";
 
 #if defined(_WIN32)
         EGLBoolean	ret = eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext);
@@ -92,7 +92,7 @@ namespace ramen
         EGLBoolean ret;
         EGLConfig eglConfig;
         EGLint configSize;
-		EGLint major, minor;
+        EGLint major, minor;
         EGLNativeWindowType hWnd;
         SDL_bool resWMInfo;
         SDL_SysWMinfo info;
@@ -113,7 +113,11 @@ namespace ramen
 
         SDL_VERSION(&info.version); // initialize info structure with SDL version info
         resWMInfo = SDL_GetWindowWMInfo(m_pWindow, &info);
-        assert(resWMInfo);
+        if (resWMInfo == nullptr) {
+            LOGE << "Failed to get window info from SDL";
+            return false:
+        }
+
         hWnd = info.info.win.window;
 
         LOGGFX << "Initializiting EGL..";
@@ -130,13 +134,16 @@ namespace ramen
             return false;
         }
 
-		LOGGFX << "EGL version " << major << "." << minor;
+        LOGGFX << "EGL version " << major << "." << minor;
 
         ret = eglChooseConfig(m_eglDisplay, eglConfigAttribs, &eglConfig, 1, &configSize);
-        assert(configSize == 1);
         if (ret != EGL_TRUE) {
             VERIFYEGL();
             return false;
+        }
+
+        if (configSize != 1) {
+            LOGE << "More than one EGL config was found";
         }
 
         ret = eglBindAPI(EGL_OPENGL_ES_API);
@@ -167,39 +174,39 @@ namespace ramen
             return false;
         }
 
-		m_sigError.connect(SigError::slot_type(&Core::slotError, core));
+        m_sigError.connect(SigError::slot_type(&Core::slotError, core));
 
         return true;
     }
 
-	bool Graphic::initializeThreadDependents()
-	{
-		if (!createContext()) {
-			return false;
-		}
+    bool Graphic::initializeThreadDependents()
+    {
+        if (!createContext()) {
+            return false;
+        }
 
-		// All the following need a valid GLES context
-		if (!m_pFontManager->initialize(windowSize())) {
-			return false;
-		}
+        // All the following need a valid GLES context
+        if (!m_pFontManager->initialize(windowSize())) {
+            return false;
+        }
 
-		if (!m_pFontManager->loadFontFamillyFromMemory("dim", DIN_Light_ttf, DIN_Light_ttf_len)) {
-			return false;
-		}
+        if (!m_pFontManager->loadFontFamillyFromMemory("dim", DIN_Light_ttf, DIN_Light_ttf_len)) {
+            return false;
+        }
 
-		m_pFontManager->makeFont("dim48", "dim", 48);
-		m_pFontManager->makeFont("dim16", "dim", 16);
+        m_pFontManager->makeFont("dim48", "dim", 48);
+        m_pFontManager->makeFont("dim16", "dim", 16);
 
-		return true;
-	}
+        return true;
+    }
 
     void Graphic::run()
     {
-		if (!initializeThreadDependents()) {
-			m_sigError();
-			return;
-		}
-			
+        if (!initializeThreadDependents()) {
+            m_sigError();
+            return;
+        }
+
         LOGC << "Starting graphic loop..";
         m_bState = true;
 
@@ -207,12 +214,12 @@ namespace ramen
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-			m_pFontManager->setActiveFont("dim48");
-			m_pFontManager->setFontColor(1, 1, 0, 1);
-			m_pFontManager->drawText("Ramen Framework", glm::vec2(0, 700));
-			m_pFontManager->setActiveFont("dim16");
-			m_pFontManager->setFontColor(0, 1, 1, 1);
-			m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
+            m_pFontManager->setActiveFont("dim48");
+            m_pFontManager->setFontColor(1, 1, 0, 1);
+            m_pFontManager->drawText("Ramen Framework", glm::vec2(0, 700));
+            m_pFontManager->setActiveFont("dim16");
+            m_pFontManager->setFontColor(0, 1, 1, 1);
+            m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
 
             VERIFYGL();
             swapbuffers();
@@ -236,13 +243,13 @@ namespace ramen
 #endif
     }
 
-	const glm::ivec2 Graphic::windowSize() const
-	{
-		glm::ivec2 toto;
+    const glm::ivec2 Graphic::windowSize() const
+    {
+        glm::ivec2 toto;
 
-		SDL_GetWindowSize(m_pWindow, &toto.x, &toto.y);
+        SDL_GetWindowSize(m_pWindow, &toto.x, &toto.y);
 
-		return toto;
-	}
+        return toto;
+    }
 
 } // namespace ramen

@@ -17,9 +17,22 @@ For GLES/EGL emulation, angleproject was used during developement.
 
 Angleproject: https://code.google.com/p/angleproject/
 
-TODO:
+Some features about the framework:
+- Fonts with Freetype
+- SDL for window and context creation. Also for input handling
+  Note that on windows, SDL is only used to create the windows. EGL context is then created manually.
 
+
+TODO:
+-----
+
+GENERAL:
 - Improve profiler with many level of hierarchy
-- Handle resize on windows
 - Loop to not take 100% cpu
+
+GRAPHICS:
+- Handle resize on windows
+
+FONTS:
 - Improve font packing with an algorithm like http://clb.demon.fi/files/RectangleBinPack.pdf
+- Font rendering probably needs some optimization

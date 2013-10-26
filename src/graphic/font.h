@@ -25,7 +25,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/utility.hpp>
-#include <gles2/gl2.h>
+#include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 
 
@@ -82,12 +82,12 @@ namespace ramen
 		const void setFontColor(const float r, const float g, const float b, const float a) { m_color = glm::vec4(r, g, b, a); }
 
 	private:
+        boost::weak_ptr<FontAtlas> m_currentFont;
 		boost::shared_ptr<Program> m_pProgram;
-		boost::weak_ptr<FontAtlas> m_currentFont;
 		FT_Library m_FTLibrary;
-		GLuint m_vbo;
+        glm::vec4 m_color;
 		glm::vec2 m_scaleFactor;
-		glm::vec4 m_color;
+        GLuint m_vbo;
 		boost::unordered_map<std::string, FT_Face> m_fonts;
 		boost::unordered_map<std::string, boost::shared_ptr<FontAtlas>> m_fontAtlases;
 	};

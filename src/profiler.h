@@ -50,7 +50,7 @@ namespace ramen
 	class Profiler : boost::noncopyable
 	{
 	public:
-		static const std::string Profiler::getRoundedDuration(const boost::chrono::duration<long long, boost::micro>& duration);
+		static const std::string getRoundedDuration(const boost::chrono::duration<long long, boost::micro>& duration);
 		static void update(const std::string& name, boost::chrono::duration<long long, boost::micro> duration);
 		static void dump();
 

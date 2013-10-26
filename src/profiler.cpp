@@ -64,7 +64,6 @@ namespace ramen
 	void Profiler::dump()
 	{
 		boost::lock_guard<boost::mutex> guard(m_mutex);
-		auto end = m_profiles.end();
 
 		LOGP << "Dumping profiling information";
 
