@@ -35,13 +35,14 @@ namespace ramen
 
 		const bool initialize();
 
-		const std::string resourcePath(ResourceType type, const std::string& filename) const;
+		const std::string resourcePathAbs(ResourceType type, const std::string& filename) const;
+		const std::string resourcePathRel(ResourceType type, const std::string& filename) const;
 		char const* resource(ResourceType type, const std::string& filename) const;
 
 	private:
 		void findWorkingDir();
-		void findResourcePath();
-		const boost::filesystem::path fsResourcePath(ResourceType type, const std::string& filename) const;
+		void findresourcePathAbs();
+		const boost::filesystem::path fsresourcePathAbs(ResourceType type, const std::string& filename) const;
 	
 	private:
 		boost::filesystem::path m_workingDir;

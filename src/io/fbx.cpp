@@ -23,7 +23,7 @@
 namespace ramen
 {
 	Fbx::Fbx()
-		: m_pFbxManager(FbxManager::Create())
+		: m_pFbxManager(nullptr)
 		, m_pFilesystem(nullptr)
 	{
 	}
@@ -37,13 +37,27 @@ namespace ramen
 	{
 		m_pFilesystem = filesystem;
 
+		m_pFbxManager = FbxManager::Create();
+		if( !m_pFbxManager )
+		{
+			LOGE << "Unable to create FBX Manager";
+			return false;
+		} else {
+			LOGI << "Autodesk FBX SDK version " << m_pFbxManager->GetVersion();
+		}
+
 		FbxIOSettings *ioSettings = FbxIOSettings::Create(m_pFbxManager, IOSROOT);
 		m_pFbxManager->SetIOSettings(ioSettings);
 
+		return true;
+	}
+
+	const bool Fbx::loadfile(const std::string& filename)
+	{
 		FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager,"");
 		std::string path;
 
-		path = m_pFilesystem->resourcePath(Filesystem::TYPE_FBX, "teapot.fbx");
+		path = m_pFilesystem->resourcePathAbs(Filesystem::TYPE_FBX, "teapot.fbx");
 		if (path.empty()) {
 			return false;
 		}
@@ -57,8 +71,6 @@ namespace ramen
 
 		lImporter->Import(lScene);
 		lImporter->Destroy();
-
-		return true;
 	}
 
 } // namespace ramen

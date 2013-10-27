@@ -18,6 +18,7 @@
 #define FBX_H
 
 #include <fbxsdk.h>
+#include <string>
 
 namespace ramen
 {
@@ -30,6 +31,7 @@ namespace ramen
 		~Fbx();
 
 		const bool initialialize(Filesystem const* filesystem);
+		const bool loadfile(const std::string& filename);
 
 	private:
 		FbxManager* m_pFbxManager;

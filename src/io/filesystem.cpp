@@ -24,11 +24,12 @@
 
 #include "../log.h"
 #include "../utility.h"
+#include "ioUtility.h"
 
 namespace ramen
 {
 
-    void Filesystem::findResourcePath()
+    void Filesystem::findresourcePathAbs()
     {
         const boost::filesystem::directory_iterator end;
         boost::filesystem::path path = m_workingDir;
@@ -78,7 +79,7 @@ namespace ramen
         LOGI << "Working directory: " << m_workingDir;
     }
 
-	const boost::filesystem::path Filesystem::fsResourcePath(ResourceType type, const std::string& filename) const
+	const boost::filesystem::path Filesystem::fsresourcePathAbs(ResourceType type, const std::string& filename) const
 	{
 		boost::filesystem::path pathFS;
 
@@ -109,19 +110,19 @@ namespace ramen
     const bool Filesystem::initialize()
     {
         findWorkingDir();
-        findResourcePath();
+        findresourcePathAbs();
 
         return true;
     }
 
 	char const* Filesystem::resource(ResourceType type, const std::string& filename) const
 	{
-		const boost::filesystem::path path = fsResourcePath(type, filename);
-		std::ifstream stream(path.string());
+		const boost::filesystem::path absPath = fsresourcePathAbs(type, filename);
+		std::ifstream stream(absPath.string());
 		uint32_t size;
 		char* data = nullptr;
 
-		if (path.empty()) {
+		if (absPath.empty()) {
 			return nullptr;
 		}
 
@@ -134,19 +135,26 @@ namespace ramen
 				size = str.size();
 				data[size] = '\0';
 			} else {
-				size = static_cast<uint32_t>(boost::filesystem::file_size(path));
+				size = static_cast<uint32_t>(boost::filesystem::file_size(absPath));
 				data = new char[size];
 				stream.read(data, size);
 			}
-			LOGI << boost::format("Read %1% from %2%..") % utility::readableSizeByte(size) % path.leaf();
+
+			LOGI << boost::format("Read %1% from %2%..") % utility::readableSizeByte(size) % ioUtility::makeRelativePath(m_resourcePath, absPath);
 		}
 
 		return data;
 	}
 
-    const std::string Filesystem::resourcePath(ResourceType type, const std::string& filename) const
+    const std::string Filesystem::resourcePathAbs(ResourceType type, const std::string& filename) const
     {
-		return fsResourcePath(type, filename).string();
+		return fsresourcePathAbs(type, filename).string();
     }
+
+	const std::string Filesystem::resourcePathRel(ResourceType type, const std::string& filename) const
+	{
+		boost::filesystem::path absPath = fsresourcePathAbs(type, filename).string();
+		return ioUtility::makeRelativePath(m_resourcePath, absPath).string();
+	}
 
 } // namespace ramen
