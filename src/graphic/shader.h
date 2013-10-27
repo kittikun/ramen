@@ -29,12 +29,12 @@ namespace ramen
 		Shader(const GLenum type);
 		~Shader();
 
-		const bool compile(const GLchar** data);
+		const bool loadFromMemory(const GLchar** data) const;
+		const bool compile();
 
 		const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
 
-		const GLuint getShaderID() const { return m_iShaderID; }
-		const GLenum getType() const { return m_eType; }
+		const GLuint shaderID() const { return m_iShaderID; }
 
 	private:
 		GLenum m_eType;
@@ -47,7 +47,7 @@ namespace ramen
 		Program();
 		~Program();
 
-		const bool attachShader(boost::shared_ptr<Shader> shader);
+		const bool attachShader(const boost::shared_ptr<Shader>& shader);
 		const bool link();
 		const bool use();
 

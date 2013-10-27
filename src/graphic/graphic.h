@@ -21,7 +21,6 @@
 #include <memory>
 #include <boost/signals2.hpp>
 #include <boost/utility.hpp>
-#include <boost/weak_ptr.hpp>
 #include <glm/glm.hpp>
 
 struct SDL_Window;
@@ -38,7 +37,7 @@ namespace ramen
 		Graphic();
 		~Graphic();
 
-		bool initialize(const glm::ivec2& winSize, Core* core, boost::weak_ptr<Filesystem> filesystem);
+		bool initialize(const glm::ivec2& winSize, Core* core, Filesystem const* filesystem);
 		void run();
 
 		const glm::ivec2 windowSize() const;
@@ -53,7 +52,7 @@ namespace ramen
 		bool initializeThreadDependents();
 
 	private:
-		boost::weak_ptr<Filesystem> m_pFilesystem;
+		Filesystem const* m_pFilesystem;
 		SDL_Window* m_pWindow;
 		std::atomic<bool> m_bState;
 		std::unique_ptr<FontManager> m_pFontManager;

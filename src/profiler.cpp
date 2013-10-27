@@ -40,7 +40,7 @@ namespace ramen
 		Profiler::update(m_strName, boost::chrono::duration_cast<boost::chrono::microseconds>(boost::chrono::system_clock::now() - m_start));
 	}
 
-	const std::string Profiler::getRoundedDuration(const boost::chrono::duration<long long, boost::micro>& duration)
+	const std::string Profiler::readableDuration(const boost::chrono::duration<long long, boost::micro>& duration)
 	{
 		std::stringstream stream;
 		int digits = utility::calcNumDigits(duration.count(), false);
@@ -72,9 +72,9 @@ namespace ramen
 
 			// trying to print chrono duration with log or format will not work with short duration so fallback to standard streams	
 			LOGP << boost::format("%1% avg:%2% min:%3% max:%4% cnt:%5% tot:%6%") % data.strName
-																				% getRoundedDuration(data.totalTime / data.iCount)
-																				% getRoundedDuration(data.min) % getRoundedDuration(data.max)
-																				% data.iCount % getRoundedDuration(data.totalTime);
+																				% readableDuration(data.totalTime / data.iCount)
+																				% readableDuration(data.min) % readableDuration(data.max)
+																				% data.iCount % readableDuration(data.totalTime);
 		}
 	}
 

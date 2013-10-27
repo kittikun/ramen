@@ -36,15 +36,15 @@ namespace ramen
         glDeleteShader(m_iShaderID);
     }
 
-    const bool Shader::compile(const GLchar** data)
+    const bool Shader::compile()
     {
         GLint compiled;
 
         if (m_iShaderID == 0) {
             LOGE << "Cannot compile shader with an ID of 0";
+			return false;
         }
 
-        glShaderSource(m_iShaderID, 1, data, nullptr);
         glCompileShader(m_iShaderID);
         VERIFYGL();
 
@@ -56,16 +56,17 @@ namespace ramen
             glGetShaderiv(m_iShaderID, GL_INFO_LOG_LENGTH, &infoLen);
 
             if (infoLen > 1) {
-                char* infoLog = new char[infoLen];
+                std::vector<char> infoLog(infoLen);
+				GLsizei srcLen;
 
-                glGetShaderInfoLog(m_iShaderID, infoLen, NULL, infoLog);
-                LOGE << "Error compiling shader: " << infoLog;
-                delete(infoLog);
+                glGetShaderInfoLog(m_iShaderID, infoLen, NULL, &infoLog[0]);
+				LOGE << "Error compiling shader:\n" << std::string(infoLog.begin(), infoLog.end());
 
-                LOGE << "Shader Source:";
-                for (uint32_t i = 0; i < (sizeof(data) / sizeof(const char*)); ++i) {
-                    LOGE << data[i];
-                }
+				glGetShaderiv(m_iShaderID, GL_SHADER_SOURCE_LENGTH, &infoLen);
+				infoLog.resize(infoLen);
+
+				glGetShaderSource(m_iShaderID, infoLen, &srcLen, &infoLog[0]);
+				LOGE << "Shader source:\n" << std::string(infoLog.begin(), infoLog.end());
             }
 
             return false;
@@ -73,6 +74,14 @@ namespace ramen
 
         return true;
     }
+
+	const bool Shader::loadFromMemory(const GLchar** data) const
+	{
+		glShaderSource(m_iShaderID, 1, data, nullptr);
+		VERIFYGL_RET();
+
+		return true;
+	}
 
 //-------------------------------------------------------------------------------------
 // PROGRAM
@@ -87,10 +96,10 @@ namespace ramen
         glDeleteProgram(m_iProgram);
     }
 
-    const bool Program::attachShader(boost::shared_ptr<Shader> shader)
+    const bool Program::attachShader(const boost::shared_ptr<Shader>& shader)
     {
         // Check if the shader wasn't already attached
-        GLuint id = shader->getShaderID();
+        GLuint id = shader->shaderID();
         auto iter = m_shaders.find(id);
 
         if (iter != m_shaders.end()) {

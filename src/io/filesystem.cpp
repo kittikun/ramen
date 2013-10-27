@@ -17,17 +17,20 @@
 #include "filesystem.h"
 
 #if defined(_WIN32)
-#include "windows.h"
+#include <windows.h>
 #endif
 
+#include <fstream>
+
 #include "../log.h"
+#include "../utility.h"
 
 namespace ramen
 {
 
     void Filesystem::findResourcePath()
     {
-        boost::filesystem::directory_iterator end;
+        const boost::filesystem::directory_iterator end;
         boost::filesystem::path path = m_workingDir;
         bool found = false;
 
@@ -75,6 +78,34 @@ namespace ramen
         LOGI << "Working directory: " << m_workingDir;
     }
 
+	const boost::filesystem::path Filesystem::fsResourcePath(ResourceType type, const std::string& filename) const
+	{
+		boost::filesystem::path pathFS;
+
+		switch (type) {
+		case TYPE_FBX:
+			pathFS = m_resourcePath / "fbx" / filename;
+			break;
+
+		case TYPE_FONT:
+			pathFS = m_resourcePath / "font" / filename;
+			break;
+		case TYPE_SHADER:
+			pathFS = m_resourcePath / "shader" / filename;
+			break;
+
+		default:
+			LOGE << "Unrecognized resource type";
+			break;
+		}
+
+		if (!boost::filesystem::exists(pathFS)) {
+			LOGE << pathFS << " does not exists";
+		}
+
+		return pathFS;
+	}
+
     const bool Filesystem::initialize()
     {
         findWorkingDir();
@@ -83,22 +114,39 @@ namespace ramen
         return true;
     }
 
-    const std::string Filesystem::resourcePathStr(uint32_t type, const std::string& filename) const
+	char const* Filesystem::resource(ResourceType type, const std::string& filename) const
+	{
+		const boost::filesystem::path path = fsResourcePath(type, filename);
+		std::ifstream stream(path.string());
+		uint32_t size;
+		char* data = nullptr;
+
+		if (path.empty()) {
+			return nullptr;
+		}
+
+		if (stream.is_open()) {
+			if (type == TYPE_SHADER) {
+				std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+				data = new char[str.size() +1];
+				std::copy(str.begin(), str.end(), data);
+				size = str.size();
+				data[size] = '\0';
+			} else {
+				size = static_cast<uint32_t>(boost::filesystem::file_size(path));
+				data = new char[size];
+				stream.read(data, size);
+			}
+			LOGI << boost::format("Read %1% from %2%..") % utility::readableSizeByte(size) % path.leaf();
+		}
+
+		return data;
+	}
+
+    const std::string Filesystem::resourcePath(ResourceType type, const std::string& filename) const
     {
-        std::string pathStr;
-        boost::filesystem::path pathFS;
-
-        if (type == TYPE_FONT) {
-            pathFS = m_resourcePath / "font" / filename;
-
-            if (!boost::filesystem::exists(pathFS)) {
-                LOGE << pathFS << " does not exists";
-            }
-
-            pathStr = pathFS.string();
-        }
-
-        return pathStr;
+		return fsResourcePath(type, filename).string();
     }
 
 } // namespace ramen

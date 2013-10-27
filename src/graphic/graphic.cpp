@@ -34,7 +34,8 @@
 namespace ramen
 {
     Graphic::Graphic()
-       : m_pWindow(nullptr)
+       : m_pFilesystem(nullptr)
+	   , m_pWindow(nullptr)
        , m_bState(false)
        , m_pFontManager(new FontManager())
        , m_pContext(nullptr)
@@ -169,7 +170,7 @@ namespace ramen
         return true;
     }
 
-    bool Graphic::initialize(const glm::ivec2& winSize, Core* core, boost::weak_ptr<Filesystem> filesystem)
+    bool Graphic::initialize(const glm::ivec2& winSize, Core* core, Filesystem const* filesystem)
     {
         if (!createWindow(winSize)) {
             return false;
@@ -197,8 +198,8 @@ namespace ramen
             return false;
         }
 
-        m_pFontManager->makeFont("dim48", "dim", 48);
-        m_pFontManager->makeFont("dim16", "dim", 16);
+        m_pFontManager->createFont("dim48", "dim", 48);
+        m_pFontManager->createFont("dim16", "dim", 16);
 
         return true;
     }

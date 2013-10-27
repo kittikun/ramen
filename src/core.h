@@ -18,6 +18,7 @@
 #define CORE_H
 
 #include <atomic>
+#include <memory>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
@@ -38,8 +39,6 @@ namespace ramen
         const bool initialize(const glm::ivec2& winSize);
         void run();
 
-		boost::weak_ptr<Filesystem> filesystem() { return m_pFilesystem; }
-
 		// slots
 		void slotError();
 
@@ -50,8 +49,8 @@ namespace ramen
         // members
         std::atomic<bool> m_bState;
         boost::thread_group m_threads;
-        boost::shared_ptr<Filesystem> m_pFilesystem;
-        boost::shared_ptr<Graphic> m_pGraphic;
+		std::unique_ptr<Filesystem> m_pFilesystem;
+        boost::shared_ptr<Graphic> m_pGraphic; // shared_ptr because of signals2 tracking
 
         // signals
         typedef boost::signals2::signal<void(const bool)> SigState;

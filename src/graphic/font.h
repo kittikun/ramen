@@ -23,7 +23,6 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 #include <boost/utility.hpp>
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
@@ -51,7 +50,7 @@ namespace ramen
 
 		void initialize(const FT_Face fontFamilly, const unsigned char size);
 
-		const GLuint texture() const { return m_iTexture; }
+		const GLuint texID() const { return m_iTexID; }
 		const Character& charAt(const unsigned int index) const { return m_characters[index]; }
 		const glm::ivec2 texSize() const { return m_texSize; }
 
@@ -60,7 +59,7 @@ namespace ramen
 		void createTexture(const FT_Face fontFamilly);
 
 	private:
-		GLuint m_iTexture;
+		GLuint m_iTexID;
 		glm::ivec2 m_texSize;
 		std::vector<Character> m_characters;
 	};
@@ -71,11 +70,11 @@ namespace ramen
 		FontManager();
 		~FontManager();
 
-		const bool initialize(const glm::ivec2& windowSize, boost::weak_ptr<Filesystem> filesystem);
+		const bool initialize(const glm::ivec2& windowSize, Filesystem const* filesystem);
 
 		const bool loadFontFamillyFromFile(const std::string& name, const std::string& filename);
 		const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
-		const bool makeFont(const std::string& name, const std::string& fontFamilly, const int size);
+		const bool createFont(const std::string& name, const std::string& fontFamilly, const int size);
 
 		void drawText(const std::string& text, const glm::vec2& pos) const;
 
@@ -85,8 +84,8 @@ namespace ramen
 
 	private:
 		boost::shared_ptr<Program> m_pProgram;
-        boost::weak_ptr<FontAtlas> m_activeFont;
-		boost::weak_ptr<Filesystem> m_pFilesystem;
+        FontAtlas const* m_pActiveFont;
+		Filesystem const* m_pFilesystem;
 		FT_Library m_FTLibrary;
         glm::vec4 m_color;
 		glm::vec2 m_scaleFactor;

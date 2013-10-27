@@ -14,40 +14,28 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#ifndef FBX_H
+#define FBX_H
 
-#include <boost/filesystem.hpp>
-#include <boost/shared_array.hpp>
+#include <fbxsdk.h>
 
 namespace ramen
 {
+	class Filesystem;
 
-	class Filesystem
+	class Fbx
 	{
 	public:
-		enum ResourceType
-		{
-			TYPE_FBX,
-			TYPE_FONT,
-			TYPE_SHADER
-		};
+		Fbx();
+		~Fbx();
 
-		const bool initialize();
-
-		const std::string resourcePath(ResourceType type, const std::string& filename) const;
-		char const* resource(ResourceType type, const std::string& filename) const;
+		const bool initialialize(Filesystem const* filesystem);
 
 	private:
-		void findWorkingDir();
-		void findResourcePath();
-		const boost::filesystem::path fsResourcePath(ResourceType type, const std::string& filename) const;
-	
-	private:
-		boost::filesystem::path m_workingDir;
-		boost::filesystem::path m_resourcePath;
+		FbxManager* m_pFbxManager;
+		Filesystem const* m_pFilesystem;
 	};
 
 } // namespace ramen
 
-#endif // FILESYSTEM_H
+#endif // FBX_H

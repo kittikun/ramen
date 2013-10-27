@@ -23,6 +23,8 @@
 #include "graphic/graphic.h"
 #include "io/filesystem.h"
 
+#include "io/fbx.h"
+
 namespace ramen
 {
     Core::Core()
@@ -53,9 +55,13 @@ namespace ramen
 			return false;
 		}
 
-		if (!m_pGraphic->initialize(winSize, this, m_pFilesystem)) {
+		if (!m_pGraphic->initialize(winSize, this, m_pFilesystem.get())) {
             return false;
 		}
+
+		Fbx fbx;
+
+		fbx.initialialize(m_pFilesystem.get());
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));

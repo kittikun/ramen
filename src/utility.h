@@ -18,6 +18,8 @@
 #define UTILITY_H
 
 #include <cmath>
+#include <string>
+#include <boost/format.hpp>
 #include <boost/type_traits.hpp>
 
 namespace ramen {
@@ -55,6 +57,30 @@ namespace ramen {
 
 			// cast in case T type is integral
 			return T(res);
+		}
+
+		template <class T>
+		const std::string readableSizeByte(const T size)
+		{
+			const char * symbols = "kMGTPE";
+
+			BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+
+			if (size < 1000) {
+				return boost::str(boost::format("%1%B") % size);
+			}
+
+			double dSize = static_cast<double>(size);
+			int exp = static_cast<int>(log(dSize) / log(1000));
+			double roro = dSize / pow(1000, exp);
+			boost::format fmt;
+
+			if (exp > 1)
+				fmt = boost::format("%1$1.2f%2%B");
+			else
+				fmt = boost::format("%1$1.0f%2%B");
+
+			return boost::str(fmt % (dSize / pow(1000, exp)) % symbols[static_cast<int>(exp) - 1]);
 		}
 
 	} // namespace utility
