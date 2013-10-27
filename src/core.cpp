@@ -62,6 +62,7 @@ namespace ramen
 		Fbx fbx;
 
 		fbx.initialialize(m_pFilesystem.get());
+		fbx.loadfile("teapot.fbx");
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));

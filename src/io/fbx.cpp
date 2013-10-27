@@ -16,9 +16,9 @@
 
 #include "fbx.h"
 
-#include "filesystem.h"
-
 #include "../log.h"
+#include "filesystem.h"
+#include "fbxUtility.h"
 
 namespace ramen
 {
@@ -38,7 +38,7 @@ namespace ramen
 		m_pFilesystem = filesystem;
 
 		m_pFbxManager = FbxManager::Create();
-		if( !m_pFbxManager )
+		if(!m_pFbxManager)
 		{
 			LOGE << "Unable to create FBX Manager";
 			return false;
@@ -54,23 +54,68 @@ namespace ramen
 
 	const bool Fbx::loadfile(const std::string& filename)
 	{
-		FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager,"");
-		std::string path;
+		FbxImporter* importer  = nullptr;
+		FbxScene* scene = nullptr;
+		std::string pathAbs;
+		std::string pathRel;
 
-		path = m_pFilesystem->resourcePathAbs(Filesystem::TYPE_FBX, "teapot.fbx");
-		if (path.empty()) {
+		pathRel = m_pFilesystem->resourcePathRel(Filesystem::TYPE_FBX, filename);
+		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::TYPE_FBX, filename);
+		if (pathAbs.empty()) {
 			return false;
 		}
 
-		if(!lImporter->Initialize(path.c_str(), -1, m_pFbxManager->GetIOSettings())) { 
-			LOGE << "Call to FbxImporter::Initialize() failed with " << lImporter->GetStatus().GetErrorString(); 
+		LOGI << "Loading FBX file '" << pathRel << "'..";
+
+		importer = FbxImporter::Create(m_pFbxManager,"");
+		if(!importer->Initialize(pathAbs.c_str(), -1, m_pFbxManager->GetIOSettings())) { 
+			LOGE << "FbxImporter initialization for failed with " << importer->GetStatus().GetErrorString(); 
 			return false;
 		}
 
-		FbxScene* lScene = FbxScene::Create(m_pFbxManager,"myScene");
+		scene = FbxScene::Create(m_pFbxManager, filename.c_str());
+		if(!scene)
+		{
+			LOGE << "Unable to create FBX scene";
+			return false;
+		}
 
-		lImporter->Import(lScene);
-		lImporter->Destroy();
+		if (!importer->Import(scene)) {
+			LOGE << "Failed to import scene '" << filename << "'";
+		}
+
+		// Convert Axis System if needed
+		FbxAxisSystem sceneAxisSystem = scene->GetGlobalSettings().GetAxisSystem();
+		FbxAxisSystem axisSystem(FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eRightHanded);
+		if(sceneAxisSystem != axisSystem)
+		{
+			LOGW << "Scene needed axis convertion";
+			axisSystem.ConvertScene(scene);
+		}
+
+		//// Convert Unit System if needed
+		//FbxSystemUnit sceneSystemUnit = scene->GetGlobalSettings().GetSystemUnit();
+		//if(sceneSystemUnit.GetScaleFactor() != 1.0)
+		//{
+		//	LOGW << "Scene needed unit convertion";
+		//	FbxSystemUnit::cm.ConvertScene(scene);
+		//}
+
+		// Convert mesh, NURBS and patch into triangle mesh
+		FbxGeometryConverter geomConverter(m_pFbxManager);
+		geomConverter.Triangulate(scene, true);
+
+		// Split meshes per material, so that we only have one material per mesh (for VBO support)
+		geomConverter.SplitMeshesPerMaterial(scene, true);
+
+
+		FbxNode* root = scene->GetRootNode();
+
+		fbxUtility::printNode(root);
+
+		importer->Destroy();
+
+		return true;
 	}
 
 } // namespace ramen

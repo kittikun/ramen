@@ -17,6 +17,7 @@
     <ClCompile Include="..\..\src\graphic\shader.cpp" />
     <ClCompile Include="..\..\src\graphic\graphicUtility.cpp" />
     <ClCompile Include="..\..\src\io\fbx.cpp" />
+    <ClCompile Include="..\..\src\io\fbxUtility.cpp" />
     <ClCompile Include="..\..\src\io\filesystem.cpp" />
     <ClCompile Include="..\..\src\log.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
@@ -30,6 +31,7 @@
     <ClInclude Include="..\..\src\graphic\shader.h" />
     <ClInclude Include="..\..\src\graphic\graphicUtility.h" />
     <ClInclude Include="..\..\src\io\fbx.h" />
+    <ClInclude Include="..\..\src\io\fbxUtility.h" />
     <ClInclude Include="..\..\src\io\filesystem.h" />
     <ClInclude Include="..\..\src\io\ioUtility.h" />
     <ClInclude Include="..\..\src\log.h" />

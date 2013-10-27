@@ -171,10 +171,10 @@ namespace ramen
     {
         auto foundFamilly = m_fonts.find(fontFamilly);
 
-        LOGGFX << boost::format("Generating \"%1%\" from \"%2%\" at %3%pts..") % name % fontFamilly % size;
+        LOGGFX << boost::format("Generating '%1%' from '%2%' at %3%pts..") % name % fontFamilly % size;
 
         if (foundFamilly == m_fonts.end()) {
-            LOGE << "Font familly \"" << fontFamilly << "\" doesn't exist";
+            LOGE << "Font familly '" << fontFamilly << "' doesn't exist";
             return false;
         }
 
@@ -182,7 +182,7 @@ namespace ramen
         auto foundDup = m_fontAtlases.find(name);
 
         if (foundDup != m_fontAtlases.end()) {
-            LOGW << "A fot named \"" << name << "\" already exists, abording";
+            LOGW << "A fot named '" << name << "' already exists, abording";
             return false;
         }
 
@@ -314,14 +314,14 @@ namespace ramen
 		pathRel = m_pFilesystem->resourcePathRel(Filesystem::TYPE_FONT, filename);
 		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::TYPE_FONT, filename);
 
-        LOGGFX << boost::format("Loading font familly \"%1%\" from \"%2%\"..") % name % pathRel;
+        LOGGFX << boost::format("Loading font familly '%1%' from '%2%'..") % name % pathRel;
 
 		if (pathAbs.empty()) {
 			return false;
 		}
 
         if (FT_New_Face(m_FTLibrary, pathAbs.c_str() , 0, &face)) {
-			LOGE << boost::format("Could not open font familly \"%1%\" from \"%2%\"") % name % pathRel;
+			LOGE << boost::format("Could not open font familly '%1%' from '%2%'") % name % pathRel;
             return false;
         }
 
@@ -334,10 +334,10 @@ namespace ramen
     {
         FT_Face face;
 
-        LOGGFX << "Loading font familly \"" << name << "\"..";
+        LOGGFX << "Loading font familly '" << name << "'..";
 
         if (FT_New_Memory_Face(m_FTLibrary, data, size, 0, &face)) {
-            LOGE << "Could not open font familly \"" << name << "\" from memory";
+            LOGE << "Could not open font familly '" << name << "' from memory";
             return false;
         }
 

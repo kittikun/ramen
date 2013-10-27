@@ -36,8 +36,8 @@ namespace ramen
 	namespace graphicUtility
 	{
 
-		const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
-		const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
+		extern const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
+		extern const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
 
 	} // namespace graphicUtility    
 } // namespace ramen
