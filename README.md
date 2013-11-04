@@ -31,10 +31,11 @@ TODO:
 
 GENERAL:
 - Improve profiler with many level of hierarchy
-- Loop to not take 100% cpu
+- Loops not to take 100% cpu
 
 GRAPHICS:
 - Handle resize on windows
+- Improve shader system to be easier to use
 
 FONTS:
 - Improve font packing with an algorithm like http://clb.demon.fi/files/RectangleBinPack.pdf

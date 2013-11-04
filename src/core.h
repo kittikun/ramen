@@ -23,12 +23,17 @@
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
-#include <glm/glm.hpp>
 
 namespace ramen
 {
+	class Builder;
+    struct CoreComponents;
+    class Database;
+	class FBXManager;
 	class Filesystem;
     class Graphic;
+    class Resmon;
+    class Settings;
 
     class Core : boost::noncopyable
     {
@@ -36,7 +41,7 @@ namespace ramen
         Core();
         ~Core();
 
-        const bool initialize(const glm::ivec2& winSize);
+        const bool initialize();
         void run();
 
 		// slots
@@ -44,13 +49,19 @@ namespace ramen
 
     private:
         void stop();
+        void fillCoreComponents(CoreComponents* out);
 
     private:
         // members
         std::atomic<bool> m_bState;
         boost::thread_group m_threads;
-		std::unique_ptr<Filesystem> m_pFilesystem;
-        boost::shared_ptr<Graphic> m_pGraphic; // shared_ptr because of signals2 tracking
+		boost::shared_ptr<FBXManager> m_pFbxManager;
+        boost::shared_ptr<Database> m_pDatabase;
+		boost::shared_ptr<Builder> m_pBuilder; // shared_ptr because of signals2 tracking
+		boost::shared_ptr<Filesystem> m_pFilesystem;
+        boost::shared_ptr<Graphic> m_pGraphic; // shared_ptr because of signals2 trackings
+        boost::shared_ptr<Resmon> m_pResmon;
+        boost::shared_ptr<Settings> m_pSettings;
 
         // signals
         typedef boost::signals2::signal<void(const bool)> SigState;

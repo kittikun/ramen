@@ -83,15 +83,18 @@ namespace ramen
 	{
 		boost::filesystem::path pathFS;
 
-		switch (type) {
-		case TYPE_FBX:
+        switch (type) {
+        case ResourceType::Default:
+            pathFS = m_resourcePath / filename;
+            break;
+        case ResourceType::Fbx:
 			pathFS = m_resourcePath / "fbx" / filename;
 			break;
 
-		case TYPE_FONT:
+        case ResourceType::Font:
 			pathFS = m_resourcePath / "font" / filename;
 			break;
-		case TYPE_SHADER:
+        case ResourceType::Shader:
 			pathFS = m_resourcePath / "shader" / filename;
 			break;
 
@@ -127,7 +130,7 @@ namespace ramen
 		}
 
 		if (stream.is_open()) {
-			if (type == TYPE_SHADER) {
+			if (type == ResourceType::Shader) {
 				std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
 				data = new char[str.size() +1];

@@ -18,12 +18,14 @@
 #define FBX_UTILITY_H
 
 #include <fbxsdk.h>
+#include <string>
 
 namespace ramen
 {
 	namespace fbxUtility
 	{
 		extern void printNode(FbxNode* pNode, const int numTabs = 0);
+		extern std::string getAttributeStr(FbxNodeAttribute::EType type);
 
 	} // namespace fbsUtility
 

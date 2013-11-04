@@ -30,9 +30,10 @@
 
 namespace ramen
 {
+    struct CoreComponents;
 	class Program;
-	class Graphic;
 	class Filesystem;
+    class Settings;
 
 	class FontAtlas : boost::noncopyable
 	{
@@ -48,15 +49,15 @@ namespace ramen
 		FontAtlas();
 		~FontAtlas();
 
-		void initialize(const FT_Face fontFamilly, const unsigned char size);
+		void initialize(const FT_Face fontFamilly, const unsigned char fontSize, const int maxTexWidth);
 
 		const GLuint texID() const { return m_iTexID; }
 		const Character& charAt(const unsigned int index) const { return m_characters[index]; }
 		const glm::ivec2 texSize() const { return m_texSize; }
 
 	private:
-		void calcRequiredTexSize(const FT_Face fontFamilly);
-		void createTexture(const FT_Face fontFamilly);
+		void calcRequiredTexSize(const FT_Face fontFamilly, const int maxTexWidth);
+		void createTexture(const FT_Face fontFamilly, const int maxTexWidth);
 
 	private:
 		GLuint m_iTexID;
@@ -70,11 +71,12 @@ namespace ramen
 		FontManager();
 		~FontManager();
 
-		const bool initialize(const glm::ivec2& windowSize, Filesystem const* filesystem);
+		const bool initialize(const CoreComponents* components);
+        const bool initializeGL();
 
 		const bool loadFontFamillyFromFile(const std::string& name, const std::string& filename);
 		const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
-		const bool createFont(const std::string& name, const std::string& fontFamilly, const int size);
+		const bool createFont(const std::string& name, const std::string& fontFamilly, const int fontSize);
 
 		void drawText(const std::string& text, const glm::vec2& pos) const;
 
@@ -83,9 +85,10 @@ namespace ramen
 		const void setFontColor(const float r, const float g, const float b, const float a) { m_color = glm::vec4(r, g, b, a); }
 
 	private:
+		boost::shared_ptr<Filesystem> m_pFilesystem;
 		boost::shared_ptr<Program> m_pProgram;
+        boost::shared_ptr<Settings> m_pSettings;
         FontAtlas const* m_pActiveFont;
-		Filesystem const* m_pFilesystem;
 		FT_Library m_FTLibrary;
         glm::vec4 m_color;
 		glm::vec2 m_scaleFactor;

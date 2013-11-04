@@ -25,17 +25,20 @@
 #endif
 
 #include "../core.h"
+#include "../coreComponents.h"
+#include "../database.h"
 #include "../log.h"
+#include "../settings.h"
 #include "../io/filesystem.h"
+#include "../perfmon/profiler.h"
+#include "../utility.h"
 #include "font.h"
-#include "font_DIN.h"
 #include "graphicUtility.h"
 
 namespace ramen
 {
     Graphic::Graphic()
-       : m_pFilesystem(nullptr)
-	   , m_pWindow(nullptr)
+       : m_pWindow(nullptr)
        , m_bState(false)
        , m_pFontManager(new FontManager())
        , m_pContext(nullptr)
@@ -170,15 +173,21 @@ namespace ramen
         return true;
     }
 
-    bool Graphic::initialize(const glm::ivec2& winSize, Core* core, Filesystem const* filesystem)
+    bool Graphic::initialize(const CoreComponents* components)
     {
-        if (!createWindow(winSize)) {
+        glm::ivec2 size(components->settings->get<int>("windowWidth"), components->settings->get<int>("windowHeight"));
+
+        if (!createWindow(size)) {
             return false;
         }
 
-		m_pFilesystem = filesystem;
+        if (!m_pFontManager->initialize(components)) {
+            return false;
+        }
 
-        m_sigError.connect(SigError::slot_type(&Core::slotError, core));
+        m_pDatabase = components->database;
+
+        m_sigError.connect(SigError::slot_type(&Core::slotError, components->core));
 
         return true;
     }
@@ -190,16 +199,23 @@ namespace ramen
         }
 
         // All the following need a valid GLES context
-        if (!m_pFontManager->initialize(windowSize(), m_pFilesystem)) {
+        if (!m_pFontManager->initializeGL()) {
             return false;
         }
 
+        // Fonts
         if (!m_pFontManager->loadFontFamillyFromFile("dim", "DIN Light.ttf")) {
             return false;
         }
 
+        if (!m_pFontManager->loadFontFamillyFromFile("vera", "Vera.ttf")) {
+            return false;
+        }
+
+
         m_pFontManager->createFont("dim48", "dim", 48);
         m_pFontManager->createFont("dim16", "dim", 16);
+        m_pFontManager->createFont("vera16", "vera", 16);
 
         return true;
     }
@@ -211,24 +227,29 @@ namespace ramen
             return;
         }
 
-        LOGC << "Starting graphic loop..";
-        m_bState = true;
+        LOGC << "Starting graphic thread..";
+        m_bState.store(true);
 
         while (m_bState.load()) {
+            PROFILE;
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
             m_pFontManager->setActiveFont("dim48");
             m_pFontManager->setFontColor(1, 1, 0, 1);
-            m_pFontManager->drawText("Ramen Framework", glm::vec2(0, 700));
+            m_pFontManager->drawText("Ramen Framework", glm::vec2(10, 700));
             m_pFontManager->setActiveFont("dim16");
             m_pFontManager->setFontColor(0, 1, 1, 1);
             m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
+            m_pFontManager->setActiveFont("vera16");
+            m_pFontManager->setFontColor(1, 1, 1, 1);
+            std::string resmon = boost::str(boost::format("cpu %1%, physical %2%, virtual %3%") % m_pDatabase->uint("cpu") % utility::readableSizeByte<uint32_t>(m_pDatabase->uint("physical memory")) % utility::readableSizeByte<uint32_t>(m_pDatabase->uint("virtual memory")));
+            m_pFontManager->drawText(resmon, glm::vec2(10, 26));
 
             VERIFYGL();
             swapbuffers();
         }
-        LOGC << "Exiting graphic loop..";
+        LOGC << "Exiting graphic thread..";
     }
 
     void Graphic::slotState(const bool state)

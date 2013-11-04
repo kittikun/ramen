@@ -19,23 +19,41 @@
 
 #include <fbxsdk.h>
 #include <string>
+#include <vector>
+#include <boost/shared_ptr.hpp>
 
 namespace ramen
 {
 	class Filesystem;
+    class MeshBuider;
 
-	class Fbx
+	class FBXScene
 	{
 	public:
-		Fbx();
-		~Fbx();
+		FBXScene(FbxScene* scene);
 
-		const bool initialialize(Filesystem const* filesystem);
-		const bool loadfile(const std::string& filename);
+        MeshBuilder createJobMesh();
+
+	private:
+		FbxNode* findNode(FbxNodeAttribute::EType type);
+
+	private:
+		FbxScene* m_pScene;
+	};
+
+	class FBXManager
+	{
+	public:
+		FBXManager();
+		~FBXManager();
+
+		const bool initialialize(const boost::shared_ptr<Filesystem>& filesystem);
+
+		boost::shared_ptr<FBXScene> loadScene(const std::string& filename);
 
 	private:
 		FbxManager* m_pFbxManager;
-		Filesystem const* m_pFilesystem;
+		boost::shared_ptr<Filesystem> m_pFilesystem;
 	};
 
 } // namespace ramen

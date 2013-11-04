@@ -29,6 +29,7 @@ namespace ramen
        : m_eType(type)
     {
         m_iShaderID = glCreateShader(m_eType);
+        VERIFYGL();
     }
 
     Shader::~Shader()

@@ -21,17 +21,18 @@
 #include <boost/shared_ptr.hpp>
 #include <glm/ext.hpp>
 
+#include "../coreComponents.h"
 #include "../log.h"
-#include "../profiler.h"
+#include "../settings.h"
 #include "../utility.h"
 #include "../io/filesystem.h"
+#include "../perfmon/profiler.h"
 #include "graphic.h"
 #include "shader.h"
 #include "graphicUtility.h"
 
 namespace ramen
 {
-    static const int g_fontAtlasTexMaxWidth = 512; // TODO: put in config file later ?
 
 //-------------------------------------------------------------------------------------
 // FONTATLAS
@@ -49,7 +50,7 @@ namespace ramen
         }
     }
 
-    void FontAtlas::calcRequiredTexSize(const FT_Face fontFamilly)
+    void FontAtlas::calcRequiredTexSize(const FT_Face fontFamilly, const int maxTexWidth)
     {
         FT_GlyphSlot glyph = fontFamilly->glyph;
         glm::ivec2 pos;
@@ -62,7 +63,7 @@ namespace ramen
                 continue;
             }
 
-            if (rowSize.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
+            if (rowSize.x + glyph->bitmap.width + 1 >= maxTexWidth) {
                 pos.x = std::max(pos.x, rowSize.x);
                 pos.y += rowSize.y;
                 rowSize.x = 0;
@@ -76,7 +77,7 @@ namespace ramen
         m_texSize.y = utility::calcNearestPowerofTwo(pos.y + rowSize.y);
     }
 
-    void FontAtlas::createTexture(const FT_Face fontFamilly)
+    void FontAtlas::createTexture(const FT_Face fontFamilly, const int maxTexWidth)
     {
         FT_GlyphSlot glyph = fontFamilly->glyph;
         glm::ivec2 offset;
@@ -110,7 +111,7 @@ namespace ramen
                 continue;
             }
 
-            if (offset.x + glyph->bitmap.width + 1 >= g_fontAtlasTexMaxWidth) {
+            if (offset.x + glyph->bitmap.width + 1 >= maxTexWidth) {
                 offset.x = 0;
                 offset.y += rowSize.y;
                 rowSize.y = 0;
@@ -134,12 +135,12 @@ namespace ramen
         }
     }
 
-    void FontAtlas::initialize(const FT_Face fontFamilly, const unsigned char size)
+    void FontAtlas::initialize(const FT_Face fontFamilly, const unsigned char size, const int maxTexWidth)
     {
         FT_Set_Pixel_Sizes(fontFamilly, 0, size);
 
-        calcRequiredTexSize(fontFamilly);
-        createTexture(fontFamilly);
+        calcRequiredTexSize(fontFamilly, maxTexWidth);
+        createTexture(fontFamilly, maxTexWidth);
     }
 
 //-------------------------------------------------------------------------------------
@@ -167,11 +168,12 @@ namespace ramen
         }
     }
 
-    const bool FontManager::createFont(const std::string& name, const std::string& fontFamilly, const int size)
+    const bool FontManager::createFont(const std::string& name, const std::string& fontFamilly, const int fontSize)
     {
+        PROFILE;
         auto foundFamilly = m_fonts.find(fontFamilly);
 
-        LOGGFX << boost::format("Generating '%1%' from '%2%' at %3%pts..") % name % fontFamilly % size;
+        LOGGFX << boost::format("Generating '%1%' from '%2%' at %3%pts..") % name % fontFamilly % fontSize;
 
         if (foundFamilly == m_fonts.end()) {
             LOGE << "Font familly '" << fontFamilly << "' doesn't exist";
@@ -188,7 +190,7 @@ namespace ramen
 
         boost::shared_ptr<FontAtlas> atlas(new FontAtlas());
 
-        atlas->initialize(foundFamilly->second, size);
+        atlas->initialize(foundFamilly->second, fontSize, m_pSettings->get<int>("fontTextureWidth"));
         m_fontAtlases.insert(std::make_pair(name, atlas));
 
         return true;
@@ -253,36 +255,48 @@ namespace ramen
         glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
     }
 
-    const bool FontManager::initialize(const glm::ivec2& windowSize, Filesystem const* filesystem)
+    const bool FontManager::initialize(const CoreComponents* components)
     {
         PROFILE;
-        boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
-        boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
-		char const* vtxData;
-		char const* frgData;
+        glm::ivec2 windowSize(components->settings->get<int>("windowWidth"), components->settings->get<int>("windowHeight"));
 
-        LOGGFX << "Initializing text renderer..";
+        LOGGFX << "Initializing font manager..";
 
-		m_pFilesystem = filesystem;
+        m_pFilesystem = components->filesystem;
+        m_pSettings = components->settings;
 
         if (FT_Init_FreeType(&m_FTLibrary)) {
             LOGE << "Could not initialize Freetype library";
             return false;
         }
 
+        m_scaleFactor = glm::vec2(2.0 / static_cast<float>(windowSize.x), 2.0 / static_cast<float>(windowSize.y));
+
+        return true;
+    }
+
+    const bool FontManager::initializeGL()
+    {
+        boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
+        boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
+        char const* vtxData;
+        char const* frgData;
+
+        LOGGFX << "Initializing GL for font renderer..";
+
         // Shaders/Program to be used for all font drawing
-		vtxData = m_pFilesystem->resource(Filesystem::TYPE_SHADER, "font.v");
-		frgData = m_pFilesystem->resource(Filesystem::TYPE_SHADER, "font.f");
+        vtxData = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.v");
+        frgData = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.f");
 
-		if ((vtxData == nullptr) || (frgData == nullptr)){
-			return false;
-		}
+        if ((vtxData == nullptr) || (frgData == nullptr)){
+            return false;
+        }
 
-		vtx->loadFromMemory(&vtxData);
-		frg->loadFromMemory(&frgData);
+        vtx->loadFromMemory(&vtxData);
+        frg->loadFromMemory(&frgData);
 
-		delete vtxData;
-		delete frgData;
+        delete vtxData;
+        delete frgData;
 
         if (!vtx->compile() || !frg->compile()) {
             return false;
@@ -296,23 +310,22 @@ namespace ramen
             return false;
         }
 
-		// Buffer that will be used for all text drawing
+        // Buffer that will be used for all text drawing
         glGenBuffers(1, &m_vbo);
         VERIFYGL_RET();
-
-        m_scaleFactor = glm::vec2(2.0 / static_cast<float>(windowSize.x), 2.0 / static_cast<float>(windowSize.y));
 
         return true;
     }
 
 	const bool FontManager::loadFontFamillyFromFile(const std::string& name, const std::string& filename)
 	{
+        PROFILE;
         FT_Face face;
 		std::string pathAbs;
 		std::string pathRel;
 
-		pathRel = m_pFilesystem->resourcePathRel(Filesystem::TYPE_FONT, filename);
-		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::TYPE_FONT, filename);
+        pathRel = m_pFilesystem->resourcePathRel(Filesystem::ResourceType::Font, filename);
+		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::ResourceType::Font, filename);
 
         LOGGFX << boost::format("Loading font familly '%1%' from '%2%'..") % name % pathRel;
 

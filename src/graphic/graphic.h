@@ -19,6 +19,7 @@
 
 #include <atomic>
 #include <memory>
+#include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/utility.hpp>
 #include <glm/glm.hpp>
@@ -27,7 +28,8 @@ struct SDL_Window;
 
 namespace ramen
 {
-	class Core;
+    struct CoreComponents;
+    class Database;
 	class Filesystem;
 	class FontManager;
 
@@ -37,7 +39,7 @@ namespace ramen
 		Graphic();
 		~Graphic();
 
-		bool initialize(const glm::ivec2& winSize, Core* core, Filesystem const* filesystem);
+		bool initialize(const CoreComponents* components);
 		void run();
 
 		const glm::ivec2 windowSize() const;
@@ -52,10 +54,10 @@ namespace ramen
 		bool initializeThreadDependents();
 
 	private:
-		Filesystem const* m_pFilesystem;
 		SDL_Window* m_pWindow;
 		std::atomic<bool> m_bState;
 		std::unique_ptr<FontManager> m_pFontManager;
+        boost::shared_ptr<Database> m_pDatabase;
 		void* m_pContext;
 
 		// signals

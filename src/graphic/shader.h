@@ -56,7 +56,7 @@ namespace ramen
 
 	private:
 		GLuint m_iProgram;
-		std::map<GLuint, boost::shared_ptr<Shader> > m_shaders;
+		std::map<GLuint, boost::shared_ptr<Shader>> m_shaders;
 	};
 
 } // namespace ramen

@@ -17,20 +17,34 @@
 #include "core.h"
 
 #include <SDL.h>
+#include <glm/glm.hpp>
 
+#include "coreComponents.h"
+#include "database.h"
 #include "log.h"
-#include "profiler.h"
+#include "settings.h"
+#include "builder\builder.h"
 #include "graphic/graphic.h"
 #include "io/filesystem.h"
-
 #include "io/fbx.h"
+#include "perfmon/profiler.h"
+#include "perfmon/resmon.h"
+
+#include "graphic/mesh.h"
+
+#include <boost/scoped_ptr.hpp>
 
 namespace ramen
 {
     Core::Core()
-       : m_bState(false)
-	   , m_pFilesystem(new Filesystem())
-       , m_pGraphic(new Graphic())
+        : m_bState(false)
+        , m_pDatabase(new Database())
+        , m_pFbxManager(new FBXManager())
+        , m_pBuilder(new Builder())
+        , m_pFilesystem(new Filesystem())
+        , m_pGraphic(new Graphic())
+        , m_pResmon(new Resmon())
+        , m_pSettings(new Settings())
     {
         Log::initialize();
         LOGC << "Creating core...";
@@ -39,33 +53,55 @@ namespace ramen
     Core::~Core()
     {
         LOGC << "Destroying core...";
-		Profiler::dump();
+        Profiler::dump();
     }
 
-    const bool Core::initialize(const glm::ivec2& winSize)
+    void Core::fillCoreComponents(CoreComponents* out)
     {
-		PROFILE;
+        out->builder = m_pBuilder;
+        out->core = this;
+        out->database = m_pDatabase;
+        out->fbxManager = m_pFbxManager;
+        out->filesystem = m_pFilesystem;
+        out->graphic = m_pGraphic;
+        out->settings = m_pSettings;
+    }
+
+    const bool Core::initialize()
+    {
+        PROFILE;
+        CoreComponents components;
+
+        fillCoreComponents(&components);
+
         LOGC << "Initializing SDL..";
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
             LOGE << SDL_GetError();
             return false;
         }
 
-		if (!m_pFilesystem->initialize()) {
-			return false;
-		}
-
-		if (!m_pGraphic->initialize(winSize, this, m_pFilesystem.get())) {
+        if (!m_pFilesystem->initialize()) {
             return false;
-		}
+        }
 
-		Fbx fbx;
+        if (!m_pSettings->initialize(&components)) {
+            return false;
+        }
 
-		fbx.initialialize(m_pFilesystem.get());
-		fbx.loadfile("teapot.fbx");
+        if (!m_pGraphic->initialize(&components)) {
+            return false;
+        }
+
+        m_pResmon->initialize(&components);
+
+        m_pFbxManager->initialialize(m_pFilesystem);
+        boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("humanoid.fbx");
+        boost::shared_ptr<Mesh> mesh = scene->mesh();
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));
+        m_sigState.connect(SigState::slot_type(&Builder::slotState, m_pBuilder.get(), _1).track(m_pBuilder));
+        m_sigState.connect(SigState::slot_type(&Resmon::slotState, m_pResmon.get(), _1).track(m_pResmon));
 
         return true;
     }
@@ -75,26 +111,29 @@ namespace ramen
         SDL_Event e;
 
         m_threads.create_thread(boost::bind(&Graphic::run, m_pGraphic.get()));
+        m_threads.create_thread(boost::bind(&Builder::run, m_pBuilder.get()));
+        m_threads.create_thread(boost::bind(&Resmon::run, m_pResmon.get()));
 
         LOGC << "Starting main loop..";
         m_bState.store(true);
 
+
         while (m_bState.load()) {
             while (SDL_PollEvent(&e)) {
                 switch (e.type) {
-				case SDL_WINDOWEVENT:
-					{
-						if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-							LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
-						}
-					}
-					break;
+                case SDL_WINDOWEVENT:
+                    {
+                        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                            LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
+                        }
+                    }
+                    break;
 
-				case SDL_KEYDOWN:
-					{
-						stop();
-					}
-					break;
+                case SDL_KEYDOWN:
+                    {
+                        stop();
+                    }
+                    break;
 
                 case SDL_QUIT:
                     {
@@ -105,14 +144,14 @@ namespace ramen
             }
         }
         LOGC << "Exiting main loop..";
-		m_threads.join_all();
+        m_threads.join_all();
     }
 
-	void Core::slotError()
-	{
-		LOGC << "Error signal received";
-		stop();
-	}
+    void Core::slotError()
+    {
+        LOGC << "Error signal received";
+        stop();
+    }
 
     void Core::stop()
     {

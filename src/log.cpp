@@ -37,10 +37,12 @@ namespace ramen
     {
         static const char* strings[] =
         {
+			"builder",
             "core",
+            "database",
             "gfx",
 			"io",
-			"prof",
+			"perfmon",
             "WARNING",
             "ERROR",
         };

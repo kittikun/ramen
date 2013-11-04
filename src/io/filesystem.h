@@ -25,17 +25,20 @@ namespace ramen
 	class Filesystem
 	{
 	public:
-		enum ResourceType
+		enum class ResourceType
 		{
-			TYPE_FBX,
-			TYPE_FONT,
-			TYPE_SHADER
+            Default,
+			Fbx,
+			Font,
+			Shader
 		};
 
 		const bool initialize();
 
 		const std::string resourcePathAbs(ResourceType type, const std::string& filename) const;
 		const std::string resourcePathRel(ResourceType type, const std::string& filename) const;
+
+		// User must manually free data after usage
 		char const* resource(ResourceType type, const std::string& filename) const;
 
 	private:

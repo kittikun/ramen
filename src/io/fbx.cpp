@@ -16,35 +16,48 @@
 
 #include "fbx.h"
 
+#include <boost/foreach.hpp>
+
 #include "../log.h"
+#include "../builder/meshbuilder.h"
+#include "../graphic/mesh.h"
+#include "../perfmon/profiler.h"
 #include "filesystem.h"
 #include "fbxUtility.h"
 
 namespace ramen
 {
-	Fbx::Fbx()
+
+//-------------------------------------------------------------------------------------
+// FBXMANAGER
+//-------------------------------------------------------------------------------------
+	FBXManager::FBXManager()
 		: m_pFbxManager(nullptr)
-		, m_pFilesystem(nullptr)
 	{
 	}
 
-	Fbx::~Fbx()
+	FBXManager::~FBXManager()
 	{
-		m_pFbxManager->Destroy();
+		LOGI << "Destroying FBX manager..";
+
+		if (m_pFbxManager) {
+			m_pFbxManager->Destroy();
+		}
 	}
 
-	const bool Fbx::initialialize(Filesystem const* filesystem)
+	const bool FBXManager::initialialize(const boost::shared_ptr<Filesystem>& filesystem)
 	{
+		LOGI << "Initializing FBX manager..";
 		m_pFilesystem = filesystem;
 
 		m_pFbxManager = FbxManager::Create();
 		if(!m_pFbxManager)
 		{
-			LOGE << "Unable to create FBX Manager";
+			LOGE << "Unable to create Fbx manager";
 			return false;
-		} else {
-			LOGI << "Autodesk FBX SDK version " << m_pFbxManager->GetVersion();
 		}
+
+		LOGI << "Autodesk FBX SDK version " << m_pFbxManager->GetVersion();
 
 		FbxIOSettings *ioSettings = FbxIOSettings::Create(m_pFbxManager, IOSROOT);
 		m_pFbxManager->SetIOSettings(ioSettings);
@@ -52,17 +65,18 @@ namespace ramen
 		return true;
 	}
 
-	const bool Fbx::loadfile(const std::string& filename)
+	boost::shared_ptr<FBXScene> FBXManager::loadScene(const std::string& filename)
 	{
+        PROFILE;
 		FbxImporter* importer  = nullptr;
 		FbxScene* scene = nullptr;
 		std::string pathAbs;
 		std::string pathRel;
 
-		pathRel = m_pFilesystem->resourcePathRel(Filesystem::TYPE_FBX, filename);
-		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::TYPE_FBX, filename);
+        pathRel = m_pFilesystem->resourcePathRel(Filesystem::ResourceType::Fbx, filename);
+		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::ResourceType::Fbx, filename);
 		if (pathAbs.empty()) {
-			return false;
+			return boost::shared_ptr<FBXScene>();
 		}
 
 		LOGI << "Loading FBX file '" << pathRel << "'..";
@@ -76,12 +90,13 @@ namespace ramen
 		scene = FbxScene::Create(m_pFbxManager, filename.c_str());
 		if(!scene)
 		{
-			LOGE << "Unable to create FBX scene";
-			return false;
+			LOGE << "Unable to create a FbxScene";
+			return boost::shared_ptr<FBXScene>();
 		}
 
 		if (!importer->Import(scene)) {
 			LOGE << "Failed to import scene '" << filename << "'";
+			return boost::shared_ptr<FBXScene>();
 		}
 
 		// Convert Axis System if needed
@@ -101,21 +116,88 @@ namespace ramen
 		//	FbxSystemUnit::cm.ConvertScene(scene);
 		//}
 
-		// Convert mesh, NURBS and patch into triangle mesh
+		// Convert fbxMesh, NURBS and patch into triangle fbxMesh
 		FbxGeometryConverter geomConverter(m_pFbxManager);
 		geomConverter.Triangulate(scene, true);
 
-		// Split meshes per material, so that we only have one material per mesh (for VBO support)
+		// Split meshes per material, so that we only have one material per fbxMesh (for VBO support)
 		geomConverter.SplitMeshesPerMaterial(scene, true);
-
-
-		FbxNode* root = scene->GetRootNode();
-
-		fbxUtility::printNode(root);
 
 		importer->Destroy();
 
-		return true;
+		return boost::shared_ptr<FBXScene>(new FBXScene(scene));
+	}
+
+//-------------------------------------------------------------------------------------
+// FBXSCENE
+//-------------------------------------------------------------------------------------
+	FBXScene::FBXScene(FbxScene* scene)
+		: m_pScene(scene)
+	{
+	}
+
+	FbxNode* FBXScene::findNode(FbxNodeAttribute::EType type)
+	{
+		FbxNode* node = m_pScene->GetRootNode();
+		std::vector<FbxNode*> toExplore;
+
+		for (int i = 0; i < node->GetChildCount(); ++i) {
+			toExplore.push_back(node->GetChild(i));
+		}
+
+		while (!toExplore.empty()) {
+			node = toExplore.back();
+			toExplore.pop_back();
+
+			if (node->GetNodeAttribute()->GetAttributeType() == type) {
+				return node;
+			}
+
+			for (int i = 0; i < node->GetChildCount(); ++i) {
+				toExplore.push_back(node->GetChild(i));
+			}
+		}
+
+		LOGE << "Cound find any node of type " << fbxUtility::getAttributeStr(type);
+
+		return nullptr;
+	}
+
+	MeshBuilder FBXScene::createJobMesh()
+	{
+        MeshBuilder buider;
+
+        builder.
+
+
+		//// Create VBOs
+		//glGenBuffers(VBO_COUNT, mVBONames);
+
+		//// Save vertex attributes into GPU
+		//glBindBuffer(GL_ARRAY_BUFFER, mVBONames[Mesh::VERTEX_VBO]);
+		//glBufferData(GL_ARRAY_BUFFER, polygonVertexCount * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
+		//delete [] vertices;
+
+		//if (mHasNormal)
+		//{
+		//	glBindBuffer(GL_ARRAY_BUFFER, mVBONames[Mesh::NORMAL_VBO]);
+		//	glBufferData(GL_ARRAY_BUFFER, polygonVertexCount * 3 * sizeof(float), normals, GL_STATIC_DRAW);
+		//	delete [] normals;
+		//}
+
+		//if (mHasUV)
+		//{
+		//	glBindBuffer(GL_ARRAY_BUFFER, mVBONames[Mesh::UV_VBO]);
+		//	glBufferData(GL_ARRAY_BUFFER, polygonVertexCount * 2 * sizeof(float), lUVs, GL_STATIC_DRAW);
+		//	delete [] lUVs;
+		//}
+
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBONames[Mesh::INDEX_VBO]);
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, lPolygonCount * 3 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+		//delete [] indices;
+
+
+		return boost::shared_ptr<Mesh>(mesh);
 	}
 
 } // namespace ramen

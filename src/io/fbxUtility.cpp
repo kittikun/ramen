@@ -26,28 +26,29 @@ namespace ramen
 	namespace fbxUtility
 	{
 
-		static std::string getAttributeStr(FbxNodeAttribute::EType type) { 
+		std::string getAttributeStr(FbxNodeAttribute::EType type)
+		{ 
 			switch(type) { 
-			case FbxNodeAttribute::eUnknown: return "unidentified"; 
-			case FbxNodeAttribute::eNull: return "null"; 
-			case FbxNodeAttribute::eMarker: return "marker"; 
-			case FbxNodeAttribute::eSkeleton: return "skeleton"; 
-			case FbxNodeAttribute::eMesh: return "mesh"; 
-			case FbxNodeAttribute::eNurbs: return "nurbs"; 
-			case FbxNodeAttribute::ePatch: return "patch"; 
-			case FbxNodeAttribute::eCamera: return "camera"; 
-			case FbxNodeAttribute::eCameraStereo: return "stereo"; 
-			case FbxNodeAttribute::eCameraSwitcher: return "camera switcher"; 
-			case FbxNodeAttribute::eLight: return "light"; 
-			case FbxNodeAttribute::eOpticalReference: return "optical reference"; 
-			case FbxNodeAttribute::eOpticalMarker: return "marker"; 
-			case FbxNodeAttribute::eNurbsCurve: return "nurbs curve"; 
-			case FbxNodeAttribute::eTrimNurbsSurface: return "trim nurbs surface"; 
-			case FbxNodeAttribute::eBoundary: return "boundary"; 
-			case FbxNodeAttribute::eNurbsSurface: return "nurbs surface"; 
-			case FbxNodeAttribute::eShape: return "shape"; 
-			case FbxNodeAttribute::eLODGroup: return "lodgroup"; 
-			case FbxNodeAttribute::eSubDiv: return "subdiv"; 
+			case FbxNodeAttribute::eUnknown: return "Unidentified"; 
+			case FbxNodeAttribute::eNull: return "Null"; 
+			case FbxNodeAttribute::eMarker: return "Marker"; 
+			case FbxNodeAttribute::eSkeleton: return "Skeleton"; 
+			case FbxNodeAttribute::eMesh: return "Mesh"; 
+			case FbxNodeAttribute::eNurbs: return "Nurbs"; 
+			case FbxNodeAttribute::ePatch: return "Patch"; 
+			case FbxNodeAttribute::eCamera: return "Camera"; 
+			case FbxNodeAttribute::eCameraStereo: return "Stereo"; 
+			case FbxNodeAttribute::eCameraSwitcher: return "Camera switcher"; 
+			case FbxNodeAttribute::eLight: return "Light"; 
+			case FbxNodeAttribute::eOpticalReference: return "Optical reference"; 
+			case FbxNodeAttribute::eOpticalMarker: return "Marker"; 
+			case FbxNodeAttribute::eNurbsCurve: return "Nurbs curve"; 
+			case FbxNodeAttribute::eTrimNurbsSurface: return "Trim nurbs surface"; 
+			case FbxNodeAttribute::eBoundary: return "Boundary"; 
+			case FbxNodeAttribute::eNurbsSurface: return "Nurbs surface"; 
+			case FbxNodeAttribute::eShape: return "Shape"; 
+			case FbxNodeAttribute::eLODGroup: return "Lodgroup"; 
+			case FbxNodeAttribute::eSubDiv: return "Subdiv"; 
 			default: return "unknown"; 
 			} 
 		}
