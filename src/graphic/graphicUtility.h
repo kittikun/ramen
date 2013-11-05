@@ -22,24 +22,22 @@
 #define VERIFY_GL_ON 1
 
 #if VERIFY_GL_ON
-    #define VERIFYGL() graphicUtility::VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
-	#define VERIFYGL_RET() if (!graphicUtility::VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)) return false
-	#define VERIFYEGL() graphicUtility::VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
+#define VERIFYGL() graphicUtility::VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)
+#define VERIFYGL_RET() if (!graphicUtility::VerifyGL(GL_NO_ERROR, __FILE__, __LINE__)) return false
+#define VERIFYEGL() graphicUtility::VerifyEGL(EGL_SUCCESS, __FILE__, __LINE__)
 #else
-    #define VERIFYGL()
-	#define VERIFYEGL()
-	#define VERIFYGL_RET()
+#define VERIFYGL()
+#define VERIFYEGL()
+#define VERIFYGL_RET()
 #endif
 
 namespace ramen
 {
-	namespace graphicUtility
-	{
-
-		extern const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
-		extern const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
-
-	} // namespace graphicUtility    
+    namespace graphicUtility
+    {
+        extern const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
+        extern const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
+    } // namespace graphicUtility
 } // namespace ramen
 
 #endif // GRAPHIC_UTILITY_H

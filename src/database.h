@@ -17,27 +17,26 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <boost/unordered_map.hpp>
-#include <boost/utility.hpp>
 #include <atomic>
+#include <boost/unordered_map.hpp>
+#include <boost/thread.hpp>
+#include <boost/utility.hpp>
 
 namespace ramen
 {
+    class Mesh;
 
-	class Mesh;
-
-	class Database : boost::noncopyable
+    class Database : boost::noncopyable
     {
     public:
         const uint32_t uint(const std::string& key) const;
         void uint(const std::string& key, const uint32_t value);
 
     private:
-		boost::unordered_map<std::string, Mesh> m_meshes;
-        boost::unordered_map<std::string, std::atomic<uint32_t>> m_uint;
+        boost::mutex m_mutex;
+        boost::unordered_map<std::string, Mesh> m_meshes;
+        boost::unordered_map<std::string, uint32_t> m_uint;
     };
-
-
 } // namespace ramen
 
 #endif // DATABASE_H

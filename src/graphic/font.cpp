@@ -33,12 +33,11 @@
 
 namespace ramen
 {
-
-//-------------------------------------------------------------------------------------
-// FONTATLAS
-//-------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------
+    // FONTATLAS
+    //-------------------------------------------------------------------------------------
     FontAtlas::FontAtlas()
-       : m_iTexID(0)
+        : m_iTexID(0)
     {
         m_characters.resize(128);
     }
@@ -143,15 +142,15 @@ namespace ramen
         createTexture(fontFamilly, maxTexWidth);
     }
 
-//-------------------------------------------------------------------------------------
-// FONTMANAGER
-//-------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------
+    // FONTMANAGER
+    //-------------------------------------------------------------------------------------
     FontManager::FontManager()
-       : m_pActiveFont(nullptr)
-	   , m_pFilesystem(nullptr)
-	   , m_FTLibrary(nullptr)
-       , m_color(1.0f)
-       , m_vbo(0)
+        : m_pActiveFont(nullptr)
+        , m_pFilesystem(nullptr)
+        , m_FTLibrary(nullptr)
+        , m_color(1.0f)
+        , m_vbo(0)
     {
     }
 
@@ -317,31 +316,31 @@ namespace ramen
         return true;
     }
 
-	const bool FontManager::loadFontFamillyFromFile(const std::string& name, const std::string& filename)
-	{
+    const bool FontManager::loadFontFamillyFromFile(const std::string& name, const std::string& filename)
+    {
         PROFILE;
         FT_Face face;
-		std::string pathAbs;
-		std::string pathRel;
+        std::string pathAbs;
+        std::string pathRel;
 
         pathRel = m_pFilesystem->resourcePathRel(Filesystem::ResourceType::Font, filename);
-		pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::ResourceType::Font, filename);
+        pathAbs = m_pFilesystem->resourcePathAbs(Filesystem::ResourceType::Font, filename);
 
         LOGGFX << boost::format("Loading font familly '%1%' from '%2%'..") % name % pathRel;
 
-		if (pathAbs.empty()) {
-			return false;
-		}
+        if (pathAbs.empty()) {
+            return false;
+        }
 
         if (FT_New_Face(m_FTLibrary, pathAbs.c_str() , 0, &face)) {
-			LOGE << boost::format("Could not open font familly '%1%' from '%2%'") % name % pathRel;
+            LOGE << boost::format("Could not open font familly '%1%' from '%2%'") % name % pathRel;
             return false;
         }
 
         m_fonts.insert(std::make_pair(name, face));
 
         return true;
-	}
+    }
 
     const bool FontManager::loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const uint32_t size)
     {
@@ -368,14 +367,13 @@ namespace ramen
             return false;
         }
 
-		if (found->second.get() == m_pActiveFont) {
+        if (found->second.get() == m_pActiveFont) {
             LOGW << name << " was already the active font";
             return false;
         }
 
-		m_pActiveFont = found->second.get();
+        m_pActiveFont = found->second.get();
 
         return true;
     }
-
 } // namespace ramen

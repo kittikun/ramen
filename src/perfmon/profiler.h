@@ -26,26 +26,25 @@
 
 namespace ramen
 {
-	struct ProfileData
-	{
-		unsigned int iCount;
-		std::string strName;
-		boost::chrono::duration<long long, boost::micro> totalTime;
-		boost::chrono::duration<long long, boost::micro> min;
-		boost::chrono::duration<long long, boost::micro> max;
-	};
+    struct ProfileData
+    {
+        unsigned int iCount;
+        std::string strName;
+        boost::chrono::duration<long long, boost::micro> totalTime;
+        boost::chrono::duration<long long, boost::micro> min;
+        boost::chrono::duration<long long, boost::micro> max;
+    };
 
-	class Profile : boost::noncopyable
-	{
-	public:
-		Profile(const std::string& name);
-		~Profile();
+    class Profile : boost::noncopyable
+    {
+    public:
+        Profile(const std::string& name);
+        ~Profile();
 
-	private:
-		boost::chrono::system_clock::time_point m_start;
-		std::string m_strName;
-
-	};
+    private:
+        boost::chrono::system_clock::time_point m_start;
+        std::string m_strName;
+    };
 
     class Profiler : boost::noncopyable
     {
@@ -59,7 +58,6 @@ namespace ramen
         static boost::mutex m_mutex;
         static boost::unordered_map<std::string, ProfileData> m_profiles;
     };
-
 } // namespace ramen
 
 #endif // PROFILER

@@ -24,7 +24,6 @@
 #include "psapi.h"
 #endif
 
-
 #include "../coreComponents.h"
 #include "../database.h"
 #include "../log.h"
@@ -106,7 +105,6 @@ namespace ramen
         lastUserCPU = user;
         lastSysCPU = sys;
 
-
         m_pDatabase->uint("cpu", static_cast<uint32_t>(percent * 100));
 #endif
     }
@@ -130,5 +128,4 @@ namespace ramen
             m_io.stop();
         }
     }
-
 } // namespace ramen

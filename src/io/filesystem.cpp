@@ -28,7 +28,6 @@
 
 namespace ramen
 {
-
     void Filesystem::findresourcePathAbs()
     {
         const boost::filesystem::directory_iterator end;
@@ -74,41 +73,41 @@ namespace ramen
             res = readlink(cmd.c_str(), &exePath[0], exePath.size());
         }
 #endif
-        m_workingDir = std::string(exePath.begin(), exePath.begin() + res); 
+        m_workingDir = std::string(exePath.begin(), exePath.begin() + res);
         m_workingDir = m_workingDir.remove_filename();
         LOGI << "Working directory: " << m_workingDir;
     }
 
-	const boost::filesystem::path Filesystem::fsresourcePathAbs(ResourceType type, const std::string& filename) const
-	{
-		boost::filesystem::path pathFS;
+    const boost::filesystem::path Filesystem::fsresourcePathAbs(ResourceType type, const std::string& filename) const
+    {
+        boost::filesystem::path pathFS;
 
         switch (type) {
         case ResourceType::Default:
             pathFS = m_resourcePath / filename;
             break;
         case ResourceType::Fbx:
-			pathFS = m_resourcePath / "fbx" / filename;
-			break;
+            pathFS = m_resourcePath / "fbx" / filename;
+            break;
 
         case ResourceType::Font:
-			pathFS = m_resourcePath / "font" / filename;
-			break;
+            pathFS = m_resourcePath / "font" / filename;
+            break;
         case ResourceType::Shader:
-			pathFS = m_resourcePath / "shader" / filename;
-			break;
+            pathFS = m_resourcePath / "shader" / filename;
+            break;
 
-		default:
-			LOGE << "Unrecognized resource type";
-			break;
-		}
+        default:
+            LOGE << "Unrecognized resource type";
+            break;
+        }
 
-		if (!boost::filesystem::exists(pathFS)) {
-			LOGE << pathFS << " does not exists";
-		}
+        if (!boost::filesystem::exists(pathFS)) {
+            LOGE << pathFS << " does not exists";
+        }
 
-		return pathFS;
-	}
+        return pathFS;
+    }
 
     const bool Filesystem::initialize()
     {
@@ -118,46 +117,45 @@ namespace ramen
         return true;
     }
 
-	char const* Filesystem::resource(ResourceType type, const std::string& filename) const
-	{
-		const boost::filesystem::path absPath = fsresourcePathAbs(type, filename);
-		std::ifstream stream(absPath.string());
-		uint32_t size;
-		char* data = nullptr;
+    char const* Filesystem::resource(ResourceType type, const std::string& filename) const
+    {
+        const boost::filesystem::path absPath = fsresourcePathAbs(type, filename);
+        std::ifstream stream(absPath.string());
+        uint32_t size;
+        char* data = nullptr;
 
-		if (absPath.empty()) {
-			return nullptr;
-		}
+        if (absPath.empty()) {
+            return nullptr;
+        }
 
-		if (stream.is_open()) {
-			if (type == ResourceType::Shader) {
-				std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        if (stream.is_open()) {
+            if (type == ResourceType::Shader) {
+                std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-				data = new char[str.size() +1];
-				std::copy(str.begin(), str.end(), data);
-				size = str.size();
-				data[size] = '\0';
-			} else {
-				size = static_cast<uint32_t>(boost::filesystem::file_size(absPath));
-				data = new char[size];
-				stream.read(data, size);
-			}
+                data = new char[str.size() +1];
+                std::copy(str.begin(), str.end(), data);
+                size = str.size();
+                data[size] = '\0';
+            } else {
+                size = static_cast<uint32_t>(boost::filesystem::file_size(absPath));
+                data = new char[size];
+                stream.read(data, size);
+            }
 
-			LOGI << boost::format("Read %1% from %2%..") % utility::readableSizeByte(size) % ioUtility::makeRelativePath(m_resourcePath, absPath);
-		}
+            LOGI << boost::format("Read %1% from %2%..") % utility::readableSizeByte(size) % ioUtility::makeRelativePath(m_resourcePath, absPath);
+        }
 
-		return data;
-	}
+        return data;
+    }
 
     const std::string Filesystem::resourcePathAbs(ResourceType type, const std::string& filename) const
     {
-		return fsresourcePathAbs(type, filename).string();
+        return fsresourcePathAbs(type, filename).string();
     }
 
-	const std::string Filesystem::resourcePathRel(ResourceType type, const std::string& filename) const
-	{
-		boost::filesystem::path absPath = fsresourcePathAbs(type, filename).string();
-		return ioUtility::makeRelativePath(m_resourcePath, absPath).string();
-	}
-
+    const std::string Filesystem::resourcePathRel(ResourceType type, const std::string& filename) const
+    {
+        boost::filesystem::path absPath = fsresourcePathAbs(type, filename).string();
+        return ioUtility::makeRelativePath(m_resourcePath, absPath).string();
+    }
 } // namespace ramen

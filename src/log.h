@@ -37,12 +37,12 @@ namespace ramen
 {
     enum ELogLevel
     {
-		Log_Builder,
+        Log_Builder,
         Log_Core,
         Log_Database,
         Log_GFX,
-		Log_Io,
-		Log_Perfmon,
+        Log_Io,
+        Log_Perfmon,
         Log_Warning,
         Log_Error
     };
@@ -54,7 +54,6 @@ namespace ramen
     public:
         static void initialize();
     };
-
 } // namespace ramen
 
 #endif // LOG_H

@@ -30,49 +30,46 @@ namespace ramen
 {
     struct CoreComponents;
     class Database;
-	class Filesystem;
-	class FontManager;
+    class Filesystem;
+    class FontManager;
 
-	class Graphic : boost::noncopyable
-	{
-	public:
-		Graphic();
-		~Graphic();
+    class Graphic : boost::noncopyable
+    {
+    public:
+        Graphic();
+        ~Graphic();
 
-		bool initialize(const CoreComponents* components);
-		void run();
+        bool initialize(const CoreComponents* components);
+        void run();
 
-		const glm::ivec2 windowSize() const;
+        const glm::ivec2 windowSize() const;
 
-		// slots
-		void slotState(const bool state);
+        // slots
+        void slotState(const bool state);
 
-	private:
-		bool createWindow(const glm::ivec2& size);
-		bool createContext();
-		void swapbuffers() const;
-		bool initializeThreadDependents();
+    private:
+        bool createWindow(const glm::ivec2& size);
+        bool createContext();
+        void swapbuffers() const;
+        bool initializeThreadDependents();
 
-	private:
-		SDL_Window* m_pWindow;
-		std::atomic<bool> m_bState;
-		std::unique_ptr<FontManager> m_pFontManager;
+    private:
+        SDL_Window* m_pWindow;
+        std::atomic<bool> m_bState;
+        std::unique_ptr<FontManager> m_pFontManager;
         boost::shared_ptr<Database> m_pDatabase;
-		void* m_pContext;
+        void* m_pContext;
 
-		// signals
-		typedef boost::signals2::signal<void()> SigError;
-		SigError m_sigError;
+        // signals
+        typedef boost::signals2::signal<void()> SigError;
+        SigError m_sigError;
 
 #if defined(_WIN32)
-		void* m_eglDisplay;
-		void* m_eglSurface;
-		void* m_eglContext;
+        void* m_eglDisplay;
+        void* m_eglSurface;
+        void* m_eglContext;
 #endif
-	};
-
+    };
 } // namespace ramen
 
 #endif // GRAPHIC_H
-
-

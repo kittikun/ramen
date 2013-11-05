@@ -23,40 +23,38 @@
 
 namespace ramen
 {
+    class Mesh
+    {
+    public:
+        Mesh();
 
-	class Mesh
-	{
-	public:
-		Mesh();
+    private:
+        enum class VBOIndex
+        {
+            Vertex,
+            Normal,
+            UV,
+            Index,
+            Count,
+        };
 
-	private:
-		enum class VBOIndex
-		{
-			Vertex,
-			Normal,
-			UV,
-			Index,
-			Count,
-		};
+        // For every material, record the offsets in every VBO and triangle counts
+        struct SubMesh
+        {
+            SubMesh() : indexOffset(0), triangleCount(0) {}
 
-		// For every material, record the offsets in every VBO and triangle counts
-		struct SubMesh
-		{
-			SubMesh() : indexOffset(0), triangleCount(0) {}
+            int indexOffset;
+            int triangleCount;
+        };
 
-			int indexOffset;
-			int triangleCount;
-		};
-
-		bool m_bByControlPoint;
-		bool m_bHasNormal;
-		bool m_bHasUV;
-		std::vector<SubMesh> m_subMeshes;
+        bool m_bByControlPoint;
+        bool m_bHasNormal;
+        bool m_bHasUV;
+        std::vector<SubMesh> m_subMeshes;
         GLuint m_vbos[VBOIndex::Count];
 
         friend class MeshBuilder;
-	};
-
+    };
 } // namespace ramen
 
 #endif // MESH_H

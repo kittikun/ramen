@@ -24,13 +24,12 @@
 
 namespace ramen
 {
-
     const bool Settings::initialize(const CoreComponents* components)
     {
         std::string configPath;
 
         m_pFileSystem = components->filesystem;
-        
+
         configPath = m_pFileSystem->resourcePathAbs(Filesystem::ResourceType::Default, "settings.ini");
         if (configPath.empty()) {
             return false;
@@ -42,5 +41,4 @@ namespace ramen
 
         return true;
     }
-
 } // namespace ramen

@@ -29,13 +29,19 @@ namespace ramen
             return 0;
         }
 
-        return found->second.load();
+        return found->second;
     }
 
     void Database::uint(const std::string& key, const uint32_t value)
     {
-        m_uint[key].store(value);
+        auto found = m_uint.find(key);
+
+        if (found == m_uint.end()) {
+            boost::lock_guard<boost::mutex> lock(m_mutex);
+
+            m_uint.insert(std::make_pair(key, value));
+        } else {
+            found->second = value;
+        }
     }
-
 } // namespace ramen
-

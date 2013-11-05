@@ -25,6 +25,8 @@ Some features about the framework:
   Note that on windows, SDL is only used to create the windows. EGL context is then created manually.
 - Fonts drawing with Freetype. A font atlas texture is generated and text is drawn with a single VBO
 - Simple profiler
+- CPU, memory usage monitor
+- Job system
 
 TODO:
 -----

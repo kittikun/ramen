@@ -38,7 +38,6 @@ namespace ramen
         // slots
         void slotState(const bool state);
 
-
     private:
         void update();
         void updateCPU() const;
@@ -51,7 +50,6 @@ namespace ramen
         boost::shared_ptr<Database> m_pDatabase;
         std::atomic<bool> m_bState;
     };
-
 } // namespace ramen
 
 #endif // PERFMON_H

@@ -23,42 +23,41 @@
 
 namespace ramen
 {
-	class Shader
-	{
-	public:
-		Shader(const GLenum type);
-		~Shader();
+    class Shader
+    {
+    public:
+        Shader(const GLenum type);
+        ~Shader();
 
-		const bool loadFromMemory(const GLchar** data) const;
-		const bool compile();
+        const bool loadFromMemory(const GLchar** data) const;
+        const bool compile();
 
-		const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
+        const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
 
-		const GLuint shaderID() const { return m_iShaderID; }
+        const GLuint shaderID() const { return m_iShaderID; }
 
-	private:
-		GLenum m_eType;
-		GLuint m_iShaderID;
-	};
+    private:
+        GLenum m_eType;
+        GLuint m_iShaderID;
+    };
 
-	class Program
-	{
-	public:
-		Program();
-		~Program();
+    class Program
+    {
+    public:
+        Program();
+        ~Program();
 
-		const bool attachShader(const boost::shared_ptr<Shader>& shader);
-		const bool link();
-		const bool use();
+        const bool attachShader(const boost::shared_ptr<Shader>& shader);
+        const bool link();
+        const bool use();
 
-		const GLint getAttribLocation(const char* name) const;
-		const GLint getUniformLocation(const char* name) const;
+        const GLint getAttribLocation(const char* name) const;
+        const GLint getUniformLocation(const char* name) const;
 
-	private:
-		GLuint m_iProgram;
-		std::map<GLuint, boost::shared_ptr<Shader>> m_shaders;
-	};
-
+    private:
+        GLuint m_iProgram;
+        std::map<GLuint, boost::shared_ptr<Shader>> m_shaders;
+    };
 } // namespace ramen
 
 #endif // SHADER_H

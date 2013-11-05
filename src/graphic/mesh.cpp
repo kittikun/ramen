@@ -18,11 +18,10 @@
 
 namespace ramen
 {
-
-	Mesh::Mesh()
-		: m_bByControlPoint(true)
-		, m_bHasNormal(false)
-		, m_bHasUV(false)
-	{
-	}
+    Mesh::Mesh()
+        : m_bByControlPoint(true)
+        , m_bHasNormal(false)
+        , m_bHasUV(false)
+    {
+    }
 } // namespace ramen

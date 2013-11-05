@@ -38,10 +38,10 @@
 namespace ramen
 {
     Graphic::Graphic()
-       : m_pWindow(nullptr)
-       , m_bState(false)
-       , m_pFontManager(new FontManager())
-       , m_pContext(nullptr)
+        : m_pWindow(nullptr)
+        , m_bState(false)
+        , m_pFontManager(new FontManager())
+        , m_pContext(nullptr)
     {
     }
 
@@ -212,7 +212,6 @@ namespace ramen
             return false;
         }
 
-
         m_pFontManager->createFont("dim48", "dim", 48);
         m_pFontManager->createFont("dim16", "dim", 16);
         m_pFontManager->createFont("vera16", "vera", 16);
@@ -276,5 +275,4 @@ namespace ramen
 
         return toto;
     }
-
 } // namespace ramen

@@ -26,34 +26,33 @@ namespace ramen
 {
     class Database;
 
-	class Job
-	{
+    class Job
+    {
     public:
         Job(const boost::shared_ptr<Database>& database);
         virtual ~Job() {}
+
         virtual void process() = 0;
     private:
         boost::shared_ptr<Database> m_pDatabase;
-	};
+    };
 
-	class Builder
-	{
-	public:
-		void run();
-        void addJob(const Job& Job);
+    class Builder
+    {
+    public:
+        void run();
+        void addJob(boost::shared_ptr<Job> job);
 
-		// slots
-		void slotState(const bool state);
+        // slots
+        void slotState(const bool state);
 
-	private:
+    private:
         boost::condition_variable m_condvar;
         boost::mutex m_mutex;
 
-		std::atomic<bool> m_bState;
-		std::vector<Job> m_work;
-        
+        std::atomic<bool> m_bState;
+        std::vector<boost::shared_ptr<Job>> m_work;
     };
-
 } // namespace ramen
 
 #endif // BUILDER_H

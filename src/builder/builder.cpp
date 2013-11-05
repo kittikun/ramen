@@ -21,53 +21,52 @@
 
 namespace ramen
 {
-
-    void Builder::addJob(const Job& Job)
+    void Builder::addJob(boost::shared_ptr<Job> job)
     {
         {
             boost::lock_guard<boost::mutex> lock(m_mutex);
-            m_work.push_back(Job);
+            m_work.push_back(job);
         }
         m_condvar.notify_one();
     }
 
-	void Builder::run()
-	{
-		LOGB << "Starting builder thread..";
-		m_bState.store(true);
+    void Builder::run()
+    {
+        LOGB << "Starting builder thread..";
+        m_bState.store(true);
 
-		while (m_bState.load()) {
-
-			boost::unique_lock<boost::mutex> lock(m_mutex);
-			while (m_work.empty()) {
-				m_condvar.wait(lock);	
+        while (m_bState.load()) {
+            boost::unique_lock<boost::mutex> lock(m_mutex);
+            while (m_work.empty()) {
+                m_condvar.wait(lock);
 
                 if (!m_bState.load())
                     break;
-
-			}
+            }
 
             if (!m_work.empty()) {
-                m_work.back().process();
+                m_work.back()->process();
                 m_work.pop_back();
             }
-		}
+        }
 
-		LOGC << "Exiting builder thread..";
-	}
+        LOGC << "Exiting builder thread..";
+    }
 
-	void Builder::slotState(const bool state)
-	{
-		m_bState.store(state);
+    void Builder::slotState(const bool state)
+    {
+        m_bState.store(state);
 
         if (!m_bState.load())
             m_condvar.notify_one();
-	}
+    }
+
+    //-------------------------------------------------------------------------------------
+    // JOB
+    //-------------------------------------------------------------------------------------
 
     Job::Job(const boost::shared_ptr<Database>& database)
         : m_pDatabase(database)
     {
     }
-
 } // namespace ramen
-

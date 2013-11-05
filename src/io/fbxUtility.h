@@ -22,13 +22,11 @@
 
 namespace ramen
 {
-	namespace fbxUtility
-	{
-		extern void printNode(FbxNode* pNode, const int numTabs = 0);
-		extern std::string getAttributeStr(FbxNodeAttribute::EType type);
-
-	} // namespace fbsUtility
-
+    namespace fbxUtility
+    {
+        extern void printNode(FbxNode* pNode, const int numTabs = 0);
+        extern std::string getAttributeStr(FbxNodeAttribute::EType type);
+    } // namespace fbsUtility
 } // namespace ramen
 
 #endif // FBX_UTILITY_H

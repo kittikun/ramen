@@ -18,25 +18,25 @@
 #define MESH_BUILDER_H
 
 #include <fbxsdk.h>
+#include <boost/shared_ptr.hpp>
 
 #include "builder.h"
 #include "../graphic/mesh.h"
 
 namespace ramen
 {
+    class Database;
 
     class MeshBuilder : public Job
     {
     public:
-        MeshBuilder(FbxMesh* fbxMesh);
+        MeshBuilder(const boost::shared_ptr<Database>& database, FbxMesh* m_pFbxMesh);
 
         void process() final;
 
     private:
         FbxMesh* m_pFbxMesh;
-
     };
-
 } // namespace ramen
 
 #endif // MESH_BUILDER_H

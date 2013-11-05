@@ -38,7 +38,6 @@ namespace ramen
         boost::property_tree::ptree m_properties;
         boost::shared_ptr<Filesystem> m_pFileSystem;
     };
-
 } // namespace ramen
 
 #endif // SETTINGS_H

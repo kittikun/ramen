@@ -32,17 +32,16 @@ namespace src = boost::log::sources;
 
 namespace ramen
 {
-
     std::ostream& operator<<(std::ostream& strm, ELogLevel level)
     {
         static const char* strings[] =
         {
-			"builder",
+            "builder",
             "core",
             "database",
             "gfx",
-			"io",
-			"perfmon",
+            "io",
+            "perfmon",
             "WARNING",
             "ERROR",
         };
@@ -57,15 +56,14 @@ namespace ramen
 
     BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", ELogLevel)
 
-    void Log::initialize()
+        void Log::initialize()
     {
         logging::add_console_log(std::cout, keywords::format = (expr::format("%1%: [%2%] %3%")
-                                                                % expr::format_date_time<boost::posix_time::ptime>("TimeStamp", "%H:%M:%S")
-                                                                % severity
-                                                                % expr::message
-                                                                ));
+            % expr::format_date_time<boost::posix_time::ptime>("TimeStamp", "%H:%M:%S")
+            % severity
+            % expr::message
+            ));
 
         logging::add_common_attributes();
     }
-
 } // namespace ramen

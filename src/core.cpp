@@ -24,6 +24,7 @@
 #include "log.h"
 #include "settings.h"
 #include "builder\builder.h"
+#include "builder/meshbuilder.h"
 #include "graphic/graphic.h"
 #include "io/filesystem.h"
 #include "io/fbx.h"
@@ -94,9 +95,9 @@ namespace ramen
 
         m_pResmon->initialize(&components);
 
-        m_pFbxManager->initialialize(m_pFilesystem);
+        m_pFbxManager->initialialize(&components);
         boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("humanoid.fbx");
-        boost::shared_ptr<Mesh> mesh = scene->mesh();
+        m_pBuilder->addJob(boost::dynamic_pointer_cast<Job>(scene->createJobMesh()));
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));
@@ -116,7 +117,6 @@ namespace ramen
 
         LOGC << "Starting main loop..";
         m_bState.store(true);
-
 
         while (m_bState.load()) {
             while (SDL_PollEvent(&e)) {
@@ -159,6 +159,4 @@ namespace ramen
         m_bState.store(false);
         m_sigState(false);
     }
-
 } // namespace ramen
-

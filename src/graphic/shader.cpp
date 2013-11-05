@@ -21,12 +21,11 @@
 
 namespace ramen
 {
-
-//-------------------------------------------------------------------------------------
-// SHADER
-//-------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------
+    // SHADER
+    //-------------------------------------------------------------------------------------
     Shader::Shader(const GLenum type)
-       : m_eType(type)
+        : m_eType(type)
     {
         m_iShaderID = glCreateShader(m_eType);
         VERIFYGL();
@@ -43,7 +42,7 @@ namespace ramen
 
         if (m_iShaderID == 0) {
             LOGE << "Cannot compile shader with an ID of 0";
-			return false;
+            return false;
         }
 
         glCompileShader(m_iShaderID);
@@ -58,16 +57,16 @@ namespace ramen
 
             if (infoLen > 1) {
                 std::vector<char> infoLog(infoLen);
-				GLsizei srcLen;
+                GLsizei srcLen;
 
                 glGetShaderInfoLog(m_iShaderID, infoLen, NULL, &infoLog[0]);
-				LOGE << "Error compiling shader:\n" << std::string(infoLog.begin(), infoLog.end());
+                LOGE << "Error compiling shader:\n" << std::string(infoLog.begin(), infoLog.end());
 
-				glGetShaderiv(m_iShaderID, GL_SHADER_SOURCE_LENGTH, &infoLen);
-				infoLog.resize(infoLen);
+                glGetShaderiv(m_iShaderID, GL_SHADER_SOURCE_LENGTH, &infoLen);
+                infoLog.resize(infoLen);
 
-				glGetShaderSource(m_iShaderID, infoLen, &srcLen, &infoLog[0]);
-				LOGE << "Shader source:\n" << std::string(infoLog.begin(), infoLog.end());
+                glGetShaderSource(m_iShaderID, infoLen, &srcLen, &infoLog[0]);
+                LOGE << "Shader source:\n" << std::string(infoLog.begin(), infoLog.end());
             }
 
             return false;
@@ -76,17 +75,17 @@ namespace ramen
         return true;
     }
 
-	const bool Shader::loadFromMemory(const GLchar** data) const
-	{
-		glShaderSource(m_iShaderID, 1, data, nullptr);
-		VERIFYGL_RET();
+    const bool Shader::loadFromMemory(const GLchar** data) const
+    {
+        glShaderSource(m_iShaderID, 1, data, nullptr);
+        VERIFYGL_RET();
 
-		return true;
-	}
+        return true;
+    }
 
-//-------------------------------------------------------------------------------------
-// PROGRAM
-//-------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------
+    // PROGRAM
+    //-------------------------------------------------------------------------------------
     Program::Program()
     {
         m_iProgram = glCreateProgram();
@@ -158,7 +157,6 @@ namespace ramen
         return true;
     }
 
-
     const bool Program::use()
     {
         glUseProgram(m_iProgram);
@@ -166,5 +164,4 @@ namespace ramen
 
         return true;
     }
-
 } // namespace ramen

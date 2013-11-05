@@ -21,36 +21,34 @@
 
 namespace ramen
 {
-
-	class Filesystem
-	{
-	public:
-		enum class ResourceType
-		{
+    class Filesystem
+    {
+    public:
+        enum class ResourceType
+        {
             Default,
-			Fbx,
-			Font,
-			Shader
-		};
+            Fbx,
+            Font,
+            Shader
+        };
 
-		const bool initialize();
+        const bool initialize();
 
-		const std::string resourcePathAbs(ResourceType type, const std::string& filename) const;
-		const std::string resourcePathRel(ResourceType type, const std::string& filename) const;
+        const std::string resourcePathAbs(ResourceType type, const std::string& filename) const;
+        const std::string resourcePathRel(ResourceType type, const std::string& filename) const;
 
-		// User must manually free data after usage
-		char const* resource(ResourceType type, const std::string& filename) const;
+        // User must manually free data after usage
+        char const* resource(ResourceType type, const std::string& filename) const;
 
-	private:
-		void findWorkingDir();
-		void findresourcePathAbs();
-		const boost::filesystem::path fsresourcePathAbs(ResourceType type, const std::string& filename) const;
-	
-	private:
-		boost::filesystem::path m_workingDir;
-		boost::filesystem::path m_resourcePath;
-	};
+    private:
+        void findWorkingDir();
+        void findresourcePathAbs();
+        const boost::filesystem::path fsresourcePathAbs(ResourceType type, const std::string& filename) const;
 
+    private:
+        boost::filesystem::path m_workingDir;
+        boost::filesystem::path m_resourcePath;
+    };
 } // namespace ramen
 
 #endif // FILESYSTEM_H

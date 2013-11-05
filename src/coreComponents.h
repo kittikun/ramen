@@ -19,11 +19,11 @@
 
 namespace ramen
 {
-	class Builder;
+    class Builder;
     class Core;
     class Database;
-	class FBXManager;
-	class Filesystem;
+    class FBXManager;
+    class Filesystem;
     class Graphic;
     class Settings;
 
@@ -39,7 +39,6 @@ namespace ramen
         boost::shared_ptr<Settings> settings;
         Core* core;
     };
-
 } // namespace ramen
 
 #endif // CORE_COMPONENTS_H

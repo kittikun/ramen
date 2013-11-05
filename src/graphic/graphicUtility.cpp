@@ -29,7 +29,6 @@ namespace ramen
 {
     namespace graphicUtility
     {
-
 #if defined(_WIN32)
         static const std::string eglErrorEnumToString(EGLint err)
         {
@@ -119,6 +118,5 @@ namespace ramen
 #endif
             return true;
         }
-
     } //namespace graphicUtility
 } // namespace ramen
