@@ -18,6 +18,7 @@
 
 #include "../database.h"
 #include "../log.h"
+#include "../perfmon/profiler.h"
 
 namespace ramen
 {
@@ -29,7 +30,8 @@ namespace ramen
 
     void MeshBuilder::process()
     {
-        LOGB << "Meshbuilder " << m_pFbxMesh->GetInitialName();
+        PROFILE;
+        LOGB << "Meshbuilder processing \"" << m_pFbxMesh->GetName() << "\"";
         boost::shared_ptr<Mesh> mesh(new Mesh());
         int polygonCount;
 
@@ -39,7 +41,7 @@ namespace ramen
         }
 
         polygonCount = m_pFbxMesh->GetPolygonCount();
-        LOGI << "Mesh polygon count: " << polygonCount;
+        LOGB << "Mesh polygon count: " << polygonCount;
 
         // Count the polygon count of each material
         FbxLayerElementArrayTemplate<int>* materialIndice = nullptr;
@@ -237,5 +239,7 @@ namespace ramen
             }
             mesh->m_subMeshes[materialIndex].triangleCount += 1;
         }
+
+        m_pDatabase->set<boost::shared_ptr<Mesh>>("mesh", mesh);
     }
 } // namespace ramen

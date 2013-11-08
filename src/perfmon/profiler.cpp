@@ -73,7 +73,8 @@ namespace ramen
             ProfileData& data = profile;
 
             // trying to print chrono duration with log or format will not Job with short duration so fallback to standard streams
-            LOGP << boost::format("%1% avg:%2% min:%3% max:%4% cnt:%5% tot:%6%") % data.strName
+            LOGP << boost::format("%1% avg:%2% min:%3% max:%4% cnt:%5% tot:%6%")
+                % data.strName
                 % readableDuration(data.totalTime / data.iCount)
                 % readableDuration(data.min) % readableDuration(data.max)
                 % data.iCount % readableDuration(data.totalTime);

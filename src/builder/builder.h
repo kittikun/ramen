@@ -33,7 +33,8 @@ namespace ramen
         virtual ~Job() {}
 
         virtual void process() = 0;
-    private:
+
+    protected:
         boost::shared_ptr<Database> m_pDatabase;
     };
 

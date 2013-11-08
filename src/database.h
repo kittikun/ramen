@@ -18,9 +18,14 @@
 #define DATABASE_H
 
 #include <atomic>
+#include <boost/any.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
+
+#include "log.h"
+#include "perfmon/profiler.h"
 
 namespace ramen
 {
@@ -29,13 +34,41 @@ namespace ramen
     class Database : boost::noncopyable
     {
     public:
-        const uint32_t uint(const std::string& key) const;
-        void uint(const std::string& key, const uint32_t value);
+
+        template <typename T>
+        const T& get(const std::string& key)
+        {
+            PROFILE;
+            boost::lock_guard<boost::mutex> lock(m_mutex);
+            auto found = m_data.find(key);
+
+            if (found == m_data.end()) {
+                LOGE << "Database key \"" << key << "\" doesn't exist";
+            }
+
+            // potential bomb if key is invalid
+            return boost::any_cast<const T&>(found->second);
+        }
+
+        template <typename T>
+        void set(const std::string& key, const T& value)
+        {
+            PROFILE;
+            boost::lock_guard<boost::mutex> lock(m_mutex);
+            auto found = m_data.find(key);
+
+            if (found == m_data.end()) {
+                LOGD << "Adding key \"" << key << "\" with type " << typeid(T).name();
+
+                m_data.insert(std::make_pair(key, boost::any(value)));
+            } else {
+                found->second = value;
+            }
+        }
 
     private:
         boost::mutex m_mutex;
-        boost::unordered_map<std::string, Mesh> m_meshes;
-        boost::unordered_map<std::string, uint32_t> m_uint;
+        boost::unordered_map<std::string, boost::any> m_data;
     };
 } // namespace ramen
 

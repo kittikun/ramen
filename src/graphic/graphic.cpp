@@ -38,7 +38,8 @@
 namespace ramen
 {
     Graphic::Graphic()
-        : m_pWindow(nullptr)
+        : m_fps(boost::accumulators::tag::rolling_window::window_size = 100)
+        , m_pWindow(nullptr)
         , m_bState(false)
         , m_pFontManager(new FontManager())
         , m_pContext(nullptr)
@@ -229,6 +230,8 @@ namespace ramen
         LOGC << "Starting graphic thread..";
         m_bState.store(true);
 
+        boost::chrono::system_clock::time_point curTime = boost::chrono::system_clock::now();
+
         while (m_bState.load()) {
             PROFILE;
             glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -242,11 +245,18 @@ namespace ramen
             m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
             m_pFontManager->setActiveFont("vera16");
             m_pFontManager->setFontColor(1, 1, 1, 1);
-            std::string resmon = boost::str(boost::format("cpu %1%, physical %2%, virtual %3%") % m_pDatabase->uint("cpu") % utility::readableSizeByte<uint32_t>(m_pDatabase->uint("physical memory")) % utility::readableSizeByte<uint32_t>(m_pDatabase->uint("virtual memory")));
+            std::string resmon = boost::str(boost::format("%1$1.0f fps, cpu %2%, mem %3%, virt %4%")
+                % (1000000 / boost::accumulators::rolling_mean(m_fps))
+                % m_pDatabase->get<uint32_t>("cpu")
+                % utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("physical memory"))
+                % utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("virtual memory")));
             m_pFontManager->drawText(resmon, glm::vec2(10, 26));
-
             VERIFYGL();
+
             swapbuffers();
+
+            m_fps(boost::chrono::duration_cast<boost::chrono::microseconds>(boost::chrono::system_clock::now() - curTime).count());
+            curTime = boost::chrono::system_clock::now();
         }
         LOGC << "Exiting graphic thread..";
     }

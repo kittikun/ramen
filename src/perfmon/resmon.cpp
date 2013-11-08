@@ -98,14 +98,14 @@ namespace ramen
         GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
         memcpy(&sys, &fsys, sizeof(FILETIME));
         memcpy(&user, &fuser, sizeof(FILETIME));
-        percent = (sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart);
+        percent = static_cast<double>((sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart));
         percent /= (now.QuadPart - lastCPU.QuadPart);
         percent /= numProcessors;
         lastCPU = now;
         lastUserCPU = user;
         lastSysCPU = sys;
 
-        m_pDatabase->uint("cpu", static_cast<uint32_t>(percent * 100));
+        m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent * 100));
 #endif
     }
 
@@ -114,8 +114,8 @@ namespace ramen
 #if defined(_WIN32)
         PROCESS_MEMORY_COUNTERS pmc;
         if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
-            m_pDatabase->uint("virtual memory", pmc.PagefileUsage);
-            m_pDatabase->uint("physical memory", pmc.WorkingSetSize);
+            m_pDatabase->set<uint32_t>("virtual memory", pmc.PagefileUsage);
+            m_pDatabase->set<uint32_t>("physical memory", pmc.WorkingSetSize);
         }
 #endif
     }

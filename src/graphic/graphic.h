@@ -19,6 +19,8 @@
 
 #include <atomic>
 #include <memory>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/rolling_mean.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/utility.hpp>
@@ -54,10 +56,11 @@ namespace ramen
         bool initializeThreadDependents();
 
     private:
+        boost::accumulators::accumulator_set<uint64_t, boost::accumulators::features<boost::accumulators::tag::rolling_mean>> m_fps;
+        boost::shared_ptr<Database> m_pDatabase;
         SDL_Window* m_pWindow;
         std::atomic<bool> m_bState;
         std::unique_ptr<FontManager> m_pFontManager;
-        boost::shared_ptr<Database> m_pDatabase;
         void* m_pContext;
 
         // signals

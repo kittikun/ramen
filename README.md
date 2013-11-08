@@ -34,6 +34,7 @@ TODO:
 GENERAL:
 - Improve profiler with many level of hierarchy
 - Loops not to take 100% cpu
+- Improve database multi-threading performance
 
 GRAPHICS:
 - Handle resize on windows

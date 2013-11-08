@@ -137,7 +137,6 @@ namespace ramen
         : m_pDatabase(database)
         , m_pScene(scene)
     {
-        fbxUtility::printNode(m_pScene->GetRootNode());
     }
 
     FbxNode* FBXScene::findNode(FbxNodeAttribute::EType type)
