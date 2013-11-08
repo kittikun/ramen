@@ -20,6 +20,7 @@
 #include <atomic>
 #include <boost/asio.hpp>
 #include <boost/asio/system_timer.hpp>
+#include <boost/chrono.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace ramen
@@ -44,9 +45,10 @@ namespace ramen
         void updateMemory() const;
 
     private:
-        int m_waitTime;
+        int m_iWaitTime;
+        int m_iNumProcessors; 
         boost::asio::io_service m_io;
-        boost::asio::system_timer m_timer;
+        boost::asio::basic_waitable_timer<boost::chrono::system_clock> m_timer;
         boost::shared_ptr<Database> m_pDatabase;
         std::atomic<bool> m_bState;
     };

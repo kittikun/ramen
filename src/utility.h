@@ -71,7 +71,6 @@ namespace ramen {
 
             double dSize = static_cast<double>(size);
             int exp = static_cast<int>(log(dSize) / log(1000));
-            double roro = dSize / pow(1000, exp);
             boost::format fmt;
 
             if (exp > 1)

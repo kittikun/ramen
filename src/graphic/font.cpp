@@ -146,8 +146,8 @@ namespace ramen
     // FONTMANAGER
     //-------------------------------------------------------------------------------------
     FontManager::FontManager()
-        : m_pActiveFont(nullptr)
-        , m_pFilesystem(nullptr)
+        : m_pFilesystem(nullptr)
+        , m_pActiveFont(nullptr)
         , m_FTLibrary(nullptr)
         , m_color(1.0f)
         , m_vbo(0)

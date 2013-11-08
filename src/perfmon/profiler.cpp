@@ -16,8 +16,6 @@
 
 #include "profiler.h"
 
-#include <windows.h>
-#include <psapi.h>
 #include <sstream>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>

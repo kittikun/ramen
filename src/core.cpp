@@ -23,7 +23,7 @@
 #include "database.h"
 #include "log.h"
 #include "settings.h"
-#include "builder\builder.h"
+#include "builder/builder.h"
 #include "builder/meshbuilder.h"
 #include "graphic/graphic.h"
 #include "io/filesystem.h"
@@ -38,14 +38,14 @@
 namespace ramen
 {
     Core::Core()
-        : m_bState(false)
-        , m_pDatabase(new Database())
-        , m_pFbxManager(new FBXManager())
-        , m_pBuilder(new Builder())
-        , m_pFilesystem(new Filesystem())
-        , m_pGraphic(new Graphic())
-        , m_pResmon(new Resmon())
-        , m_pSettings(new Settings())
+       : m_bState(false)
+       , m_pBuilder(new Builder())
+       , m_pDatabase(new Database())
+       , m_pFbxManager(new FBXManager())
+       , m_pFilesystem(new Filesystem())
+       , m_pGraphic(new Graphic())
+       , m_pResmon(new Resmon())
+       , m_pSettings(new Settings())
     {
         Log::initialize();
         LOGC << "Creating core...";

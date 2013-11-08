@@ -29,7 +29,7 @@ namespace ramen
         Mesh();
 
     private:
-        enum class VBOIndex
+        enum VBOIndex : uint32_t
         {
             Vertex,
             Normal,

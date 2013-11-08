@@ -19,39 +19,13 @@
 
 #include <boost/filesystem.hpp>
 
-template < >
-boost::filesystem::path& boost::filesystem::path::append< typename boost::filesystem::path::iterator >(typename boost::filesystem::path::iterator begin, typename boost::filesystem::path::iterator end, const boost::filesystem::path::codecvt_type& cvt)
-{
-    for(; begin != end ; ++begin)
-        *this /= *begin;
-    return *this;
-}
-
-namespace ramen {
+namespace ramen
+{ 
     namespace ioUtility
-    {
+    { 
         // Return path when appended to from will resolve to same as to
-        boost::filesystem::path makeRelativePath(boost::filesystem::path from, boost::filesystem::path to)
-        {
-            boost::filesystem::path ret;
-            boost::filesystem::path::const_iterator itrFrom(from.begin()), itrTo(to.begin());
-
-            from = boost::filesystem::absolute(from); to = boost::filesystem::absolute(to);
-
-            // Find common base
-            for(boost::filesystem::path::const_iterator toEnd(to.end()), fromEnd(from.end()) ; itrFrom != fromEnd && itrTo != toEnd && *itrFrom == *itrTo; ++itrFrom, ++itrTo);
-
-            // Navigate backwards in directory to reach previously found base
-            for(boost::filesystem::path::const_iterator fromEnd(from.end()); itrFrom != fromEnd; ++itrFrom)
-            {
-                if((*itrFrom) != ".")
-                    ret /= "..";
-            }
-            // Now navigate down the directory branch
-            ret.append(itrTo, to.end());
-            return ret;
-        }
+        boost::filesystem::path makeRelativePath(boost::filesystem::path from, boost::filesystem::path to);
     } // namespace ioUtility
 } // namespace ramen
 
-#endif IO_UTILITY_H
+#endif // IO_UTILITY_H

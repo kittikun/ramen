@@ -14,14 +14,21 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "Resmon.h"
+#include "resmon.h"
 
 #include <boost/bind.hpp>
-#include <boost/chrono.hpp>
 
 #if defined(_WIN32)
 #include "windows.h"
 #include "psapi.h"
+#elif defined(__unix__)
+#include "sys/times.h"
+#include "sys/vtimes.h"
+#include "sys/types.h"
+#include "sys/sysinfo.h"
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #endif
 
 #include "../coreComponents.h"
@@ -33,8 +40,19 @@ namespace ramen
 {
 #if defined(_WIN32)
     static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
-    static int numProcessors;
-    static HANDLE self;
+    static HANDLE self; 
+#elif defined(__unix__)
+    static clock_t lastCPU, lastSysCPU, lastUserCPU;
+
+    static int parseLine(char* line) 
+    { 
+        int i = strlen(line); 
+        while (*line < '0' || *line > '9') 
+            line++; 
+        line[i - 3] = '\0'; 
+        i = atoi(line); 
+        return i;
+    }
 #endif
 
     Resmon::Resmon()
@@ -46,14 +64,14 @@ namespace ramen
     {
         m_timer.async_wait(boost::bind(&Resmon::update, this));
         m_pDatabase = components->database;
-        m_waitTime = components->settings->get<int>("resmonTimer");
+        m_iWaitTime = components->settings->get<int>("resmonTimer");
 
 #if defined(_WIN32)
         SYSTEM_INFO sysInfo;
         FILETIME ftime, fsys, fuser;
 
         GetSystemInfo(&sysInfo);
-        numProcessors = sysInfo.dwNumberOfProcessors;
+        m_iNumProcessors = sysInfo.dwNumberOfProcessors;
 
         GetSystemTimeAsFileTime(&ftime);
         memcpy(&lastCPU, &ftime, sizeof(FILETIME));
@@ -62,16 +80,32 @@ namespace ramen
         GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
         memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
         memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+#elif defined(__unix__)
+        FILE* file; 
+        struct tms timeSample; 
+        char line[128]; 
+
+        lastCPU = times(&timeSample); 
+        lastSysCPU = timeSample.tms_stime; 
+        lastUserCPU = timeSample.tms_utime; 
+
+        file = fopen("/proc/cpuinfo", "r"); 
+        m_iNumProcessors = 0; 
+        while (fgets(line, 128, file) != NULL) {
+            if (strncmp(line, "processor", 9) == 0) 
+                m_iNumProcessors++;
+        }
+        fclose(file); 
 #endif
     }
 
     void Resmon::run()
     {
-        LOGB << "Starting resource monitor thread..";
+        LOGP << "Starting resource monitor thread..";
 
         m_bState.store(true);
         m_io.run();
-        LOGB << "Exiting resource monitor thread..";
+        LOGP << "Exiting resource monitor thread..";
     }
 
     void Resmon::update()
@@ -80,7 +114,7 @@ namespace ramen
         updateMemory();
 
         if (m_bState.load()) {
-            m_timer.expires_at(m_timer.expires_at() +  boost::chrono::milliseconds(m_waitTime));
+            m_timer.expires_at(m_timer.expires_at() +  boost::chrono::milliseconds(m_iWaitTime));
             m_timer.async_wait(boost::bind(&Resmon::update, this));
         }
     }
@@ -100,12 +134,33 @@ namespace ramen
         memcpy(&user, &fuser, sizeof(FILETIME));
         percent = static_cast<double>((sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart));
         percent /= (now.QuadPart - lastCPU.QuadPart);
-        percent /= numProcessors;
+        percent /= m_iNumProcessors;
         lastCPU = now;
         lastUserCPU = user;
         lastSysCPU = sys;
-
         m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent * 100));
+#elif defined (__unix__)
+        struct tms timeSample;
+        clock_t now;
+        double percent;
+
+        now = times(&timeSample);
+        if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
+            timeSample.tms_utime < lastUserCPU){
+            //Overflow detection. Just skip this value.
+            percent = -1.0;
+        }
+        else{
+            percent = (timeSample.tms_stime - lastSysCPU) +
+                (timeSample.tms_utime - lastUserCPU);
+            percent /= (now - lastCPU);
+            percent /= m_iNumProcessors;
+            percent *= 100;
+        }
+        lastCPU = now;
+        lastSysCPU = timeSample.tms_stime;
+        lastUserCPU = timeSample.tms_utime;
+        m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent));
 #endif
     }
 
@@ -117,6 +172,20 @@ namespace ramen
             m_pDatabase->set<uint32_t>("virtual memory", pmc.PagefileUsage);
             m_pDatabase->set<uint32_t>("physical memory", pmc.WorkingSetSize);
         }
+#elif defined(__unix__)
+        FILE* file = fopen("/proc/self/status", "r");
+        char line[128];
+    
+        while (fgets(line, 128, file) != NULL){
+            if (strncmp(line, "VmSize:", 7) == 0){
+                m_pDatabase->set<uint32_t>("virtual memory",parseLine(line) * 1000);
+            }
+
+            if (strncmp(line, "VmRSS:", 6) == 0){
+                m_pDatabase->set<uint32_t>("physical memory",parseLine(line) * 1000);
+            }
+        }
+        fclose(file);
 #endif
     }
 

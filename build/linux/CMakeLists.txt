@@ -11,15 +11,24 @@ SET(INCLUDE_PATH ${ROOT_PATH}/include)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x") 
 
 SET(EXE_SRC	${SRC_PATH}/core.cpp
+		${SRC_PATH}/database.cpp
 		${SRC_PATH}/main.cpp
 		${SRC_PATH}/log.cpp
-		${SRC_PATH}/profiler.cpp
-		${SRC_PATH}/utility.cpp
+		${SRC_PATH}/settings.cpp
+		${SRC_PATH}/builder/builder.cpp
+		${SRC_PATH}/builder/meshbuilder.cpp
 		${SRC_PATH}/graphic/font.cpp
 		${SRC_PATH}/graphic/graphic.cpp
+		${SRC_PATH}/graphic/mesh.cpp
 		${SRC_PATH}/graphic/shader.cpp
 		${SRC_PATH}/graphic/graphicUtility.cpp
-		${SRC_PATH}/io/filesystem.cpp)
+		${SRC_PATH}/io/fbx.cpp
+		${SRC_PATH}/io/fbxUtility.cpp
+		${SRC_PATH}/io/filesystem.cpp
+		${SRC_PATH}/io/ioUtility.cpp
+		${SRC_PATH}/perfmon/profiler.cpp
+		${SRC_PATH}/perfmon/resmon.cpp
+		)
 
 SET(EXECUTABLE_NAME ramen)
 
@@ -47,6 +56,13 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${Freetype_LIBRARIES})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/module)
 FIND_PACKAGE(GLM REQUIRED)
 IF (GLM_FOUND)
-  INCLUDE_DIRECTORIES(${BGLM_INCLUDE_DIRS})
+  INCLUDE_DIRECTORIES(${GLM_INCLUDE_DIRS})
   TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${GLM_LIBRARIES})
 ENDIF(GLM_FOUND)
+
+FIND_PACKAGE(FBX REQUIRED)
+IF (FBX_FOUND)
+  INCLUDE_DIRECTORIES(${FBX_INCLUDE_DIRS})
+  TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${FBX_LIBRARY})
+ENDIF(FBX_FOUND)
+
