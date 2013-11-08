@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\src\io\fbx.cpp" />
     <ClCompile Include="..\..\src\io\fbxUtility.cpp" />
     <ClCompile Include="..\..\src\io\filesystem.cpp" />
+    <ClCompile Include="..\..\src\io\ioUtility.cpp" />
     <ClCompile Include="..\..\src\log.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\perfmon\profiler.cpp" />
@@ -94,7 +95,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./external/include;./external/include/sdl;./external/include/freetype</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild />

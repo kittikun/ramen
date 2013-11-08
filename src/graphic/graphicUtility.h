@@ -17,6 +17,10 @@
 #ifndef GRAPHIC_UTILITY_H
 #define GRAPHIC_UTILITY_H
 
+#include <string>
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
+
 // Enable VERIFY_GL_ON in order to get detailed information about failing tests,
 // such as the line number and failure circumstances.
 #define VERIFY_GL_ON 1
@@ -35,8 +39,9 @@ namespace ramen
 {
     namespace graphicUtility
     {
-        extern const bool VerifyEGL(const int expectedError, const char *file, unsigned line);
-        extern const bool VerifyGL(const unsigned int expectedError, const char *file, unsigned line);
+        const std::string glEnumtoString(const GLenum value);
+        const bool VerifyEGL(const EGLint expectedError, const char *file, unsigned line);
+        const bool VerifyGL(const GLenum expectedError, const char *file, unsigned line);
     } // namespace graphicUtility
 } // namespace ramen
 

@@ -20,9 +20,9 @@
 #include <boost/filesystem.hpp>
 
 namespace ramen
-{ 
+{
     namespace ioUtility
-    { 
+    {
         // Return path when appended to from will resolve to same as to
         boost::filesystem::path makeRelativePath(boost::filesystem::path from, boost::filesystem::path to);
     } // namespace ioUtility

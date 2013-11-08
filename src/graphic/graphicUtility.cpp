@@ -17,11 +17,8 @@
 #include "graphicUtility.h"
 
 #include <cmath>
-#include <string>
 #include <sstream>
 #include <boost/format.hpp>
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
 
 #include "../log.h"
 
@@ -73,6 +70,20 @@ namespace ramen
         }
 #endif
 
+        const std::string glEnumtoString(const GLenum value)
+        {
+            switch (value) {
+            case GL_ALPHA:
+                return "GL_ALPHA";
+            }
+
+            std::stringstream stream;
+
+            stream << "Unknown GL enum " << value << std::endl;
+
+            return stream.str();
+        }
+
         static const std::string glErrorEnumToString(GLenum err)
         {
             switch (err) {
@@ -95,7 +106,7 @@ namespace ramen
             return stream.str();
         }
 
-        const bool VerifyGL(const unsigned int expectedError, const char* file, unsigned line)
+        const bool VerifyGL(const GLenum expectedError, const char* file, unsigned line)
         {
             GLenum glError = glGetError();
 
@@ -106,7 +117,7 @@ namespace ramen
             return true;
         }
 
-        const bool VerifyEGL(const int expectedError, const char* file, unsigned line)
+        const bool VerifyEGL(const EGLint expectedError, const char* file, unsigned line)
         {
 #if defined(_WIN32)
             EGLint eglError = eglGetError();

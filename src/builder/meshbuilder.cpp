@@ -33,15 +33,14 @@ namespace ramen
         PROFILE;
         LOGB << "Meshbuilder processing \"" << m_pFbxMesh->GetName() << "\"";
         boost::shared_ptr<Mesh> mesh(new Mesh());
-        int polygonCount;
 
         if (m_pFbxMesh == nullptr) {
             LOGE << "Could invalid FbxMesh provided";
             return;
         }
 
-        polygonCount = m_pFbxMesh->GetPolygonCount();
-        LOGB << "Mesh polygon count: " << polygonCount;
+        mesh->m_iPolygonCount = m_pFbxMesh->GetPolygonCount();
+        LOGB << "Mesh polygon count: " << mesh->m_iPolygonCount;
 
         // Count the polygon count of each material
         FbxLayerElementArrayTemplate<int>* materialIndice = nullptr;
@@ -52,31 +51,31 @@ namespace ramen
             materialMappingMode = m_pFbxMesh->GetElementMaterial()->GetMappingMode();
 
             if (materialIndice && materialMappingMode == FbxGeometryElement::eByPolygon) {
-                FBX_ASSERT(materialIndice->GetCount() == polygonCount);
-                if (materialIndice->GetCount() == polygonCount)
+                FBX_ASSERT(materialIndice->GetCount() == mesh->m_iPolygonCount);
+                if (materialIndice->GetCount() == mesh->m_iPolygonCount)
                 {
                     // Count the faces of each material
-                    for (int polygonIndex = 0; polygonIndex < polygonCount; ++polygonIndex) {
-                        const uint32_t materialIndex = materialIndice->GetAt(polygonIndex);
+                    for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex) {
+                        const uint32_t materiaindex = materialIndice->GetAt(polygonIndex);
 
-                        if (mesh->m_subMeshes.size() < materialIndex + 1) {
-                            mesh->m_subMeshes.resize(materialIndex + 1);
+                        if (mesh->m_subMeshes.size() < materiaindex + 1) {
+                            mesh->m_subMeshes.resize(materiaindex + 1);
                         }
 
-                        mesh->m_subMeshes[materialIndex].triangleCount += 1;
+                        mesh->m_subMeshes[materiaindex].triangleCount += 1;
                     }
 
                     // Record the offset (how many vertex)
                     const int lMaterialCount = mesh->m_subMeshes.size();
                     int lOffset = 0;
 
-                    for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex) {
-                        mesh->m_subMeshes[lIndex].indexOffset = lOffset;
-                        lOffset += mesh->m_subMeshes[lIndex].triangleCount * 3;
+                    for (int index = 0; index < lMaterialCount; ++index) {
+                        mesh->m_subMeshes[index].indexOffset = lOffset;
+                        lOffset += mesh->m_subMeshes[index].triangleCount * 3;
                         // This will be used as counter in the following procedures, reset to zero
-                        mesh->m_subMeshes[lIndex].triangleCount = 0;
+                        mesh->m_subMeshes[index].triangleCount = 0;
                     }
-                    FBX_ASSERT(lOffset == polygonCount * 3);
+                    FBX_ASSERT(lOffset == mesh->m_iPolygonCount * 3);
                 }
             }
         }
@@ -119,125 +118,124 @@ namespace ramen
         }
 
         // Allocate the array memory, by control point or by polygon vertex.
-        int polygonVertexCount = m_pFbxMesh->GetControlPointsCount();
+        mesh->m_iPolygonVertexCount = m_pFbxMesh->GetControlPointsCount();
         if (!mesh->m_bByControlPoint) {
-            polygonVertexCount = polygonCount * 3;
+            mesh->m_iPolygonVertexCount = mesh->m_iPolygonCount * 3;
         }
 
-        float * vertices = new float[polygonVertexCount * 4];
-        unsigned int * indices = new unsigned int[polygonCount * 3];
-        float * normals = NULL;
+        mesh->m_vertices.resize(mesh->m_iPolygonVertexCount * 4);
+        mesh->m_indices.resize(mesh->m_iPolygonCount * 3);
 
         if (mesh->m_bHasNormal)	{
-            normals = new float[polygonVertexCount * 3];
+            mesh->m_normals.resize(mesh->m_iPolygonVertexCount * 3);
         }
 
-        float * lUVs = NULL;
         FbxStringList uvNames;
         m_pFbxMesh->GetUVSetNames(uvNames);
-        const char * lUVName = NULL;
+        const char* uvName = NULL;
+
         if (mesh->m_bHasUV && uvNames.GetCount())
         {
-            lUVs = new float[polygonVertexCount * 2];
-            lUVName = uvNames[0];
+            mesh->m_UVs.resize(mesh->m_iPolygonVertexCount * 2);
+            uvName = uvNames[0];
         }
 
         // Populate the array with vertex attribute, if by control point.
         const FbxVector4 * controlPoints = m_pFbxMesh->GetControlPoints();
-        FbxVector4 lCurrentVertex;
-        FbxVector4 lCurrentNormal;
-        FbxVector2 lCurrentUV;
+        FbxVector4 currentVertex;
+        FbxVector4 currentNormal;
+        FbxVector2 currentUV;
 
         if (mesh->m_bByControlPoint) {
-            const FbxGeometryElementNormal * lNormalElement = NULL;
-            const FbxGeometryElementUV * lUVElement = NULL;
+            const FbxGeometryElementNormal * normalElement = NULL;
+            const FbxGeometryElementUV * uvElement = NULL;
 
             if (mesh->m_bHasNormal) {
-                lNormalElement = m_pFbxMesh->GetElementNormal(0);
+                normalElement = m_pFbxMesh->GetElementNormal(0);
             }
 
             if (mesh->m_bHasUV) {
-                lUVElement = m_pFbxMesh->GetElementUV(0);
+                uvElement = m_pFbxMesh->GetElementUV(0);
             }
 
-            for (int lIndex = 0; lIndex < polygonVertexCount; ++lIndex) {
+            for (uint32_t index = 0; index < mesh->m_iPolygonVertexCount; ++index) {
                 // Save the vertex position.
-                lCurrentVertex = controlPoints[lIndex];
-                vertices[lIndex * 4] = static_cast<float>(lCurrentVertex[0]);
-                vertices[lIndex * 4 + 1] = static_cast<float>(lCurrentVertex[1]);
-                vertices[lIndex * 4 + 2] = static_cast<float>(lCurrentVertex[2]);
-                vertices[lIndex * 4 + 3] = 1;
+                currentVertex = controlPoints[index];
+                mesh->m_vertices[index * 4] = static_cast<float>(currentVertex[0]);
+                mesh->m_vertices[index * 4 + 1] = static_cast<float>(currentVertex[1]);
+                mesh->m_vertices[index * 4 + 2] = static_cast<float>(currentVertex[2]);
+                mesh->m_vertices[index * 4 + 3] = 1;
 
                 // Save the normal.
                 if (mesh->m_bHasNormal)	{
-                    int lNormalIndex = lIndex;
+                    int lNormaindex = index;
 
-                    if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect) {
-                        lNormalIndex = lNormalElement->GetIndexArray().GetAt(lIndex);
+                    if (normalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect) {
+                        lNormaindex = normalElement->GetIndexArray().GetAt(index);
                     }
 
-                    lCurrentNormal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
-                    normals[lIndex * 3] = static_cast<float>(lCurrentNormal[0]);
-                    normals[lIndex * 3 + 1] = static_cast<float>(lCurrentNormal[1]);
-                    normals[lIndex * 3 + 2] = static_cast<float>(lCurrentNormal[2]);
+                    currentNormal = normalElement->GetDirectArray().GetAt(lNormaindex);
+                    mesh->m_normals[index * 3] = static_cast<float>(currentNormal[0]);
+                    mesh->m_normals[index * 3 + 1] = static_cast<float>(currentNormal[1]);
+                    mesh->m_normals[index * 3 + 2] = static_cast<float>(currentNormal[2]);
                 }
 
                 // Save the UV.
                 if (mesh->m_bHasUV) {
-                    int lUVIndex = lIndex;
-                    if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect) {
-                        lUVIndex = lUVElement->GetIndexArray().GetAt(lIndex);
+                    int lUVIndex = index;
+                    if (uvElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect) {
+                        lUVIndex = uvElement->GetIndexArray().GetAt(index);
                     }
-                    lCurrentUV = lUVElement->GetDirectArray().GetAt(lUVIndex);
-                    lUVs[lIndex * 2] = static_cast<float>(lCurrentUV[0]);
-                    lUVs[lIndex * 2 + 1] = static_cast<float>(lCurrentUV[1]);
+                    currentUV = uvElement->GetDirectArray().GetAt(lUVIndex);
+                    mesh->m_UVs[index * 2] = static_cast<float>(currentUV[0]);
+                    mesh->m_UVs[index * 2 + 1] = static_cast<float>(currentUV[1]);
                 }
             }
         }
 
         int vertexCount = 0;
-        for (int polygonIndex = 0; polygonIndex < polygonCount; ++polygonIndex)	{
+        for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex)	{
             // The material for current face.
-            int materialIndex = 0;
+            int materiaindex = 0;
             if (materialIndice && materialMappingMode == FbxGeometryElement::eByPolygon) {
-                materialIndex = materialIndice->GetAt(polygonIndex);
+                materiaindex = materialIndice->GetAt(polygonIndex);
             }
 
             // Where should I save the vertex attribute index, according to the material
-            const int indexOffset = mesh->m_subMeshes[materialIndex].indexOffset + mesh->m_subMeshes[materialIndex].triangleCount * 3;
+            const int indexOffset = mesh->m_subMeshes[materiaindex].indexOffset + mesh->m_subMeshes[materiaindex].triangleCount * 3;
 
             for (int verticeIndex = 0; verticeIndex < 3; ++verticeIndex)	{
                 const int controlPointIndex = m_pFbxMesh->GetPolygonVertex(polygonIndex, verticeIndex);
 
                 if (mesh->m_bByControlPoint)	{
-                    indices[indexOffset + verticeIndex] = static_cast<unsigned int>(controlPointIndex);
+                    mesh->m_indices[indexOffset + verticeIndex] = static_cast<unsigned int>(controlPointIndex);
                 } else {
                     // Populate the array with vertex attribute, if by polygon vertex.
-                    indices[indexOffset + verticeIndex] = static_cast<unsigned int>(vertexCount);
+                    mesh->m_indices[indexOffset + verticeIndex] = static_cast<unsigned int>(vertexCount);
 
-                    lCurrentVertex = controlPoints[controlPointIndex];
-                    vertices[vertexCount * 4] = static_cast<float>(lCurrentVertex[0]);
-                    vertices[vertexCount * 4 + 1] = static_cast<float>(lCurrentVertex[1]);
-                    vertices[vertexCount * 4 + 2] = static_cast<float>(lCurrentVertex[2]);
-                    vertices[vertexCount * 4 + 3] = 1;
+                    currentVertex = controlPoints[controlPointIndex];
+                    mesh->m_vertices[vertexCount * 4] = static_cast<float>(currentVertex[0]);
+                    mesh->m_vertices[vertexCount * 4 + 1] = static_cast<float>(currentVertex[1]);
+                    mesh->m_vertices[vertexCount * 4 + 2] = static_cast<float>(currentVertex[2]);
+                    mesh->m_vertices[vertexCount * 4 + 3] = 1;
 
                     if (mesh->m_bHasNormal)	{
-                        m_pFbxMesh->GetPolygonVertexNormal(polygonIndex, verticeIndex, lCurrentNormal);
-                        normals[vertexCount * 3] = static_cast<float>(lCurrentNormal[0]);
-                        normals[vertexCount * 3 + 1] = static_cast<float>(lCurrentNormal[1]);
-                        normals[vertexCount * 3 + 2] = static_cast<float>(lCurrentNormal[2]);
+                        m_pFbxMesh->GetPolygonVertexNormal(polygonIndex, verticeIndex, currentNormal);
+                        mesh->m_normals[vertexCount * 3] = static_cast<float>(currentNormal[0]);
+                        mesh->m_normals[vertexCount * 3 + 1] = static_cast<float>(currentNormal[1]);
+                        mesh->m_normals[vertexCount * 3 + 2] = static_cast<float>(currentNormal[2]);
                     }
 
                     if (mesh->m_bHasUV)	{
                         bool lUnmappedUV;
-                        m_pFbxMesh->GetPolygonVertexUV(polygonIndex, verticeIndex, lUVName, lCurrentUV, lUnmappedUV);
-                        lUVs[vertexCount * 2] = static_cast<float>(lCurrentUV[0]);
-                        lUVs[vertexCount * 2 + 1] = static_cast<float>(lCurrentUV[1]);
+                        m_pFbxMesh->GetPolygonVertexUV(polygonIndex, verticeIndex, uvName, currentUV, lUnmappedUV);
+                        mesh->m_UVs[vertexCount * 2] = static_cast<float>(currentUV[0]);
+                        mesh->m_UVs[vertexCount * 2 + 1] = static_cast<float>(currentUV[1]);
                     }
                 }
                 ++vertexCount;
             }
-            mesh->m_subMeshes[materialIndex].triangleCount += 1;
+            mesh->m_subMeshes[materiaindex].triangleCount += 1;
         }
 
         m_pDatabase->set<boost::shared_ptr<Mesh>>("mesh", mesh);

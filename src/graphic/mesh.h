@@ -17,6 +17,7 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <boost/cstdint.hpp>
 #include <GLES2/gl2.h>
 
 #include <vector>
@@ -28,14 +29,17 @@ namespace ramen
     public:
         Mesh();
 
+        void initializeGL();
+        const bool isGLInitialized() const { return m_bGLInialized; }
+
     private:
-        enum VBOIndex : uint32_t
+        enum VBOIndices : unsigned int
         {
-            Vertex,
-            Normal,
-            UV,
-            Index,
-            Count,
+            VBOVertex,
+            VBONormal,
+            VBOUV,
+            VBOIndex,
+            VBOCount,
         };
 
         // For every material, record the offsets in every VBO and triangle counts
@@ -48,10 +52,17 @@ namespace ramen
         };
 
         bool m_bByControlPoint;
+        bool m_bGLInialized;
         bool m_bHasNormal;
         bool m_bHasUV;
+        uint32_t m_iPolygonCount;
+        uint32_t m_iPolygonVertexCount;
+        std::vector<float> m_normals;
+        std::vector<float> m_vertices;
+        std::vector<float> m_UVs;
         std::vector<SubMesh> m_subMeshes;
-        GLuint m_vbos[VBOIndex::Count];
+        std::vector<uint32_t> m_indices;
+        GLuint m_vbos[VBOIndices::VBOCount];
 
         friend class MeshBuilder;
     };

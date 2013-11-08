@@ -46,7 +46,7 @@ namespace ramen
 
     private:
         int m_iWaitTime;
-        int m_iNumProcessors; 
+        int m_iNumProcessors;
         boost::asio::io_service m_io;
         boost::asio::basic_waitable_timer<boost::chrono::system_clock> m_timer;
         boost::shared_ptr<Database> m_pDatabase;

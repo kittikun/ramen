@@ -178,31 +178,5 @@ namespace ramen
         fbxMesh = node->GetMesh();
 
         return boost::shared_ptr<MeshBuilder>(new MeshBuilder(m_pDatabase, fbxMesh));
-
-        //// Create VBOs
-        //glGenBuffers(VBO_COUNT, mVBONames);
-
-        //// Save vertex attributes into GPU
-        //glBindBuffer(GL_ARRAY_BUFFER, mVBONames[Mesh::VERTEX_VBO]);
-        //glBufferData(GL_ARRAY_BUFFER, polygonVertexCount * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
-        //delete [] vertices;
-
-        //if (mHasNormal)
-        //{
-        //	glBindBuffer(GL_ARRAY_BUFFER, mVBONames[Mesh::NORMAL_VBO]);
-        //	glBufferData(GL_ARRAY_BUFFER, polygonVertexCount * 3 * sizeof(float), normals, GL_STATIC_DRAW);
-        //	delete [] normals;
-        //}
-
-        //if (mHasUV)
-        //{
-        //	glBindBuffer(GL_ARRAY_BUFFER, mVBONames[Mesh::UV_VBO]);
-        //	glBufferData(GL_ARRAY_BUFFER, polygonVertexCount * 2 * sizeof(float), lUVs, GL_STATIC_DRAW);
-        //	delete [] lUVs;
-        //}
-
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBONames[Mesh::INDEX_VBO]);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, lPolygonCount * 3 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-        //delete [] indices;
     }
 } // namespace ramen

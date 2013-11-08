@@ -99,7 +99,11 @@ namespace ramen
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         VERIFYGL();
 
-        LOGGFX << boost::format("Generated FontAtlas with %1%x%2% (%3%) texture") % m_texSize.x % m_texSize.y % utility::readableSizeByte(m_texSize.x * m_texSize.y);
+        LOGGFX << boost::format("Generated FontAtlas with %1%x%2% %3% (%4%)  texture")
+            % m_texSize.x
+            % m_texSize.y
+            % graphicUtility::glEnumtoString(GL_ALPHA)
+            % utility::readableSizeByte(m_texSize.x * m_texSize.y);
 
         // Fill texture with data from freetype
         for (int i = 32; i < 128; i++) {

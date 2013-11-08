@@ -19,13 +19,13 @@
 #include <boost/bind.hpp>
 
 #if defined(_WIN32)
-#include "windows.h"
-#include "psapi.h"
+#include <windows.h>
+#include <Psapi.h>
 #elif defined(__unix__)
-#include "sys/times.h"
-#include "sys/vtimes.h"
-#include "sys/types.h"
-#include "sys/sysinfo.h"
+#include <sys/times.h>
+#include <sys/vtimes.h>
+#include <sys/types.h>
+#include <sys/sysinfo.h>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -40,17 +40,17 @@ namespace ramen
 {
 #if defined(_WIN32)
     static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
-    static HANDLE self; 
+    static HANDLE self;
 #elif defined(__unix__)
     static clock_t lastCPU, lastSysCPU, lastUserCPU;
 
-    static int parseLine(char* line) 
-    { 
-        int i = strlen(line); 
-        while (*line < '0' || *line > '9') 
-            line++; 
-        line[i - 3] = '\0'; 
-        i = atoi(line); 
+    static int parseLine(char* line)
+    {
+        int i = strlen(line);
+        while (*line < '0' || *line > '9')
+            line++;
+        line[i - 3] = '\0';
+        i = atoi(line);
         return i;
     }
 #endif
@@ -81,21 +81,21 @@ namespace ramen
         memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
         memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
 #elif defined(__unix__)
-        FILE* file; 
-        struct tms timeSample; 
-        char line[128]; 
+        FILE* file;
+        struct tms timeSample;
+        char line[128];
 
-        lastCPU = times(&timeSample); 
-        lastSysCPU = timeSample.tms_stime; 
-        lastUserCPU = timeSample.tms_utime; 
+        lastCPU = times(&timeSample);
+        lastSysCPU = timeSample.tms_stime;
+        lastUserCPU = timeSample.tms_utime;
 
-        file = fopen("/proc/cpuinfo", "r"); 
-        m_iNumProcessors = 0; 
+        file = fopen("/proc/cpuinfo", "r");
+        m_iNumProcessors = 0;
         while (fgets(line, 128, file) != NULL) {
-            if (strncmp(line, "processor", 9) == 0) 
+            if (strncmp(line, "processor", 9) == 0)
                 m_iNumProcessors++;
         }
-        fclose(file); 
+        fclose(file);
 #endif
     }
 
@@ -147,8 +147,8 @@ namespace ramen
         now = times(&timeSample);
         if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
             timeSample.tms_utime < lastUserCPU){
-            //Overflow detection. Just skip this value.
-            percent = -1.0;
+                //Overflow detection. Just skip this value.
+                percent = -1.0;
         }
         else{
             percent = (timeSample.tms_stime - lastSysCPU) +
@@ -175,7 +175,7 @@ namespace ramen
 #elif defined(__unix__)
         FILE* file = fopen("/proc/self/status", "r");
         char line[128];
-    
+
         while (fgets(line, 128, file) != NULL){
             if (strncmp(line, "VmSize:", 7) == 0){
                 m_pDatabase->set<uint32_t>("virtual memory",parseLine(line) * 1000);
