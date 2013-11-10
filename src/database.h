@@ -47,7 +47,7 @@ namespace ramen
                 LOGE << "Database key \"" << key << "\" doesn't exist";
             }
 
-            // potential bomb if key is invalid
+            assert(found != m_data.end());
             return boost::any_cast<const T&>(found->second);
         }
 

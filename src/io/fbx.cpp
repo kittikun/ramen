@@ -166,17 +166,15 @@ namespace ramen
         return nullptr;
     }
 
-    boost::shared_ptr<MeshBuilder> FBXScene::createJobMesh()
+    boost::shared_ptr<Job> FBXScene::createJobMesh()
     {
+        boost::shared_ptr<MeshBuilder> job;
         FbxNode* node = findNode(FbxNodeAttribute::eMesh);
-        FbxMesh* fbxMesh = nullptr;
 
-        if (node == nullptr) {
-            return boost::shared_ptr<MeshBuilder>();
+        if (node != nullptr) {
+            job.reset(new MeshBuilder(m_pDatabase, node->GetMesh()));
         }
 
-        fbxMesh = node->GetMesh();
-
-        return boost::shared_ptr<MeshBuilder>(new MeshBuilder(m_pDatabase, fbxMesh));
+        return boost::dynamic_pointer_cast<Job>(job);
     }
 } // namespace ramen

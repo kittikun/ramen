@@ -23,7 +23,7 @@
 
 namespace ramen
 {
-    class Component
+    class Component : boost::noncopyable
     {
     public:
         virtual ~Component() {};
@@ -33,6 +33,8 @@ namespace ramen
 
     class Entity : boost::noncopyable
     {
+        void addComponent(const std::shared_ptr<Component>& component);
+
     private:
         std::vector<std::shared_ptr<Component>> m_components;
     };

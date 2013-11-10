@@ -18,4 +18,8 @@
 
 namespace ramen
 {
+    void Entity::addComponent(const std::shared_ptr<Component>& component)
+    {
+        m_components.push_back(component);
+    }
 } // namespace ramen

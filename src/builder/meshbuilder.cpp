@@ -102,7 +102,7 @@ namespace ramen
                 if (m_materialIndice->GetCount() == mesh->m_iPolygonCount)
                 {
                     // Count the faces of each material
-                    for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex) {
+                    for (int32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex) {
                         const uint32_t materiaindex = m_materialIndice->GetAt(polygonIndex);
 
                         if (mesh->m_subMeshes.size() < materiaindex + 1) {
@@ -207,7 +207,7 @@ namespace ramen
         }
 
         int vertexCount = 0;
-        for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex)	{
+        for (int32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex)	{
             // The material for current face.
             int materiaindex = 0;
             if (m_materialIndice && m_materialMappingMode == FbxGeometryElement::eByPolygon) {

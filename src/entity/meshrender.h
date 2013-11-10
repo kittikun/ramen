@@ -17,14 +17,25 @@
 #ifndef MESHRENDER_H
 #define MESHRENDER_H
 
+#include <boost/shared_ptr.hpp>
+#include <boost/utility.hpp>
+
 #include "entity.h"
 
 namespace ramen
 {
+    class Mesh;
+
     class MeshRender final : public Component
     {
     public:
+        MeshRender(const boost::shared_ptr<Mesh>& mesh);
+
         void draw();
+        void setupGL();
+
+    private:
+        boost::shared_ptr<Mesh> m_pMesh;
     };
 } // namespace ramen
 

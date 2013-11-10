@@ -27,14 +27,14 @@ namespace ramen
     struct CoreComponents;
     class Database;
     class Filesystem;
-    class MeshBuilder;
+    class Job;
 
     class FBXScene
     {
     public:
         FBXScene(FbxScene* scene, const boost::shared_ptr<Database>& database);
 
-        boost::shared_ptr<MeshBuilder> createJobMesh();
+        boost::shared_ptr<Job> createJobMesh();
 
     private:
         FbxNode* findNode(FbxNodeAttribute::EType type);

@@ -3,13 +3,12 @@ ramen
 
 Game? Engine? Nobody knows yet!
 
-FBX SDK: http://www.autodesk.com/products/fbx/overview
-SDL: http://www.libsdl.org/
-GLM: http://glm.g-truc.net/0.9.4/index.html
-
-Boost: http://www.boost.org/ 
-At least 1.54 is required, if you want to use an earlier version you will need to compile log
-from the original sourceforge repository
+FBX SDK: http://www.autodesk.com/products/fbx/overview  
+SDL: http://www.libsdl.org/  
+GLM: http://glm.g-truc.net/0.9.4/index.html  
+Boost: http://www.boost.org/  
+(At least 1.54 is required, if you want to use an earlier version you will need to compile log
+from the original sourceforge repository)
 
 
 For windows builds, binaries for VS2012EEE are provided in build/win

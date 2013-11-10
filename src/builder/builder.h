@@ -43,7 +43,7 @@ namespace ramen
     {
     public:
         void run();
-        void addJob(boost::shared_ptr<Job> job);
+        void addJob(const boost::shared_ptr<Job>& job);
 
         // slots
         void slotState(const bool state);

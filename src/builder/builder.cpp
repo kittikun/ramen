@@ -21,7 +21,7 @@
 
 namespace ramen
 {
-    void Builder::addJob(boost::shared_ptr<Job> job)
+    void Builder::addJob(const boost::shared_ptr<Job>& job)
     {
         {
             boost::lock_guard<boost::mutex> lock(m_mutex);

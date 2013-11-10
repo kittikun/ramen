@@ -187,7 +187,7 @@ namespace ramen
         auto foundDup = m_fontAtlases.find(name);
 
         if (foundDup != m_fontAtlases.end()) {
-            LOGW << "A fot named '" << name << "' already exists, abording";
+            LOGW << "A font named '" << name << "' already exists, abording";
             return false;
         }
 
@@ -282,24 +282,25 @@ namespace ramen
     {
         boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
         boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
-        char const* vtxData;
-        char const* frgData;
+        boost::shared_array<char> vtxArray;
+        boost::shared_array<char> frgArray;
+        const GLchar* vtxData = nullptr;
+        const GLchar* frgData = nullptr;
 
         LOGGFX << "Initializing GL for font renderer..";
 
         // Shaders/Program to be used for all font drawing
-        vtxData = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.v");
-        frgData = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.f");
+        vtxArray = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.v");
+        frgArray = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.f");
+        vtxData = vtxArray.get();
+        frgData = frgArray.get();
 
-        if ((vtxData == nullptr) || (frgData == nullptr)){
+        if ((vtxData == nullptr) || (frgData == nullptr)) {
             return false;
         }
 
         vtx->loadFromMemory(&vtxData);
         frg->loadFromMemory(&frgData);
-
-        delete vtxData;
-        delete frgData;
 
         if (!vtx->compile() || !frg->compile()) {
             return false;
@@ -336,7 +337,7 @@ namespace ramen
             return false;
         }
 
-        if (FT_New_Face(m_FTLibrary, pathAbs.c_str() , 0, &face)) {
+        if (FT_New_Face(m_FTLibrary, pathAbs.c_str(), 0, &face)) {
             LOGE << boost::format("Could not open font familly '%1%' from '%2%'") % name % pathRel;
             return false;
         }

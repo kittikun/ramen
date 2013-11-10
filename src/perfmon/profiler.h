@@ -17,46 +17,28 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <boost/unordered_map.hpp>
 #include <boost/chrono.hpp>
-#include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
-#define PROFILE Profile profile(__FUNCTION__)
+#define PROFILE profiler::AutoProfile _profile(__FUNCTION__)
 
 namespace ramen
 {
-    struct ProfileData
+    namespace profiler
     {
-        unsigned int iCount;
-        std::string strName;
-        boost::chrono::duration<long long, boost::micro> totalTime;
-        boost::chrono::duration<long long, boost::micro> min;
-        boost::chrono::duration<long long, boost::micro> max;
-    };
+        class AutoProfile : boost::noncopyable
+        {
+        public:
+            AutoProfile(const std::string& name);
+            ~AutoProfile();
 
-    class Profile : boost::noncopyable
-    {
-    public:
-        Profile(const std::string& name);
-        ~Profile();
+        private:
+            boost::chrono::system_clock::time_point m_start;
+            std::string m_strName;
+        };
 
-    private:
-        boost::chrono::system_clock::time_point m_start;
-        std::string m_strName;
-    };
-
-    class Profiler : boost::noncopyable
-    {
-    public:
-        static const std::string readableDuration(const boost::chrono::duration<long long, boost::micro>& duration);
-        static void update(const std::string& name, boost::chrono::duration<long long, boost::micro> duration);
         static void dump();
-
-    private:
-        static boost::mutex m_mutex;
-        static boost::unordered_map<std::string, ProfileData> m_profiles;
-    };
+    } // namespace profiler
 } // namespace ramen
 
 #endif // PROFILER

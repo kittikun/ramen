@@ -24,16 +24,14 @@
 #include "log.h"
 #include "settings.h"
 #include "builder/builder.h"
-#include "builder/meshbuilder.h"
 #include "graphic/graphic.h"
 #include "io/filesystem.h"
 #include "io/fbx.h"
 #include "perfmon/profiler.h"
 #include "perfmon/resmon.h"
 
-#include "graphic/mesh.h"
-
-#include <boost/scoped_ptr.hpp>
+#include "entity/entity.h"
+#include "entity/meshrender.h"
 
 namespace ramen
 {
@@ -54,7 +52,7 @@ namespace ramen
     Core::~Core()
     {
         LOGC << "Destroying core...";
-        Profiler::dump();
+        profiler::dump();
     }
 
     void Core::fillCoreComponents(CoreComponents* out)
@@ -96,8 +94,11 @@ namespace ramen
         m_pResmon->initialize(&components);
 
         m_pFbxManager->initialialize(&components);
-        boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("humanoid.fbx");
-        m_pBuilder->addJob(boost::dynamic_pointer_cast<Job>(scene->createJobMesh()));
+        boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");
+        m_pBuilder->addJob(scene->createJobMesh());
+
+        boost::shared_ptr<Entity> entity(new Entity());
+        boost::shared_ptr<Component> MeshRender(new MeshRender("mesh"));
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));

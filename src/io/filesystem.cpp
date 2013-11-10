@@ -117,29 +117,29 @@ namespace ramen
         return true;
     }
 
-    char const* Filesystem::resource(ResourceType type, const std::string& filename) const
+    boost::shared_array<char> Filesystem::resource(ResourceType type, const std::string& filename) const
     {
         const boost::filesystem::path absPath = fsresourcePathAbs(type, filename);
         std::ifstream stream(absPath.string());
         uint32_t size;
-        char* data = nullptr;
+        boost::shared_array<char> data;
 
         if (absPath.empty()) {
-            return nullptr;
+            return data;
         }
 
         if (stream.is_open()) {
             if (type == ResourceType::Shader) {
                 std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-                data = new char[str.size() +1];
-                std::copy(str.begin(), str.end(), data);
+                data.reset(new char[str.size() +1]);
+                std::copy(str.begin(), str.end(), data.get());
                 size = str.size();
                 data[size] = '\0';
             } else {
                 size = static_cast<uint32_t>(boost::filesystem::file_size(absPath));
-                data = new char[size];
-                stream.read(data, size);
+                data.reset(new char[size]);
+                stream.read(data.get(), size);
             }
 
             LOGI << boost::format("Read %1% from %2%..") % utility::readableSizeByte(size) % ioUtility::makeRelativePath(m_resourcePath, absPath);
