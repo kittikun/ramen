@@ -55,7 +55,7 @@ namespace ramen
         bool m_bGLInialized;
         bool m_bHasNormal;
         bool m_bHasUV;
-        uint32_t m_iPolygonCount;
+        int32_t m_iPolygonCount;
         uint32_t m_iPolygonVertexCount;
         std::vector<float> m_normals;
         std::vector<float> m_vertices;

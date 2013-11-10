@@ -18,6 +18,7 @@
 #define FILESYSTEM_H
 
 #include <boost/filesystem.hpp>
+#include <boost/shared_array.hpp>
 
 namespace ramen
 {
@@ -38,7 +39,7 @@ namespace ramen
         const std::string resourcePathRel(ResourceType type, const std::string& filename) const;
 
         // User must manually free data after usage
-        char const* resource(ResourceType type, const std::string& filename) const;
+        boost::shared_array<char> resource(ResourceType type, const std::string& filename) const;
 
     private:
         void findWorkingDir();
