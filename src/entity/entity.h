@@ -14,11 +14,28 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "database.h"
+#ifndef ENTITY_H
+#define ENTITY_H
 
-#include "log.h"
-#include "entity/entity.h"
+#include <vector>
+#include <boost/shared_ptr.hpp>
+#include <boost/utility.hpp>
 
 namespace ramen
 {
+    class Component
+    {
+    public:
+        virtual ~Component() {};
+
+        virtual void draw() {};
+    };
+
+    class Entity : boost::noncopyable
+    {
+    private:
+        std::vector<std::shared_ptr<Component>> m_components;
+    };
 } // namespace ramen
+
+#endif // ENTITY_H

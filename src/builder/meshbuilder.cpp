@@ -24,68 +24,41 @@ namespace ramen
 {
     MeshBuilder::MeshBuilder(const boost::shared_ptr<Database>& database, FbxMesh* fbxMesh)
         : Job(database)
+        , m_strUVName(nullptr)
         ,  m_pFbxMesh(fbxMesh)
+        , m_materialIndice(nullptr)
+        , m_materialMappingMode(FbxGeometryElement::eNone)
     {
     }
 
-    void MeshBuilder::process()
+    void MeshBuilder::allocateArrays(boost::shared_ptr<Mesh>& mesh)
     {
-        PROFILE;
-        LOGB << "Meshbuilder processing \"" << m_pFbxMesh->GetName() << "\"";
-        boost::shared_ptr<Mesh> mesh(new Mesh());
+        FbxStringList uvNames;
 
-        if (m_pFbxMesh == nullptr) {
-            LOGE << "Could invalid FbxMesh provided";
-            return;
+        // Allocate the array memory, by control point or by polygon vertex.
+        mesh->m_iPolygonVertexCount = m_pFbxMesh->GetControlPointsCount();
+
+        if (!mesh->m_bByControlPoint) {
+            mesh->m_iPolygonVertexCount = mesh->m_iPolygonCount * 3;
         }
 
-        mesh->m_iPolygonCount = m_pFbxMesh->GetPolygonCount();
-        LOGB << "Mesh polygon count: " << mesh->m_iPolygonCount;
+        mesh->m_vertices.resize(mesh->m_iPolygonVertexCount * 4);
+        mesh->m_indices.resize(mesh->m_iPolygonCount * 3);
 
-        // Count the polygon count of each material
-        FbxLayerElementArrayTemplate<int>* materialIndice = nullptr;
-        FbxGeometryElement::EMappingMode materialMappingMode = FbxGeometryElement::eNone;
-
-        if (m_pFbxMesh->GetElementMaterial()) {
-            materialIndice = &m_pFbxMesh->GetElementMaterial()->GetIndexArray();
-            materialMappingMode = m_pFbxMesh->GetElementMaterial()->GetMappingMode();
-
-            if (materialIndice && materialMappingMode == FbxGeometryElement::eByPolygon) {
-                FBX_ASSERT(materialIndice->GetCount() == mesh->m_iPolygonCount);
-                if (materialIndice->GetCount() == mesh->m_iPolygonCount)
-                {
-                    // Count the faces of each material
-                    for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex) {
-                        const uint32_t materiaindex = materialIndice->GetAt(polygonIndex);
-
-                        if (mesh->m_subMeshes.size() < materiaindex + 1) {
-                            mesh->m_subMeshes.resize(materiaindex + 1);
-                        }
-
-                        mesh->m_subMeshes[materiaindex].triangleCount += 1;
-                    }
-
-                    // Record the offset (how many vertex)
-                    const int lMaterialCount = mesh->m_subMeshes.size();
-                    int lOffset = 0;
-
-                    for (int index = 0; index < lMaterialCount; ++index) {
-                        mesh->m_subMeshes[index].indexOffset = lOffset;
-                        lOffset += mesh->m_subMeshes[index].triangleCount * 3;
-                        // This will be used as counter in the following procedures, reset to zero
-                        mesh->m_subMeshes[index].triangleCount = 0;
-                    }
-                    FBX_ASSERT(lOffset == mesh->m_iPolygonCount * 3);
-                }
-            }
+        if (mesh->m_bHasNormal)	{
+            mesh->m_normals.resize(mesh->m_iPolygonVertexCount * 3);
         }
 
-        // All faces will use the same material.
-        if (mesh->m_subMeshes.size() == 0) {
-            mesh->m_subMeshes.resize(1);
-        }
+        m_pFbxMesh->GetUVSetNames(uvNames);
 
-        // Congregate all the data of a mesh to be cached in VBOs.
+        if (mesh->m_bHasUV && uvNames.GetCount()) {
+            mesh->m_UVs.resize(mesh->m_iPolygonVertexCount * 2);
+            m_strUVName = uvNames[0];
+        }
+    }
+
+    void MeshBuilder::getMeshAttributes(boost::shared_ptr<Mesh>& mesh)
+    {
         // If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
         mesh->m_bHasNormal = m_pFbxMesh->GetElementNormalCount() > 0;
         mesh->m_bHasUV = m_pFbxMesh->GetElementUVCount() > 0;
@@ -116,29 +89,69 @@ namespace ramen
                 mesh->m_bByControlPoint = false;
             }
         }
+    }
 
-        // Allocate the array memory, by control point or by polygon vertex.
-        mesh->m_iPolygonVertexCount = m_pFbxMesh->GetControlPointsCount();
-        if (!mesh->m_bByControlPoint) {
-            mesh->m_iPolygonVertexCount = mesh->m_iPolygonCount * 3;
+    void MeshBuilder::calcPolygonCountPerMaterial(boost::shared_ptr<Mesh>& mesh)
+    {
+        if (m_pFbxMesh->GetElementMaterial()) {
+            FbxLayerElementArrayTemplate<int>* m_materialIndice = &m_pFbxMesh->GetElementMaterial()->GetIndexArray();
+            m_materialMappingMode = m_pFbxMesh->GetElementMaterial()->GetMappingMode();
+
+            if (m_materialIndice && m_materialMappingMode == FbxGeometryElement::eByPolygon) {
+                FBX_ASSERT(m_materialIndice->GetCount() == mesh->m_iPolygonCount);
+                if (m_materialIndice->GetCount() == mesh->m_iPolygonCount)
+                {
+                    // Count the faces of each material
+                    for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex) {
+                        const uint32_t materiaindex = m_materialIndice->GetAt(polygonIndex);
+
+                        if (mesh->m_subMeshes.size() < materiaindex + 1) {
+                            mesh->m_subMeshes.resize(materiaindex + 1);
+                        }
+
+                        mesh->m_subMeshes[materiaindex].triangleCount += 1;
+                    }
+
+                    // Record the offset (how many vertex)
+                    const int lMaterialCount = mesh->m_subMeshes.size();
+                    int offset = 0;
+
+                    for (int index = 0; index < lMaterialCount; ++index) {
+                        mesh->m_subMeshes[index].indexOffset = offset;
+                        offset += mesh->m_subMeshes[index].triangleCount * 3;
+                        // This will be used as counter in the following procedures, reset to zero
+                        mesh->m_subMeshes[index].triangleCount = 0;
+                    }
+                    FBX_ASSERT(offset == mesh->m_iPolygonCount * 3);
+                }
+            }
+        }
+    }
+
+    void MeshBuilder::process()
+    {
+        PROFILE;
+        LOGB << "Meshbuilder processing \"" << m_pFbxMesh->GetName() << "\"";
+        boost::shared_ptr<Mesh> mesh(new Mesh());
+
+        if (m_pFbxMesh == nullptr) {
+            LOGE << "Could invalid FbxMesh provided";
+            return;
         }
 
-        mesh->m_vertices.resize(mesh->m_iPolygonVertexCount * 4);
-        mesh->m_indices.resize(mesh->m_iPolygonCount * 3);
+        mesh->m_iPolygonCount = m_pFbxMesh->GetPolygonCount();
+        LOGB << "Mesh polygon count: " << mesh->m_iPolygonCount;
 
-        if (mesh->m_bHasNormal)	{
-            mesh->m_normals.resize(mesh->m_iPolygonVertexCount * 3);
+        calcPolygonCountPerMaterial(mesh);
+
+        if (mesh->m_subMeshes.size() == 0) {
+            // All faces will use the same material.
+            mesh->m_subMeshes.resize(1);
         }
 
-        FbxStringList uvNames;
-        m_pFbxMesh->GetUVSetNames(uvNames);
-        const char* uvName = NULL;
-
-        if (mesh->m_bHasUV && uvNames.GetCount())
-        {
-            mesh->m_UVs.resize(mesh->m_iPolygonVertexCount * 2);
-            uvName = uvNames[0];
-        }
+        // Congregate all the data of a mesh to be cached in VBOs.
+        getMeshAttributes(mesh);
+        allocateArrays(mesh);
 
         // Populate the array with vertex attribute, if by control point.
         const FbxVector4 * controlPoints = m_pFbxMesh->GetControlPoints();
@@ -197,8 +210,8 @@ namespace ramen
         for (uint32_t polygonIndex = 0; polygonIndex < mesh->m_iPolygonCount; ++polygonIndex)	{
             // The material for current face.
             int materiaindex = 0;
-            if (materialIndice && materialMappingMode == FbxGeometryElement::eByPolygon) {
-                materiaindex = materialIndice->GetAt(polygonIndex);
+            if (m_materialIndice && m_materialMappingMode == FbxGeometryElement::eByPolygon) {
+                materiaindex = m_materialIndice->GetAt(polygonIndex);
             }
 
             // Where should I save the vertex attribute index, according to the material
@@ -228,7 +241,7 @@ namespace ramen
 
                     if (mesh->m_bHasUV)	{
                         bool lUnmappedUV;
-                        m_pFbxMesh->GetPolygonVertexUV(polygonIndex, verticeIndex, uvName, currentUV, lUnmappedUV);
+                        m_pFbxMesh->GetPolygonVertexUV(polygonIndex, verticeIndex, m_strUVName, currentUV, lUnmappedUV);
                         mesh->m_UVs[vertexCount * 2] = static_cast<float>(currentUV[0]);
                         mesh->m_UVs[vertexCount * 2 + 1] = static_cast<float>(currentUV[1]);
                     }

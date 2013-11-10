@@ -14,11 +14,18 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "database.h"
+#ifndef MESHRENDER_H
+#define MESHRENDER_H
 
-#include "log.h"
-#include "entity/entity.h"
+#include "entity.h"
 
 namespace ramen
 {
+    class MeshRender final : public Component
+    {
+    public:
+        void draw();
+    };
 } // namespace ramen
+
+#endif // MESHRENDER_H

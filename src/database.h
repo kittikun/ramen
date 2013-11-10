@@ -29,6 +29,7 @@
 
 namespace ramen
 {
+    class Entity;
     class Mesh;
 
     class Database : boost::noncopyable
@@ -68,6 +69,7 @@ namespace ramen
 
     private:
         boost::mutex m_mutex;
+        std::vector<boost::shared_ptr<Entity>> m_entities;
         boost::unordered_map<std::string, boost::any> m_data;
     };
 } // namespace ramen

@@ -15,6 +15,8 @@
     <ClCompile Include="..\..\src\builder\meshbuilder.cpp" />
     <ClCompile Include="..\..\src\core.cpp" />
     <ClCompile Include="..\..\src\database.cpp" />
+    <ClCompile Include="..\..\src\entity\entity.cpp" />
+    <ClCompile Include="..\..\src\entity\meshrender.cpp" />
     <ClCompile Include="..\..\src\graphic\font.cpp" />
     <ClCompile Include="..\..\src\graphic\graphic.cpp" />
     <ClCompile Include="..\..\src\graphic\mesh.cpp" />
@@ -36,6 +38,8 @@
     <ClInclude Include="..\..\src\core.h" />
     <ClInclude Include="..\..\src\coreComponents.h" />
     <ClInclude Include="..\..\src\database.h" />
+    <ClInclude Include="..\..\src\entity\entity.h" />
+    <ClInclude Include="..\..\src\entity\meshrender.h" />
     <ClInclude Include="..\..\src\graphic\font.h" />
     <ClInclude Include="..\..\src\graphic\graphic.h" />
     <ClInclude Include="..\..\src\graphic\mesh.h" />
@@ -119,7 +123,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./external/include;./external/include/sdl;./external/include/freetype</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>

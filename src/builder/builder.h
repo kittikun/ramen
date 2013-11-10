@@ -21,12 +21,13 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <boost/utility.hpp>
 
 namespace ramen
 {
     class Database;
 
-    class Job
+    class Job : boost::noncopyable
     {
     public:
         Job(const boost::shared_ptr<Database>& database);
@@ -38,7 +39,7 @@ namespace ramen
         boost::shared_ptr<Database> m_pDatabase;
     };
 
-    class Builder
+    class Builder : boost::noncopyable
     {
     public:
         void run();

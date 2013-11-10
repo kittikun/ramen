@@ -18,10 +18,11 @@
 #define FILESYSTEM_H
 
 #include <boost/filesystem.hpp>
+#include <boost/utility.hpp>
 
 namespace ramen
 {
-    class Filesystem
+    class Filesystem : boost::noncopyable
     {
     public:
         enum class ResourceType
