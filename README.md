@@ -31,18 +31,35 @@ Some features about the framework:
 TODO:
 -----
 
+Priority levels:
+P0 Absolute must / Breaking change
+P1 High / Consequent design change
+P2 When possible
+P3 Maybe later
+
+DATABASE:
+- (P1) Replace global lock with clever system
+
 GENERAL:
-- Improve profiler with many level of hierarchy
-- Loops not to take 100% cpu
+- (P3) Improve profiler with many level of hierarchy
+- (P2) Loops not to take 100% cpu
+- (P3) Refacctorize Perfmon
 
 GRAPHICS:
-- Handle resize on windows
-- Improve shader system to be easier to use
+- (P1) Check GL extensions and max GL features
+- (P1) Improve shader system to be easier to use
+- (P3) Handle resize on windows
+
+MESH:
+- (P0) Interleave buffer data
+
+FBX:
+- (P2) Move loading to Job system
 
 FONTS:
-- Improve font packing with an algorithm like http://clb.demon.fi/files/RectangleBinPack.pdf
-- Font rendering probably needs some optimization
+- (P3) Improve font packing with an algorithm like http://clb.demon.fi/files/RectangleBinPack.pdf
+- (P2) Font rendering probably needs some optimization (pack all draw with same font, ...)
 
 IO
-- Async file loading
-- Use a ressource file instead of exposing resource folder
+- (P1) Async file loading
+- (P3) Use a ressource file instead of exposing resource folder
