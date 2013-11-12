@@ -33,10 +33,12 @@ namespace ramen
 
     class Entity : boost::noncopyable
     {
-        void addComponent(const std::shared_ptr<Component>& component);
+    public:
+        void addComponent(const boost::shared_ptr<Component>& component);
+        void draw();
 
     private:
-        std::vector<std::shared_ptr<Component>> m_components;
+        std::vector<boost::shared_ptr<Component>> m_components;
     };
 } // namespace ramen
 

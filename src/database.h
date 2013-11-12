@@ -35,6 +35,9 @@ namespace ramen
     class Database : boost::noncopyable
     {
     public:
+        void addEntity(const boost::shared_ptr<Entity>& entity) { m_entities.push_back(entity); }
+        const std::vector<boost::shared_ptr<Entity>>& entities() const { return m_entities; }
+
         template <typename T>
         const T& get(const std::string& key)
         {
@@ -47,10 +50,10 @@ namespace ramen
             }
 
             assert(found != m_data.end());
-			return boost::any_cast<const T&>(found->second);
+            return boost::any_cast<const T&>(found->second);
         }
 
-		void remove(const std::string& key);
+        void remove(const std::string& key);
 
         template <typename T>
         void set(const std::string& key, const T& value)

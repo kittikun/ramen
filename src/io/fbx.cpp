@@ -161,7 +161,7 @@ namespace ramen
             }
         }
 
-        LOGE << "Cound find any node of type " << fbxUtility::getAttributeStr(type);
+        LOGE << "Couldn't find any node of type " << fbxUtility::getAttributeStr(type);
 
         return nullptr;
     }

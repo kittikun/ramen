@@ -29,8 +29,7 @@ namespace ramen {
         const int calcNumDigits(T value, const bool includeMinus)
         {
             BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
-
-            int digits = 0;
+            uint32_t digits = 0;
 
             // do we need to cound minus sign
             if (includeMinus && (value < 0)) {
@@ -49,28 +48,24 @@ namespace ramen {
         const T calcNearestPowerofTwo(const T value)
         {
             BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
-
-            double dValue = static_cast<double>(value);
-            double power = ceil(log(dValue)/log(2));
-            double res = pow(2, power);
+            const double power = ceil(log(static_cast<double>(value)) / log(2));
 
             // cast in case T type is integral
-            return T(res);
+            return T(pow(2, power));
         }
 
         template <class T>
         const std::string readableSizeByte(const T size)
         {
-            const char * symbols = "kMGTPE";
-
             BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+            const char * symbols = "KMGTPE";
 
-            if (size < 1000) {
+            if (size < 1024) {
                 return boost::str(boost::format("%1%B") % size);
             }
 
-            double dSize = static_cast<double>(size);
-            int exp = static_cast<int>(log(dSize) / log(1000));
+            const double dSize = static_cast<double>(size);
+            const int exp = static_cast<int>(log(dSize) / log(1024));
             boost::format fmt;
 
             if (exp > 1)
@@ -78,7 +73,7 @@ namespace ramen {
             else
                 fmt = boost::format("%1$1.0f%2%B");
 
-            return boost::str(fmt % (dSize / pow(1000, exp)) % symbols[static_cast<int>(exp) - 1]);
+            return boost::str(fmt % (dSize / pow(1024, exp)) % symbols[static_cast<int>(exp) - 1]);
         }
     } // namespace utility
 } // namespace ramen

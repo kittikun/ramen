@@ -98,7 +98,10 @@ namespace ramen
         m_pBuilder->addJob(scene->createJobMesh());
 
         boost::shared_ptr<Entity> entity(new Entity());
-        boost::shared_ptr<Component> MeshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
+        boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
+
+        entity->addComponent(boost::dynamic_pointer_cast<Component>(meshRender));
+        m_pDatabase->addEntity(entity);
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));

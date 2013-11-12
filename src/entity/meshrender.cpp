@@ -16,6 +16,7 @@
 
 #include "meshrender.h"
 
+#include <boost/foreach.hpp>
 #include <GLES2/gl2.h>
 
 #include "../log.h"
@@ -32,24 +33,38 @@ namespace ramen
 
     void MeshRender::draw()
     {
+        if (!m_pMesh->isDataSetup()) {
+            return;
+        }
+
+        if (!m_pMesh->isGLSetup()) {
+            setupGL();
+        }
+
         glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
         glVertexAttribPointer(Mesh::VBOVertex, Mesh::StrideVertex, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(Mesh::VBOVertex);
 
-		if (m_pMesh->hasNormal()) {
-			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
-			glVertexAttribPointer(Mesh::VBONormal, Mesh::StrideNormal, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(Mesh::VBONormal);
-		}
+        if (m_pMesh->hasNormal()) {
+            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
+            glVertexAttribPointer(Mesh::VBONormal, Mesh::StrideNormal, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(Mesh::VBONormal);
+        }
 
-		if (m_pMesh->hasUV()) {
-			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
-			glVertexAttribPointer(Mesh::VBOUV, Mesh::StrideUV, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(Mesh::VBOUV);
-		}
+        if (m_pMesh->hasUV()) {
+            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
+            glVertexAttribPointer(Mesh::VBOUV, Mesh::StrideUV, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(Mesh::VBOUV);
+        }
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
-		glDrawElements(GL_TRIANGLES, 42, GL_UNSIGNED_SHORT, &m_pMesh->indices().front());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
+
+        BOOST_FOREACH(auto sub, m_pMesh->submeshes()) {
+            const GLsizei offset = sub.indexOffset * sizeof(uint16_t);
+            const GLsizei elementCount = sub.triangleCount * 3;
+
+            glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid *>(offset));
+        }
     }
 
     void MeshRender::setupGL()
@@ -58,9 +73,9 @@ namespace ramen
         uint32_t size;
 
         // Create VBOs
-		m_pMesh->vbos().resize(Mesh::VBOIndexCount);
-		glGenBuffers(Mesh::VBOIndexCount, &m_pMesh->vbos().front());
-		
+        m_pMesh->vbos().resize(Mesh::VBOIndexCount);
+        glGenBuffers(Mesh::VBOIndexCount, &m_pMesh->vbos().front());
+
         // Save VBOVertex attributes into GPU
         glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
         size = m_pMesh->vertices().size() * sizeof(float);
@@ -76,9 +91,9 @@ namespace ramen
 
         if (m_pMesh->hasUV()) {
             glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
-			size = m_pMesh->UVs().size() * sizeof(float);
+            size = m_pMesh->UVs().size() * sizeof(float);
             LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
-			glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->UVs().front(), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->UVs().front(), GL_STATIC_DRAW);
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));

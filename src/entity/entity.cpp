@@ -16,10 +16,19 @@
 
 #include "entity.h"
 
+#include <boost/foreach.hpp>
+
 namespace ramen
 {
-    void Entity::addComponent(const std::shared_ptr<Component>& component)
+    void Entity::addComponent(const boost::shared_ptr<Component>& component)
     {
         m_components.push_back(component);
+    }
+
+    void Entity::draw()
+    {
+        BOOST_FOREACH(auto component, m_components) {
+            component->draw();
+        }
     }
 } // namespace ramen

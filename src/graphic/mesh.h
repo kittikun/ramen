@@ -27,6 +27,14 @@ namespace ramen
     class Mesh
     {
     public:
+        // For every material, record the offsets in every VBO and triangle counts
+        struct SubMesh
+        {
+            SubMesh() : indexOffset(0), triangleCount(0) {}
+
+            int indexOffset;
+            int triangleCount;
+        };
 
         enum VBOIndex : unsigned int
         {
@@ -45,12 +53,13 @@ namespace ramen
         };
 
         Mesh();
+        ~Mesh() { int i = 0; }
 
         const bool hasNormal() const { return m_bHasNormal; }
         const bool hasUV() const { return m_bHasUV; }
 
-		const bool isGLSetup() const { return m_vbos.size() != 0; }
-		const bool isDataSetup() const { return m_vertices.size() != 0; }
+        const bool isGLSetup() const { return m_vbos.size() != 0; }
+        const bool isDataSetup() const { return m_vertices.size() != 0; }
 
         const GLuint vboAt(VBOIndex index) const { return m_vbos[index]; }
 
@@ -58,18 +67,10 @@ namespace ramen
         const std::vector<float>& vertices() const { return m_vertices; }
         const std::vector<float>& normals() const { return m_normals; }
         const std::vector<float>& UVs() const { return m_UVs; }
+        const std::vector<SubMesh>& submeshes() const { return m_subMeshes; }
         std::vector<GLuint>& vbos() { return m_vbos; }
 
     private:
-        // For every material, record the offsets in every VBO and triangle counts
-        struct SubMesh
-        {
-            SubMesh() : indexOffset(0), triangleCount(0) {}
-
-            int indexOffset;
-            int triangleCount;
-        };
-
         bool m_bByControlPoint;
         bool m_bHasNormal;
         bool m_bHasUV;

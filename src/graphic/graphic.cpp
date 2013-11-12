@@ -17,6 +17,7 @@
 #include "graphic.h"
 
 #include <SDL.h>
+#include <boost/foreach.hpp>
 #include <GLES2/gl2.h>
 
 #if defined(_WIN32)
@@ -29,6 +30,7 @@
 #include "../database.h"
 #include "../log.h"
 #include "../settings.h"
+#include "../entity/entity.h"
 #include "../io/filesystem.h"
 #include "../perfmon/profiler.h"
 #include "../utility.h"
@@ -253,6 +255,10 @@ namespace ramen
             m_pFontManager->drawText(resmon, glm::vec2(10, 26));
             VERIFYGL();
 
+            BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
+                entity->draw();
+            }
+
             swapbuffers();
 
             m_fps(boost::chrono::duration_cast<boost::chrono::microseconds>(boost::chrono::system_clock::now() - curTime).count());
@@ -279,10 +285,10 @@ namespace ramen
 
     const glm::ivec2 Graphic::windowSize() const
     {
-        glm::ivec2 toto;
+        glm::ivec2 size;
 
-        SDL_GetWindowSize(m_pWindow, &toto.x, &toto.y);
+        SDL_GetWindowSize(m_pWindow, &size.x, &size.y);
 
-        return toto;
+        return size;
     }
 } // namespace ramen
