@@ -37,11 +37,26 @@ namespace ramen
             VBOCount
         };
 
+        enum AttributeStride : unsigned int
+        {
+            StrideVertex = 4,
+            StrideNormal = 3,
+            StrideUV = 2
+        };
+
         Mesh();
 
-        const std::vector<GLuint>& vbos() const { return m_vbos; }
         const bool hasNormal() const { return m_bHasNormal; }
         const bool hasUV() const { return m_bHasUV; }
+        const bool isGLSetup() const { return m_bIsGLSetup; }
+
+        const GLuint vbo(VBOIndices index) const { return m_vbos[index]; }
+        const std::vector<GLuint>& vbos() const { return m_vbos; }
+
+        const std::vector<uint32_t>& indices() const { return m_indices; }
+        const std::vector<float>& vertices() const { return m_vertices; }
+        const std::vector<float>& normals() const { return m_normals; }
+        const std::vector<float>& UVs() const { return m_UVs; }
 
     private:
         // For every material, record the offsets in every VBO and triangle counts
@@ -56,6 +71,7 @@ namespace ramen
         bool m_bByControlPoint;
         bool m_bHasNormal;
         bool m_bHasUV;
+        bool m_bIsGLSetup;
         int32_t m_iPolygonCount;
         uint32_t m_iPolygonVertexCount;
         std::vector<float> m_normals;

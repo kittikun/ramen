@@ -35,7 +35,7 @@ namespace ramen
         void process() final;
 
     private:
-        void allocateArrays(boost::shared_ptr<Mesh>& mesh);
+        void resizeArrays(boost::shared_ptr<Mesh>& mesh);
         void getMeshAttributes(boost::shared_ptr<Mesh>& mesh);
         void calcPolygonCountPerMaterial(boost::shared_ptr<Mesh>& mesh);
 
