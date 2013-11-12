@@ -4,4 +4,5 @@
 !.gitignore
 !ramen.sln
 !ramen.vcxproj
+!ramen.vcxproj.filters
 !external.7z

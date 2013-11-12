@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{ec4288b9-fa0d-473d-978c-374a24ab9139}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\graphic">
+      <UniqueIdentifier>{15001f79-ad66-440b-9599-73f4a5c2761b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\io">
+      <UniqueIdentifier>{4ac29420-ccff-43b6-b318-b3b7922f8ae2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\builder">
+      <UniqueIdentifier>{c290c03d-b18a-4fb1-aa3e-2f83847ced04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\perfmon">
+      <UniqueIdentifier>{4e866b9e-e140-41e8-bdba-9c787b5a8d63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\entity">
+      <UniqueIdentifier>{f18f9f22-9918-48dd-880b-63046befe73a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\core.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\log.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphic\font.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphic\graphic.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphic\shader.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphic\graphicUtility.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\io\filesystem.cpp">
+      <Filter>source\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\io\fbx.cpp">
+      <Filter>source\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\io\fbxUtility.cpp">
+      <Filter>source\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphic\mesh.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\builder\builder.cpp">
+      <Filter>source\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\builder\meshbuilder.cpp">
+      <Filter>source\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\database.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\settings.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\perfmon\profiler.cpp">
+      <Filter>source\perfmon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\perfmon\resmon.cpp">
+      <Filter>source\perfmon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\io\ioUtility.cpp">
+      <Filter>source\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\entity\entity.cpp">
+      <Filter>source\entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\entity\meshrender.cpp">
+      <Filter>source\entity</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\core.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\log.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\font.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\graphic.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\shader.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\utility.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\graphicUtility.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\io\filesystem.h">
+      <Filter>source\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\io\fbx.h">
+      <Filter>source\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\io\ioUtility.h">
+      <Filter>source\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\io\fbxUtility.h">
+      <Filter>source\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\mesh.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\builder\builder.h">
+      <Filter>source\builder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\builder\meshbuilder.h">
+      <Filter>source\builder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\database.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\settings.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\coreComponents.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\perfmon\profiler.h">
+      <Filter>source\perfmon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\perfmon\resmon.h">
+      <Filter>source\perfmon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\entity\entity.h">
+      <Filter>source\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\entity\meshrender.h">
+      <Filter>source\entity</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" />
+  </ItemGroup>
+</Project>
