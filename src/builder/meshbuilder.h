@@ -25,13 +25,15 @@
 
 namespace ramen
 {
+	class Mesh;
     class Database;
 
     class MeshBuilder final : public Job
     {
     public:
-        MeshBuilder(const boost::shared_ptr<Database>& database, FbxMesh* m_pFbxMesh);
+        MeshBuilder(const boost::shared_ptr<Database>& database, const std::string& name, FbxMesh* m_pFbxMesh);
 
+		const bool prepare() final;
         void process() final;
 
     private:
@@ -40,6 +42,8 @@ namespace ramen
         void calcPolygonCountPerMaterial(boost::shared_ptr<Mesh>& mesh);
 
     private:
+		boost::shared_ptr<Mesh> m_pMesh;
+		std::string m_strName;
         const char* m_strUVName;
         FbxGeometryElement::EMappingMode m_materialMappingMode;
         FbxMesh* m_pFbxMesh;

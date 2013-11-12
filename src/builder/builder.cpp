@@ -23,11 +23,12 @@ namespace ramen
 {
     void Builder::addJob(const boost::shared_ptr<Job>& job)
     {
-        {
+		if (job->prepare()) {
             boost::lock_guard<boost::mutex> lock(m_mutex);
+
             m_work.push_back(job);
+			m_condvar.notify_one();
         }
-        m_condvar.notify_one();
     }
 
     void Builder::run()
@@ -45,7 +46,12 @@ namespace ramen
             }
 
             if (!m_work.empty()) {
-                m_work.back()->process();
+				boost::shared_ptr<Job>& job = m_work.back();
+
+				if (job->prepare()) {
+					job->process();
+				}
+
                 m_work.pop_back();
             }
         }

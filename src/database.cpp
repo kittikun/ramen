@@ -21,4 +21,15 @@
 
 namespace ramen
 {
+	void Database::remove(const std::string& key)
+	{
+		boost::lock_guard<boost::mutex> lock(m_mutex);
+		auto found = m_data.find(key);
+
+		if (found == m_data.end()) {
+			LOGE << "Database erase key \"" << key << "\" doesn't exist";
+		} else {
+			m_data.erase(found);
+		}
+	}
 } // namespace ramen

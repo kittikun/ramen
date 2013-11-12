@@ -49,6 +49,8 @@ GRAPHICS:
 - (P1) Check GL extensions and max GL features
 - (P1) Improve shader system to be easier to use
 - (P3) Handle resize on windows
+- Explore triangle vs tri-strips
+- Explore interleaving vs normal
 
 MESH:
 - (P0) Interleave buffer data

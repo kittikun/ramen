@@ -35,7 +35,6 @@ namespace ramen
     class Database : boost::noncopyable
     {
     public:
-
         template <typename T>
         const T& get(const std::string& key)
         {
@@ -44,12 +43,14 @@ namespace ramen
             auto found = m_data.find(key);
 
             if (found == m_data.end()) {
-                LOGE << "Database key \"" << key << "\" doesn't exist";
+                LOGE << "Database get key \"" << key << "\" doesn't exist";
             }
 
             assert(found != m_data.end());
-            return boost::any_cast<const T&>(found->second);
+			return boost::any_cast<const T&>(found->second);
         }
+
+		void remove(const std::string& key);
 
         template <typename T>
         void set(const std::string& key, const T& value)

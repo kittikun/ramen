@@ -33,6 +33,7 @@ namespace ramen
         Job(const boost::shared_ptr<Database>& database);
         virtual ~Job() {}
 
+		virtual const bool prepare() = 0;
         virtual void process() = 0;
 
     protected:

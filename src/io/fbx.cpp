@@ -172,7 +172,7 @@ namespace ramen
         FbxNode* node = findNode(FbxNodeAttribute::eMesh);
 
         if (node != nullptr) {
-            job.reset(new MeshBuilder(m_pDatabase, node->GetMesh()));
+            job.reset(new MeshBuilder(m_pDatabase, "mesh", node->GetMesh()));
         }
 
         return boost::dynamic_pointer_cast<Job>(job);

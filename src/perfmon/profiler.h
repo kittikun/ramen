@@ -37,7 +37,7 @@ namespace ramen
             std::string m_strName;
         };
 
-        static void dump();
+        void dump();
     } // namespace profiler
 } // namespace ramen
 

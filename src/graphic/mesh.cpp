@@ -26,10 +26,8 @@ namespace ramen
         : m_bByControlPoint(true)
         , m_bHasNormal(false)
         , m_bHasUV(false)
-        , m_bIsGLSetup(false)
         , m_iPolygonCount(0)
         , m_iPolygonVertexCount(0)
-        , m_vbos(VBOIndices::VBOCount)
     {
     }
 } // namespace ramen

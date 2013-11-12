@@ -20,7 +20,7 @@
 
 #include "../log.h"
 #include "../utility.h"
-#include "../graphic/m_pMesh.h"
+#include "../graphic/mesh.h"
 #include "../perfmon/profiler.h"
 
 namespace ramen
@@ -32,17 +32,24 @@ namespace ramen
 
     void MeshRender::draw()
     {
-        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vbo(Mesh::VBOVertex);
+        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
         glVertexAttribPointer(Mesh::VBOVertex, Mesh::StrideVertex, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(Mesh::VBOVertex);
-        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vbo(Mesh::StrideNormal);
-        glVertexAttribPointer(Mesh::VBONormal, Mesh::StrideNormal, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(Mesh::StrideNormal);
-        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vbo(Mesh::StrideUV);
-        glVertexAttribPointer(Mesh::VBOUV, Mesh::StrideUV, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(Mesh::StrideUV);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vbo(Mesh::VBOIndices);
+		if (m_pMesh->hasNormal()) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
+			glVertexAttribPointer(Mesh::VBONormal, Mesh::StrideNormal, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(Mesh::VBONormal);
+		}
+
+		if (m_pMesh->hasUV()) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
+			glVertexAttribPointer(Mesh::VBOUV, Mesh::StrideUV, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(Mesh::VBOUV);
+		}
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
+		glDrawElements(GL_TRIANGLES, 42, GL_UNSIGNED_SHORT, &m_pMesh->indices().front());
     }
 
     void MeshRender::setupGL()
@@ -51,30 +58,31 @@ namespace ramen
         uint32_t size;
 
         // Create VBOs
-        glGenBuffers(Mesh::VBOCount, &m_pMesh->vbos();
-
+		m_pMesh->vbos().resize(Mesh::VBOIndexCount);
+		glGenBuffers(Mesh::VBOIndexCount, &m_pMesh->vbos().front());
+		
         // Save VBOVertex attributes into GPU
-        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vbo(Mesh::VBOVertex);
+        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
         size = m_pMesh->vertices().size() * sizeof(float);
         LOGGFX << "glBufferData Mesh vertices " << utility::readableSizeByte(size);
         glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->vertices().front(), GL_STATIC_DRAW);
 
         if (m_pMesh->hasNormal()) {
-            glBindBuffer(GL_ARRAY_BUFFER,m_pMesh->vbo(Mesh::VBONormal);
+            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
             size = m_pMesh->normals().size() * sizeof(float);
             LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
             glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->normals().front(), GL_STATIC_DRAW);
         }
 
         if (m_pMesh->hasUV()) {
-            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vbo(Mesh::VBOUV);
-            size = m_pMesh->m_UVs().size() * sizeof(float);
+            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
+			size = m_pMesh->UVs().size() * sizeof(float);
             LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
-            glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->m_UVs().front(), GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->UVs().front(), GL_STATIC_DRAW);
         }
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vbo(Mesh::VBOIndex);
-        size = m_pMesh->indices().size() * sizeof(uint32_t);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
+        size = m_pMesh->indices().size() * sizeof(uint16_t);
         LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, &m_pMesh->indices().front(), GL_STATIC_DRAW);
     }
