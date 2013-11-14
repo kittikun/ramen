@@ -48,10 +48,7 @@ namespace ramen
             if (!m_work.empty()) {
 				boost::shared_ptr<Job>& job = m_work.back();
 
-				if (job->prepare()) {
-					job->process();
-				}
-
+				job->process();
                 m_work.pop_back();
             }
         }

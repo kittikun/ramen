@@ -136,6 +136,7 @@ namespace ramen
 			return false;
 		}
 
+		assert(!m_pMesh);
 		m_pMesh.reset(new Mesh());
 		m_pDatabase->set<boost::shared_ptr<Mesh>>(m_strName, m_pMesh);
 

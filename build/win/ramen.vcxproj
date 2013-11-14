@@ -17,6 +17,7 @@
     <ClCompile Include="..\..\src\database.cpp" />
     <ClCompile Include="..\..\src\entity\entity.cpp" />
     <ClCompile Include="..\..\src\entity\meshrender.cpp" />
+    <ClCompile Include="..\..\src\graphic\camera.cpp" />
     <ClCompile Include="..\..\src\graphic\font.cpp" />
     <ClCompile Include="..\..\src\graphic\graphic.cpp" />
     <ClCompile Include="..\..\src\graphic\mesh.cpp" />
@@ -40,6 +41,7 @@
     <ClInclude Include="..\..\src\database.h" />
     <ClInclude Include="..\..\src\entity\entity.h" />
     <ClInclude Include="..\..\src\entity\meshrender.h" />
+    <ClInclude Include="..\..\src\graphic\camera.h" />
     <ClInclude Include="..\..\src\graphic\font.h" />
     <ClInclude Include="..\..\src\graphic\graphic.h" />
     <ClInclude Include="..\..\src\graphic\mesh.h" />

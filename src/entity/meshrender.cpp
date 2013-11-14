@@ -22,6 +22,8 @@
 #include "../log.h"
 #include "../utility.h"
 #include "../graphic/mesh.h"
+#include "../graphic/shader.h"
+#include "../graphic/graphicUtility.h"
 #include "../perfmon/profiler.h"
 
 namespace ramen
@@ -38,7 +40,9 @@ namespace ramen
         }
 
         if (!m_pMesh->isGLSetup()) {
-            setupGL();
+            if (!setupGL()) {
+				return;
+			}
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
@@ -65,12 +69,32 @@ namespace ramen
 
             glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid *>(offset));
         }
+
+		for (int i = 0; i < Mesh::VBOIndexCount; ++i) {
+			glDisableVertexAttribArray(i);
+		}
     }
 
-    void MeshRender::setupGL()
+    const bool MeshRender::setupGL()
     {
         PROFILE;
         uint32_t size;
+		boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER, "mesh.v"));
+		boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER, "mesh.f"));
+
+		// Create shaders
+		if (!vtx->compile() || !frg->compile()) {
+			return false;
+		}
+
+		m_pProgram.reset(new Program(vtx, frg));
+		m_pProgram->bindAttribLocation(Mesh::VBOVertex, "pos");
+		m_pProgram->bindAttribLocation(Mesh::VBONormal, "normal");
+		m_pProgram->bindAttribLocation(Mesh::VBOUV, "uv");
+
+		if (!m_pProgram->link()) {
+			return false;
+		}
 
         // Create VBOs
         m_pMesh->vbos().resize(Mesh::VBOIndexCount);
@@ -81,24 +105,30 @@ namespace ramen
         size = m_pMesh->vertices().size() * sizeof(float);
         LOGGFX << "glBufferData Mesh vertices " << utility::readableSizeByte(size);
         glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->vertices().front(), GL_STATIC_DRAW);
+		VERIFYGL();
 
         if (m_pMesh->hasNormal()) {
             glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
             size = m_pMesh->normals().size() * sizeof(float);
             LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
             glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->normals().front(), GL_STATIC_DRAW);
+			VERIFYGL();
         }
 
         if (m_pMesh->hasUV()) {
             glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
             size = m_pMesh->UVs().size() * sizeof(float);
-            LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
+            LOGGFX << "glBufferData Mesh UVs " << utility::readableSizeByte(size);
             glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->UVs().front(), GL_STATIC_DRAW);
+			VERIFYGL();
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
         size = m_pMesh->indices().size() * sizeof(uint16_t);
-        LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
+        LOGGFX << "glBufferData Mesh indices " << utility::readableSizeByte(size);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, &m_pMesh->indices().front(), GL_STATIC_DRAW);
+		VERIFYGL();
+
+		return true;
     }
 } // namespace ramen

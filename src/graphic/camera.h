@@ -14,30 +14,23 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef MESHRENDER_H
-#define MESHRENDER_H
+#ifndef CAMERA_H
+#define CAMERA_H
 
-#include <boost/shared_ptr.hpp>
-
-#include "entity.h"
+#include <glm/glm.hpp>
 
 namespace ramen
 {
-    class Mesh;
-	class Program;
+	class Camera
+	{
+	public:
+		Camera();
 
-    class MeshRender final : public Component
-    {
-    public:
-        MeshRender(const boost::shared_ptr<Mesh>& mesh);
-
-        void draw();
-        const bool setupGL();
-
-    private:
-        boost::shared_ptr<Mesh> m_pMesh;
-		boost::shared_ptr<Program> m_pProgram;
-    };
+		void lookAt(glm::vec3 at);
+	private:
+		glm::vec3 m_position;
+		glm::mat4x4 m_view;
+	};
 } // namespace ramen
 
-#endif // MESHRENDER_H
+#endif // CAMERA_H

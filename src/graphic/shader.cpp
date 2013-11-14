@@ -17,6 +17,7 @@
 #include "shader.h"
 
 #include "../log.h"
+#include "../io/filesystem.h"
 #include "graphicUtility.h"
 
 namespace ramen
@@ -24,6 +25,8 @@ namespace ramen
     //-------------------------------------------------------------------------------------
     // SHADER
     //-------------------------------------------------------------------------------------
+	boost::shared_ptr<Filesystem> Shader::m_pFilesystem;
+
     Shader::Shader(const GLenum type)
         : m_eType(type)
     {
@@ -31,9 +34,18 @@ namespace ramen
         VERIFYGL();
     }
 
+	Shader::Shader(const GLenum type, const std::string& filename)
+		: m_eType(type)
+	{
+		m_iShaderID = glCreateShader(m_eType);
+		VERIFYGL();
+
+		loadFromFile(filename);
+	}
+
     Shader::~Shader()
     {
-        glDeleteShader(m_iShaderID);
+		glDeleteShader(m_iShaderID);
     }
 
     const bool Shader::compile()
@@ -83,6 +95,25 @@ namespace ramen
         return true;
     }
 
+	const bool Shader::loadFromFile(const std::string& filename) const
+	{
+		boost::shared_array<char> raw = m_pFilesystem->resource(Filesystem::ResourceType::Shader, filename);;
+		const GLchar* data = nullptr;
+
+		if (raw == nullptr) {
+			return false;
+		}
+
+		data = raw.get();
+		return loadFromMemory(&data);
+	}
+
+	void Shader::setFilesystem(const boost::shared_ptr<Filesystem>& filesystem)
+	{
+		assert(m_pFilesystem == nullptr);
+		m_pFilesystem = filesystem;
+	}
+
     //-------------------------------------------------------------------------------------
     // PROGRAM
     //-------------------------------------------------------------------------------------
@@ -90,6 +121,14 @@ namespace ramen
     {
         m_iProgram = glCreateProgram();
     }
+
+	Program::Program(const boost::shared_ptr<Shader>& vert, const boost::shared_ptr<Shader>& frag)
+	{
+		m_iProgram = glCreateProgram();
+		assert(attachShader(vert));
+		assert(attachShader(frag));
+	}
+
 
     Program::~Program()
     {
@@ -115,17 +154,21 @@ namespace ramen
         return true;
     }
 
-    const GLint Program::getAttribLocation(const char* name) const
+    const GLint Program::attribLocation(const std::string& name) const
     {
-        GLint ret = glGetAttribLocation(m_iProgram, name);
+        GLint ret = glGetAttribLocation(m_iProgram, name.c_str());
         VERIFYGL();
 
-        return ret;
-    }
+        return ret;    }
 
-    const GLint Program::getUniformLocation(const char* name) const
+	void Program::bindAttribLocation(GLuint index, const std::string& name)
+	{
+		glBindAttribLocation(m_iProgram, index, name.c_str());
+	}
+
+    const GLint Program::uniformLocation(const std::string& name) const
     {
-        GLint ret = glGetUniformLocation(m_iProgram, name);
+        GLint ret = glGetUniformLocation(m_iProgram, name.c_str());
         VERIFYGL();
 
         return ret;

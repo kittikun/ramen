@@ -37,6 +37,8 @@
 #include "font.h"
 #include "graphicUtility.h"
 
+#include "shader.h"
+
 namespace ramen
 {
     Graphic::Graphic()
@@ -128,7 +130,7 @@ namespace ramen
 
         hWnd = info.info.win.window;
 
-        LOGGFX << "Initializiting EGL..";
+        LOGGFX << "Initializing EGL..";
 
         m_eglDisplay = eglGetDisplay(GetDC(hWnd));
         if (m_eglDisplay == EGL_NO_DISPLAY) {
@@ -151,7 +153,7 @@ namespace ramen
         }
 
         if (configSize != 1) {
-            LOGE << "More than one EGL config was found";
+            LOGE << "More than one EGL configuration was found";
         }
 
         ret = eglBindAPI(EGL_OPENGL_ES_API);
@@ -189,6 +191,8 @@ namespace ramen
         }
 
         m_pDatabase = components->database;
+
+		Shader::setFilesystem(components->filesystem);
 
         m_sigError.connect(SigError::slot_type(&Core::slotError, components->core));
 
@@ -233,6 +237,9 @@ namespace ramen
         m_bState.store(true);
 
         boost::chrono::system_clock::time_point curTime = boost::chrono::system_clock::now();
+
+		const glm::ivec2 size = windowSize();
+		glViewport(0, 0, size.x, size.y);
 
         while (m_bState.load()) {
             PROFILE;

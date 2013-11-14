@@ -67,6 +67,7 @@ namespace ramen
 
                 m_data.insert(std::make_pair(key, boost::any(value)));
             } else {
+				assert(boost::is_arithmetic<T>::value);
                 found->second = value;
             }
         }

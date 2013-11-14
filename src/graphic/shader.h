@@ -23,13 +23,19 @@
 
 namespace ramen
 {
+	class Filesystem;
+
     class Shader
     {
     public:
         Shader(const GLenum type);
+		Shader(const GLenum type, const std::string& filename);
         ~Shader();
 
+		static void setFilesystem(const boost::shared_ptr<Filesystem>& filesystem);
+
         const bool loadFromMemory(const GLchar** data) const;
+		const bool loadFromFile(const std::string& filename) const;
         const bool compile();
 
         const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
@@ -37,6 +43,7 @@ namespace ramen
         const GLuint shaderID() const { return m_iShaderID; }
 
     private:
+		static boost::shared_ptr<Filesystem> m_pFilesystem;
         GLenum m_eType;
         GLuint m_iShaderID;
     };
@@ -45,14 +52,16 @@ namespace ramen
     {
     public:
         Program();
+		Program(const boost::shared_ptr<Shader>& vert, const boost::shared_ptr<Shader>& frag);
         ~Program();
 
         const bool attachShader(const boost::shared_ptr<Shader>& shader);
+		void bindAttribLocation(GLuint index, const std::string& name);
         const bool link();
         const bool use();
 
-        const GLint getAttribLocation(const char* name) const;
-        const GLint getUniformLocation(const char* name) const;
+        const GLint attribLocation(const std::string& name) const;
+        const GLint uniformLocation(const std::string& namee) const;
 
     private:
         GLuint m_iProgram;

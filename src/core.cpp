@@ -32,6 +32,7 @@
 
 #include "entity/entity.h"
 #include "entity/meshrender.h"
+#include "graphic/camera.h"
 
 namespace ramen
 {
@@ -97,11 +98,16 @@ namespace ramen
         boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");
         m_pBuilder->addJob(scene->createJobMesh());
 
+		// entity
         boost::shared_ptr<Entity> entity(new Entity());
         boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
 
         entity->addComponent(boost::dynamic_pointer_cast<Component>(meshRender));
         m_pDatabase->addEntity(entity);
+
+		// camera
+		boost::shared_ptr<Camera> camera(new Camera());
+		m_pDatabase->set<boost::shared_ptr<Camera>>("camera", camera);
 
         // connect signals
         m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));

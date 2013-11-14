@@ -207,13 +207,13 @@ namespace ramen
         m_pProgram->use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_pActiveFont->texID());
-        glUniform1i(m_pProgram->getUniformLocation("tex"), 0);
-        glUniform4fv(m_pProgram->getUniformLocation("color"), 1, glm::value_ptr(m_color));
+        glUniform1i(m_pProgram->uniformLocation("tex"), 0);
+        glUniform4fv(m_pProgram->uniformLocation("color"), 1, glm::value_ptr(m_color));
         VERIFYGL();
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glEnableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
-        glVertexAttribPointer(m_pProgram->getAttribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_pProgram->attribLocation("coord"));
+        glVertexAttribPointer(m_pProgram->attribLocation("coord"), 4, GL_FLOAT, GL_FALSE, 0, 0);
         VERIFYGL();
 
         glEnable(GL_BLEND);
@@ -255,7 +255,7 @@ namespace ramen
         glDrawArrays(GL_TRIANGLES, 0, count);
         VERIFYGL();
 
-        glDisableVertexAttribArray(m_pProgram->getAttribLocation("coord"));
+        glDisableVertexAttribArray(m_pProgram->attribLocation("coord"));
     }
 
     const bool FontManager::initialize(const CoreComponents* components)
@@ -280,35 +280,17 @@ namespace ramen
 
     const bool FontManager::initializeGL()
     {
-        boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER));
-        boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER));
-        boost::shared_array<char> vtxArray;
-        boost::shared_array<char> frgArray;
-        const GLchar* vtxData = nullptr;
-        const GLchar* frgData = nullptr;
+        boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER, "font.v"));
+        boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER, "font.f"));
 
         LOGGFX << "Initializing GL for font renderer..";
 
         // Shaders/Program to be used for all font drawing
-        vtxArray = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.v");
-        frgArray = m_pFilesystem->resource(Filesystem::ResourceType::Shader, "font.f");
-        vtxData = vtxArray.get();
-        frgData = frgArray.get();
-
-        if ((vtxData == nullptr) || (frgData == nullptr)) {
-            return false;
-        }
-
-        vtx->loadFromMemory(&vtxData);
-        frg->loadFromMemory(&frgData);
-
         if (!vtx->compile() || !frg->compile()) {
             return false;
         }
 
-        m_pProgram.reset(new Program());
-        m_pProgram->attachShader(vtx);
-        m_pProgram->attachShader(frg);
+        m_pProgram.reset(new Program(vtx, frg));
 
         if (!m_pProgram->link()) {
             return false;
