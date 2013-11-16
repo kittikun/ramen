@@ -84,6 +84,9 @@
     <ClCompile Include="..\..\src\graphic\camera.cpp">
       <Filter>source\graphic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\graphic\material.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h">
@@ -150,6 +153,9 @@
       <Filter>source\entity</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\graphic\camera.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\material.h">
       <Filter>source\graphic</Filter>
     </ClInclude>
   </ItemGroup>

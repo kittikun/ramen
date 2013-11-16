@@ -25,48 +25,48 @@ namespace ramen
 {
 	class Filesystem;
 
-    class Shader
-    {
-    public:
-        Shader(const GLenum type);
+	class Shader
+	{
+	public:
+		Shader(const GLenum type);
 		Shader(const GLenum type, const std::string& filename);
-        ~Shader();
+		~Shader();
 
 		static void setFilesystem(const boost::shared_ptr<Filesystem>& filesystem);
 
-        const bool loadFromMemory(const GLchar** data) const;
+		const bool loadFromMemory(const GLchar** data) const;
 		const bool loadFromFile(const std::string& filename) const;
-        const bool compile();
+		const bool compile();
 
-        const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
+		const bool isFragment() const { return m_eType == GL_FRAGMENT_SHADER; }
 
-        const GLuint shaderID() const { return m_iShaderID; }
+		const GLuint shaderID() const { return m_iShaderID; }
 
-    private:
+	private:
 		static boost::shared_ptr<Filesystem> m_pFilesystem;
-        GLenum m_eType;
-        GLuint m_iShaderID;
-    };
+		GLenum m_eType;
+		GLuint m_iShaderID;
+	};
 
-    class Program
-    {
-    public:
-        Program();
+	class Program
+	{
+	public:
+		Program();
 		Program(const boost::shared_ptr<Shader>& vert, const boost::shared_ptr<Shader>& frag);
-        ~Program();
+		~Program();
 
-        const bool attachShader(const boost::shared_ptr<Shader>& shader);
+		const bool attachShader(const boost::shared_ptr<Shader>& shader);
 		void bindAttribLocation(GLuint index, const std::string& name);
-        const bool link();
-        const bool use();
+		const bool link();
+		const bool use();
 
-        const GLint attribLocation(const std::string& name) const;
-        const GLint uniformLocation(const std::string& namee) const;
+		const GLint attribLocation(const std::string& name) const;
+		const GLint uniformLocation(const std::string& name) const;
 
-    private:
-        GLuint m_iProgram;
-        std::map<GLuint, boost::shared_ptr<Shader>> m_shaders;
-    };
+	private:
+		GLuint m_iProgram;
+		std::map<GLuint, boost::shared_ptr<Shader>> m_shaders;
+	};
 } // namespace ramen
 
 #endif // SHADER_H

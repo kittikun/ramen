@@ -37,265 +37,283 @@
 #include "font.h"
 #include "graphicUtility.h"
 
+#include "camera.h"
 #include "shader.h"
+#include "material.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace ramen
 {
-    Graphic::Graphic()
-        : m_fps(boost::accumulators::tag::rolling_window::window_size = 100)
-        , m_pWindow(nullptr)
-        , m_bState(false)
-        , m_pFontManager(new FontManager())
-        , m_pContext(nullptr)
-    {
-    }
+	Graphic::Graphic()
+		: m_fps(boost::accumulators::tag::rolling_window::window_size = 100)
+		, m_pWindow(nullptr)
+		, m_bState(false)
+		, m_pFontManager(new FontManager())
+		, m_pContext(nullptr)
+	{
+	}
 
-    Graphic::~Graphic()
-    {
-        LOGGFX << "Destroying graphics...";
-        SDL_GL_DeleteContext(m_pContext);
-        SDL_DestroyWindow(m_pWindow);
-    }
+	Graphic::~Graphic()
+	{
+		LOGGFX << "Destroying graphics...";
+		SDL_GL_DeleteContext(m_pContext);
+		SDL_DestroyWindow(m_pWindow);
+	}
 
-    bool Graphic::createContext()
-    {
-        LOGGFX << "Creating GL context...";
+	bool Graphic::createContext()
+	{
+		LOGGFX << "Creating GL context...";
 
 #if defined(_WIN32)
-        EGLBoolean	ret = eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext);
-        if (ret != EGL_TRUE) {
-            VERIFYEGL();
-            return false;
-        }
+		EGLBoolean	ret = eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext);
+		if (ret != EGL_TRUE) {
+			VERIFYEGL();
+			return false;
+		}
 #else
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-        m_pContext = SDL_GL_CreateContext(m_pWindow);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		m_pContext = SDL_GL_CreateContext(m_pWindow);
 
-        if (m_pContext == nullptr) {
-            LOGE << SDL_GetError();
-            return false;
-        }
+		if (m_pContext == nullptr) {
+			LOGE << SDL_GetError();
+			return false;
+		}
 #endif
 
-        return true;
-    }
+		return true;
+	}
 
-    bool Graphic::createWindow(const glm::ivec2& size)
-    {
-        LOGGFX << "Initializing window...";
-        m_pWindow = SDL_CreateWindow("ramen", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, size.x, size.y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	bool Graphic::createWindow(const glm::ivec2& size)
+	{
+		LOGGFX << "Initializing window...";
+		m_pWindow = SDL_CreateWindow("ramen", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, size.x, size.y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-        if (m_pWindow == nullptr) {
-            LOGE << "Failed to initialize window...";
-            return false;
-        }
+		if (m_pWindow == nullptr) {
+			LOGE << "Failed to initialize window...";
+			return false;
+		}
 
 #if defined(_WIN32)
-        // SDL on Windows doesn't support GLES yet so we have to do it manually
-        EGLBoolean ret;
-        EGLConfig eglConfig;
-        EGLint configSize;
-        EGLint major, minor;
-        EGLNativeWindowType hWnd;
-        SDL_bool resWMInfo;
-        SDL_SysWMinfo info;
+		// SDL on Windows doesn't support GLES yet so we have to do it manually
+		EGLBoolean ret;
+		EGLConfig eglConfig;
+		EGLint configSize;
+		EGLint major, minor;
+		EGLNativeWindowType hWnd;
+		SDL_bool resWMInfo;
+		SDL_SysWMinfo info;
 
-        EGLint eglConfigAttribs[] = {
-            EGL_RED_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_BLUE_SIZE, 8,
-            EGL_DEPTH_SIZE, 16,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-            EGL_NONE
-        };
+		EGLint eglConfigAttribs[] = {
+			EGL_RED_SIZE, 8,
+			EGL_GREEN_SIZE, 8,
+			EGL_BLUE_SIZE, 8,
+			EGL_DEPTH_SIZE, 16,
+			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+			EGL_NONE
+		};
 
-        EGLint eglContextAttribs[] = {
-            EGL_CONTEXT_CLIENT_VERSION, 2,
-            EGL_NONE
-        };
+		EGLint eglContextAttribs[] = {
+			EGL_CONTEXT_CLIENT_VERSION, 2,
+			EGL_NONE
+		};
 
-        SDL_VERSION(&info.version); // initialize info structure with SDL version info
-        resWMInfo = SDL_GetWindowWMInfo(m_pWindow, &info);
-        if (!resWMInfo) {
-            LOGE << "Failed to get window info from SDL";
-            return false;
-        }
+		SDL_VERSION(&info.version); // initialize info structure with SDL version info
+		resWMInfo = SDL_GetWindowWMInfo(m_pWindow, &info);
+		if (!resWMInfo) {
+			LOGE << "Failed to get window info from SDL";
+			return false;
+		}
 
-        hWnd = info.info.win.window;
+		hWnd = info.info.win.window;
 
-        LOGGFX << "Initializing EGL..";
+		LOGGFX << "Initializing EGL..";
 
-        m_eglDisplay = eglGetDisplay(GetDC(hWnd));
-        if (m_eglDisplay == EGL_NO_DISPLAY) {
-            VERIFYEGL();
-            return false;
-        }
+		m_eglDisplay = eglGetDisplay(GetDC(hWnd));
+		if (m_eglDisplay == EGL_NO_DISPLAY) {
+			VERIFYEGL();
+			return false;
+		}
 
-        ret = eglInitialize(m_eglDisplay, &major, &minor);
-        if (ret != EGL_TRUE) {
-            VERIFYEGL();
-            return false;
-        }
+		ret = eglInitialize(m_eglDisplay, &major, &minor);
+		if (ret != EGL_TRUE) {
+			VERIFYEGL();
+			return false;
+		}
 
-        LOGGFX << "EGL version " << major << "." << minor;
+		LOGGFX << "EGL version " << major << "." << minor;
 
-        ret = eglChooseConfig(m_eglDisplay, eglConfigAttribs, &eglConfig, 1, &configSize);
-        if (ret != EGL_TRUE) {
-            VERIFYEGL();
-            return false;
-        }
+		ret = eglChooseConfig(m_eglDisplay, eglConfigAttribs, &eglConfig, 1, &configSize);
+		if (ret != EGL_TRUE) {
+			VERIFYEGL();
+			return false;
+		}
 
-        if (configSize != 1) {
-            LOGE << "More than one EGL configuration was found";
-        }
+		if (configSize != 1) {
+			LOGE << "More than one EGL configuration was found";
+		}
 
-        ret = eglBindAPI(EGL_OPENGL_ES_API);
-        if (ret != EGL_TRUE) {
-            VERIFYEGL();
-            return false;
-        }
+		ret = eglBindAPI(EGL_OPENGL_ES_API);
+		if (ret != EGL_TRUE) {
+			VERIFYEGL();
+			return false;
+		}
 
-        m_eglSurface = eglCreateWindowSurface(m_eglDisplay, eglConfig, hWnd, NULL);
-        if (m_eglSurface == EGL_NO_SURFACE) {
-            VERIFYEGL();
-            return false;
-        }
+		m_eglSurface = eglCreateWindowSurface(m_eglDisplay, eglConfig, hWnd, NULL);
+		if (m_eglSurface == EGL_NO_SURFACE) {
+			VERIFYEGL();
+			return false;
+		}
 
-        m_eglContext = eglCreateContext(m_eglDisplay, eglConfig, EGL_NO_CONTEXT, eglContextAttribs);
-        if (m_eglContext == EGL_NO_CONTEXT) {
-            VERIFYEGL();
-            return false;
-        }
+		m_eglContext = eglCreateContext(m_eglDisplay, eglConfig, EGL_NO_CONTEXT, eglContextAttribs);
+		if (m_eglContext == EGL_NO_CONTEXT) {
+			VERIFYEGL();
+			return false;
+		}
 #endif
 
-        return true;
-    }
+		return true;
+	}
 
-    bool Graphic::initialize(const CoreComponents* components)
-    {
-        glm::ivec2 size(components->settings->get<int>("windowWidth"), components->settings->get<int>("windowHeight"));
+	bool Graphic::initialize(const CoreComponents* components)
+	{
+		glm::ivec2 size(components->settings->get<int>("windowWidth"), components->settings->get<int>("windowHeight"));
 
-        if (!createWindow(size)) {
-            return false;
-        }
+		if (!createWindow(size)) {
+			return false;
+		}
 
-        if (!m_pFontManager->initialize(components)) {
-            return false;
-        }
+		if (!m_pFontManager->initialize(components)) {
+			return false;
+		}
 
-        m_pDatabase = components->database;
+		m_pDatabase = components->database;
 
 		Shader::setFilesystem(components->filesystem);
 
-        m_sigError.connect(SigError::slot_type(&Core::slotError, components->core));
+		m_sigError.connect(SigError::slot_type(&Core::slotError, components->core));
 
-        return true;
-    }
+		return true;
+	}
 
-    bool Graphic::initializeThreadDependents()
-    {
-        if (!createContext()) {
-            return false;
-        }
+	bool Graphic::initializeThreadDependents()
+	{
+		if (!createContext()) {
+			return false;
+		}
 
-        // All the following need a valid GLES context
-        if (!m_pFontManager->initializeGL()) {
-            return false;
-        }
+		// All the following need a valid GLES context
+		if (!m_pFontManager->initializeGL()) {
+			return false;
+		}
 
-        // Fonts
-        if (!m_pFontManager->loadFontFamillyFromFile("dim", "DIN Light.ttf")) {
-            return false;
-        }
+		// Fonts
+		if (!m_pFontManager->loadFontFamillyFromFile("dim", "DIN Light.ttf")) {
+			return false;
+		}
 
-        if (!m_pFontManager->loadFontFamillyFromFile("vera", "Vera.ttf")) {
-            return false;
-        }
+		if (!m_pFontManager->loadFontFamillyFromFile("vera", "Vera.ttf")) {
+			return false;
+		}
 
-        m_pFontManager->createFont("dim48", "dim", 48);
-        m_pFontManager->createFont("dim16", "dim", 16);
-        m_pFontManager->createFont("vera16", "vera", 16);
+		m_pFontManager->createFont("dim48", "dim", 48);
+		m_pFontManager->createFont("dim16", "dim", 16);
+		m_pFontManager->createFont("vera16", "vera", 16);
 
-        return true;
-    }
+		return true;
+	}
 
-    void Graphic::run()
-    {
-        if (!initializeThreadDependents()) {
-            m_sigError();
-            return;
-        }
+	void Graphic::run()
+	{
+		if (!initializeThreadDependents()) {
+			m_sigError();
+			return;
+		}
 
-        LOGC << "Starting graphic thread..";
-        m_bState.store(true);
+		LOGC << "Starting graphic thread..";
+		m_bState.store(true);
 
-        boost::chrono::system_clock::time_point curTime = boost::chrono::system_clock::now();
+		boost::chrono::system_clock::time_point curTime = boost::chrono::system_clock::now();
 
 		const glm::ivec2 size = windowSize();
 		glViewport(0, 0, size.x, size.y);
 
-        while (m_bState.load()) {
-            PROFILE;
-            glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+		boost::shared_ptr<Material> material = m_pDatabase->get<boost::shared_ptr<Material>>("material");
+		material->setupGL();
 
-            m_pFontManager->setActiveFont("dim48");
-            m_pFontManager->setFontColor(1, 1, 0, 1);
-            m_pFontManager->drawText("Ramen Framework", glm::vec2(10, 700));
-            m_pFontManager->setActiveFont("dim16");
-            m_pFontManager->setFontColor(0, 1, 1, 1);
-            m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
-            m_pFontManager->setActiveFont("vera16");
-            m_pFontManager->setFontColor(1, 1, 1, 1);
-            std::string resmon = boost::str(boost::format("%1$1.0f fps, cpu %2%, mem %3%, virt %4%")
-                % (1000000 / boost::accumulators::rolling_mean(m_fps))
-                % m_pDatabase->get<uint32_t>("cpu")
-                % utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("physical memory"))
-                % utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("virtual memory")));
-            m_pFontManager->drawText(resmon, glm::vec2(10, 26));
-            VERIFYGL();
+		while (m_bState.load()) {
+			PROFILE;
+			glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
 
-            BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
-                entity->draw();
-            }
+			m_pFontManager->setActiveFont("dim48");
+			m_pFontManager->setFontColor(1, 1, 0, 1);
+			m_pFontManager->drawText("Ramen Framework", glm::vec2(10, 700));
+			m_pFontManager->setActiveFont("dim16");
+			m_pFontManager->setFontColor(0, 1, 1, 1);
+			m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
+			m_pFontManager->setActiveFont("vera16");
+			m_pFontManager->setFontColor(1, 1, 1, 1);
+			std::string resmon = boost::str(boost::format("%1$1.0f fps, cpu %2%, mem %3%, virt %4%")
+				% (1000000 / boost::accumulators::rolling_mean(m_fps))
+				% m_pDatabase->get<uint32_t>("cpu")
+				% utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("physical memory"))
+				% utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("virtual memory")));
+			m_pFontManager->drawText(resmon, glm::vec2(10, 26));
+			VERIFYGL();
 
-            swapbuffers();
+			boost::shared_ptr<Camera> camera = m_pDatabase->get<boost::shared_ptr<Camera>>("camera");
 
-            m_fps(boost::chrono::duration_cast<boost::chrono::microseconds>(boost::chrono::system_clock::now() - curTime).count());
-            curTime = boost::chrono::system_clock::now();
-        }
-        LOGC << "Exiting graphic thread..";
-    }
+			camera->lookAt(glm::vec3());
+			material->use();
 
-    void Graphic::slotState(const bool state)
-    {
-        m_bState.store(state);
-    }
+			glm::mat4x4 proj = glm::perspective(90.f, float(size.x) / float(size.y), 0.1f, 100.f);
+			glm::mat4x4 model;
 
-    void Graphic::swapbuffers() const
-    {
+			glm::rotate(model, 90.f, glm::vec3(1.f, 0.f, 0.f));
+
+			material->mvp(proj * camera->view() * model);
+
+			BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
+				entity->draw();
+			}
+
+			swapbuffers();
+
+			m_fps(boost::chrono::duration_cast<boost::chrono::microseconds>(boost::chrono::system_clock::now() - curTime).count());
+			curTime = boost::chrono::system_clock::now();
+		}
+		LOGC << "Exiting graphic thread..";
+	}
+
+	void Graphic::slotState(const bool state)
+	{
+		m_bState.store(state);
+	}
+
+	void Graphic::swapbuffers() const
+	{
 #if defined(_WIN32)
-        if (eglSwapBuffers(m_eglDisplay, m_eglSurface) != EGL_TRUE) {
-            VERIFYEGL();
-        }
+		if (eglSwapBuffers(m_eglDisplay, m_eglSurface) != EGL_TRUE) {
+			VERIFYEGL();
+		}
 #else
-        SDL_GL_SwapWindow(m_pWindow);
+		SDL_GL_SwapWindow(m_pWindow);
 #endif
-    }
+	}
 
-    const glm::ivec2 Graphic::windowSize() const
-    {
-        glm::ivec2 size;
+	const glm::ivec2 Graphic::windowSize() const
+	{
+		glm::ivec2 size;
 
-        SDL_GetWindowSize(m_pWindow, &size.x, &size.y);
+		SDL_GetWindowSize(m_pWindow, &size.x, &size.y);
 
-        return size;
-    }
+		return size;
+	}
 } // namespace ramen

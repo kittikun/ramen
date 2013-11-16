@@ -28,107 +28,91 @@
 
 namespace ramen
 {
-    MeshRender::MeshRender(const boost::shared_ptr<Mesh>& m_pMesh)
-        : m_pMesh(m_pMesh)
-    {
-    }
+	MeshRender::MeshRender(const boost::shared_ptr<Mesh>& m_pMesh)
+		: m_pMesh(m_pMesh)
+	{
+	}
 
-    void MeshRender::draw()
-    {
-        if (!m_pMesh->isDataSetup()) {
-            return;
-        }
+	void MeshRender::draw()
+	{
+		if (!m_pMesh->isDataSetup()) {
+			return;
+		}
 
-        if (!m_pMesh->isGLSetup()) {
-            if (!setupGL()) {
+		if (!m_pMesh->isGLSetup()) {
+			if (!setupGL()) {
 				return;
 			}
-        }
+		}
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
-        glVertexAttribPointer(Mesh::VBOVertex, Mesh::StrideVertex, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(Mesh::VBOVertex);
+		glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
+		glVertexAttribPointer(Mesh::VBOVertex, Mesh::StrideVertex, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(Mesh::VBOVertex);
 
-        if (m_pMesh->hasNormal()) {
-            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
-            glVertexAttribPointer(Mesh::VBONormal, Mesh::StrideNormal, GL_FLOAT, GL_FALSE, 0, 0);
-            glEnableVertexAttribArray(Mesh::VBONormal);
-        }
+		if (m_pMesh->hasNormal()) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
+			glVertexAttribPointer(Mesh::VBONormal, Mesh::StrideNormal, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(Mesh::VBONormal);
+		}
 
-        if (m_pMesh->hasUV()) {
-            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
-            glVertexAttribPointer(Mesh::VBOUV, Mesh::StrideUV, GL_FLOAT, GL_FALSE, 0, 0);
-            glEnableVertexAttribArray(Mesh::VBOUV);
-        }
+		if (m_pMesh->hasUV()) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
+			glVertexAttribPointer(Mesh::VBOUV, Mesh::StrideUV, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(Mesh::VBOUV);
+		}
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
 
-        BOOST_FOREACH(auto sub, m_pMesh->submeshes()) {
-            const GLsizei offset = sub.indexOffset * sizeof(uint16_t);
-            const GLsizei elementCount = sub.triangleCount * 3;
+		BOOST_FOREACH(auto sub, m_pMesh->submeshes()) {
+			const GLsizei offset = sub.indexOffset * sizeof(uint16_t);
+			const GLsizei elementCount = sub.triangleCount * 3;
 
-            glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid *>(offset));
-        }
+			glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid *>(offset));
+		}
 
 		for (int i = 0; i < Mesh::VBOIndexCount; ++i) {
 			glDisableVertexAttribArray(i);
 		}
-    }
+	}
 
-    const bool MeshRender::setupGL()
-    {
-        PROFILE;
-        uint32_t size;
-		boost::shared_ptr<Shader> vtx(new Shader(GL_VERTEX_SHADER, "mesh.v"));
-		boost::shared_ptr<Shader> frg(new Shader(GL_FRAGMENT_SHADER, "mesh.f"));
+	const bool MeshRender::setupGL()
+	{
+		PROFILE;
+		uint32_t size;
 
-		// Create shaders
-		if (!vtx->compile() || !frg->compile()) {
-			return false;
-		}
+		// Create VBOs
+		m_pMesh->vbos().resize(Mesh::VBOIndexCount);
+		glGenBuffers(Mesh::VBOIndexCount, &m_pMesh->vbos().front());
 
-		m_pProgram.reset(new Program(vtx, frg));
-		m_pProgram->bindAttribLocation(Mesh::VBOVertex, "pos");
-		m_pProgram->bindAttribLocation(Mesh::VBONormal, "normal");
-		m_pProgram->bindAttribLocation(Mesh::VBOUV, "uv");
-
-		if (!m_pProgram->link()) {
-			return false;
-		}
-
-        // Create VBOs
-        m_pMesh->vbos().resize(Mesh::VBOIndexCount);
-        glGenBuffers(Mesh::VBOIndexCount, &m_pMesh->vbos().front());
-
-        // Save VBOVertex attributes into GPU
-        glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
-        size = m_pMesh->vertices().size() * sizeof(float);
-        LOGGFX << "glBufferData Mesh vertices " << utility::readableSizeByte(size);
-        glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->vertices().front(), GL_STATIC_DRAW);
+		// Save VBOVertex attributes into GPU
+		glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOVertex));
+		size = m_pMesh->vertices().size() * sizeof(float);
+		LOGGFX << "glBufferData Mesh vertices " << utility::readableSizeByte(size);
+		glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->vertices().front(), GL_STATIC_DRAW);
 		VERIFYGL();
 
-        if (m_pMesh->hasNormal()) {
-            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
-            size = m_pMesh->normals().size() * sizeof(float);
-            LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
-            glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->normals().front(), GL_STATIC_DRAW);
+		if (m_pMesh->hasNormal()) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBONormal));
+			size = m_pMesh->normals().size() * sizeof(float);
+			LOGGFX << "glBufferData Mesh normals " << utility::readableSizeByte(size);
+			glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->normals().front(), GL_STATIC_DRAW);
 			VERIFYGL();
-        }
+		}
 
-        if (m_pMesh->hasUV()) {
-            glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
-            size = m_pMesh->UVs().size() * sizeof(float);
-            LOGGFX << "glBufferData Mesh UVs " << utility::readableSizeByte(size);
-            glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->UVs().front(), GL_STATIC_DRAW);
+		if (m_pMesh->hasUV()) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOUV));
+			size = m_pMesh->UVs().size() * sizeof(float);
+			LOGGFX << "glBufferData Mesh UVs " << utility::readableSizeByte(size);
+			glBufferData(GL_ARRAY_BUFFER, size, &m_pMesh->UVs().front(), GL_STATIC_DRAW);
 			VERIFYGL();
-        }
+		}
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
-        size = m_pMesh->indices().size() * sizeof(uint16_t);
-        LOGGFX << "glBufferData Mesh indices " << utility::readableSizeByte(size);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, &m_pMesh->indices().front(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pMesh->vboAt(Mesh::VBOIndices));
+		size = m_pMesh->indices().size() * sizeof(uint16_t);
+		LOGGFX << "glBufferData Mesh indices " << utility::readableSizeByte(size);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, &m_pMesh->indices().front(), GL_STATIC_DRAW);
 		VERIFYGL();
 
 		return true;
-    }
+	}
 } // namespace ramen

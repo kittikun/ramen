@@ -14,13 +14,10 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include <boost/program_options.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <glm/glm.hpp>
 
 #include "core.h"
-
-namespace po = boost::program_options;
 
 int main(int ac, char** av)
 {

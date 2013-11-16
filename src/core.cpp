@@ -33,140 +33,145 @@
 #include "entity/entity.h"
 #include "entity/meshrender.h"
 #include "graphic/camera.h"
+#include "graphic/material.h"
 
 namespace ramen
 {
-    Core::Core()
-        : m_bState(false)
-        , m_pBuilder(new Builder())
-        , m_pDatabase(new Database())
-        , m_pFbxManager(new FBXManager())
-        , m_pFilesystem(new Filesystem())
-        , m_pGraphic(new Graphic())
-        , m_pResmon(new Resmon())
-        , m_pSettings(new Settings())
-    {
-        Log::initialize();
-        LOGC << "Creating core...";
-    }
+	Core::Core()
+		: m_bState(false)
+		, m_pBuilder(new Builder())
+		, m_pDatabase(new Database())
+		, m_pFbxManager(new FBXManager())
+		, m_pFilesystem(new Filesystem())
+		, m_pGraphic(new Graphic())
+		, m_pResmon(new Resmon())
+		, m_pSettings(new Settings())
+	{
+		Log::initialize();
+		LOGC << "Creating core...";
+	}
 
-    Core::~Core()
-    {
-        LOGC << "Destroying core...";
-        profiler::dump();
-    }
+	Core::~Core()
+	{
+		LOGC << "Destroying core...";
+		profiler::dump();
+	}
 
-    void Core::fillCoreComponents(CoreComponents* out)
-    {
-        out->builder = m_pBuilder;
-        out->core = this;
-        out->database = m_pDatabase;
-        out->fbxManager = m_pFbxManager;
-        out->filesystem = m_pFilesystem;
-        out->graphic = m_pGraphic;
-        out->settings = m_pSettings;
-    }
+	void Core::fillCoreComponents(CoreComponents* out)
+	{
+		out->builder = m_pBuilder;
+		out->core = this;
+		out->database = m_pDatabase;
+		out->fbxManager = m_pFbxManager;
+		out->filesystem = m_pFilesystem;
+		out->graphic = m_pGraphic;
+		out->settings = m_pSettings;
+	}
 
-    const bool Core::initialize()
-    {
-        PROFILE;
-        CoreComponents components;
+	const bool Core::initialize()
+	{
+		PROFILE;
+		CoreComponents components;
 
-        fillCoreComponents(&components);
+		fillCoreComponents(&components);
 
-        LOGC << "Initializing SDL..";
-        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-            LOGE << SDL_GetError();
-            return false;
-        }
+		LOGC << "Initializing SDL..";
+		if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+			LOGE << SDL_GetError();
+			return false;
+		}
 
-        if (!m_pFilesystem->initialize()) {
-            return false;
-        }
+		if (!m_pFilesystem->initialize()) {
+			return false;
+		}
 
-        if (!m_pSettings->initialize(&components)) {
-            return false;
-        }
+		if (!m_pSettings->initialize(&components)) {
+			return false;
+		}
 
-        if (!m_pGraphic->initialize(&components)) {
-            return false;
-        }
+		if (!m_pGraphic->initialize(&components)) {
+			return false;
+		}
 
-        m_pResmon->initialize(&components);
+		m_pResmon->initialize(&components);
 
-        m_pFbxManager->initialialize(&components);
-        boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");
-        m_pBuilder->addJob(scene->createJobMesh());
+		m_pFbxManager->initialialize(&components);
+		boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");
+		m_pBuilder->addJob(scene->createJobMesh());
 
 		// entity
-        boost::shared_ptr<Entity> entity(new Entity());
-        boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
+		boost::shared_ptr<Entity> entity(new Entity());
+		boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
 
-        entity->addComponent(boost::dynamic_pointer_cast<Component>(meshRender));
-        m_pDatabase->addEntity(entity);
+		entity->addComponent(boost::dynamic_pointer_cast<Component>(meshRender));
+		m_pDatabase->addEntity(entity);
 
 		// camera
 		boost::shared_ptr<Camera> camera(new Camera());
 		m_pDatabase->set<boost::shared_ptr<Camera>>("camera", camera);
 
-        // connect signals
-        m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));
-        m_sigState.connect(SigState::slot_type(&Builder::slotState, m_pBuilder.get(), _1).track(m_pBuilder));
-        m_sigState.connect(SigState::slot_type(&Resmon::slotState, m_pResmon.get(), _1).track(m_pResmon));
+		// material
+		boost::shared_ptr<Material> material(new Material());
+		m_pDatabase->set<boost::shared_ptr<Material>>("material", material);
 
-        return true;
-    }
+		// connect signals
+		m_sigState.connect(SigState::slot_type(&Graphic::slotState, m_pGraphic.get(), _1).track(m_pGraphic));
+		m_sigState.connect(SigState::slot_type(&Builder::slotState, m_pBuilder.get(), _1).track(m_pBuilder));
+		m_sigState.connect(SigState::slot_type(&Resmon::slotState, m_pResmon.get(), _1).track(m_pResmon));
 
-    void Core::run()
-    {
-        SDL_Event e;
+		return true;
+	}
 
-        m_threads.create_thread(boost::bind(&Graphic::run, m_pGraphic.get()));
-        m_threads.create_thread(boost::bind(&Builder::run, m_pBuilder.get()));
-        m_threads.create_thread(boost::bind(&Resmon::run, m_pResmon.get()));
+	void Core::run()
+	{
+		SDL_Event e;
 
-        LOGC << "Starting main loop..";
-        m_bState.store(true);
+		m_threads.create_thread(boost::bind(&Graphic::run, m_pGraphic.get()));
+		m_threads.create_thread(boost::bind(&Builder::run, m_pBuilder.get()));
+		m_threads.create_thread(boost::bind(&Resmon::run, m_pResmon.get()));
 
-        while (m_bState.load()) {
-            while (SDL_PollEvent(&e)) {
-                switch (e.type) {
-                case SDL_WINDOWEVENT:
-                    {
-                        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-                            LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
-                        }
-                    }
-                    break;
+		LOGC << "Starting main loop..";
+		m_bState.store(true);
 
-                case SDL_KEYDOWN:
-                    {
-                        stop();
-                    }
-                    break;
+		while (m_bState.load()) {
+			while (SDL_PollEvent(&e)) {
+				switch (e.type) {
+				case SDL_WINDOWEVENT:
+					{
+						if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+							LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
+						}
+					}
+					break;
 
-                case SDL_QUIT:
-                    {
-                        stop();
-                    }
-                    break;
-                }
-            }
-        }
-        LOGC << "Exiting main loop..";
-        m_threads.join_all();
-    }
+				case SDL_KEYDOWN:
+					{
+						stop();
+					}
+					break;
 
-    void Core::slotError()
-    {
-        LOGC << "Error signal received";
-        stop();
-    }
+				case SDL_QUIT:
+					{
+						stop();
+					}
+					break;
+				}
+			}
+		}
+		LOGC << "Exiting main loop..";
+		m_threads.join_all();
+	}
 
-    void Core::stop()
-    {
-        LOGC << "Requesting core shutdown..";
-        m_bState.store(false);
-        m_sigState(false);
-    }
+	void Core::slotError()
+	{
+		LOGC << "Error signal received";
+		stop();
+	}
+
+	void Core::stop()
+	{
+		LOGC << "Requesting core shutdown..";
+		m_bState.store(false);
+		m_sigState(false);
+	}
 } // namespace ramen

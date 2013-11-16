@@ -23,21 +23,20 @@
 
 namespace ramen
 {
-    class Mesh;
+	class Mesh;
 	class Program;
 
-    class MeshRender final : public Component
-    {
-    public:
-        MeshRender(const boost::shared_ptr<Mesh>& mesh);
+	class MeshRender final : public Component
+	{
+	public:
+		MeshRender(const boost::shared_ptr<Mesh>& mesh);
 
-        void draw();
-        const bool setupGL();
+		void draw();
+		const bool setupGL();
 
-    private:
-        boost::shared_ptr<Mesh> m_pMesh;
-		boost::shared_ptr<Program> m_pProgram;
-    };
+	private:
+		boost::shared_ptr<Mesh> m_pMesh;
+	};
 } // namespace ramen
 
 #endif // MESHRENDER_H

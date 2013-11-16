@@ -23,23 +23,23 @@
 
 namespace ramen
 {
-    class Component : boost::noncopyable
-    {
-    public:
-        virtual ~Component() {};
+	class Component : boost::noncopyable
+	{
+	public:
+		virtual ~Component() {};
 
-        virtual void draw() {};
-    };
+		virtual void draw() {};
+	};
 
-    class Entity : boost::noncopyable
-    {
-    public:
-        void addComponent(const boost::shared_ptr<Component>& component);
-        void draw();
+	class Entity : boost::noncopyable
+	{
+	public:
+		void addComponent(const boost::shared_ptr<Component>& component);
+		void draw();
 
-    private:
-        std::vector<boost::shared_ptr<Component>> m_components;
-    };
+	private:
+		std::vector<boost::shared_ptr<Component>> m_components;
+	};
 } // namespace ramen
 
 #endif // ENTITY_H

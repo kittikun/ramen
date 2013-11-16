@@ -29,54 +29,54 @@
 
 namespace ramen
 {
-    class Entity;
-    class Mesh;
+	class Entity;
+	class Mesh;
 
-    class Database : boost::noncopyable
-    {
-    public:
-        void addEntity(const boost::shared_ptr<Entity>& entity) { m_entities.push_back(entity); }
-        const std::vector<boost::shared_ptr<Entity>>& entities() const { return m_entities; }
+	class Database : boost::noncopyable
+	{
+	public:
+		void addEntity(const boost::shared_ptr<Entity>& entity) { m_entities.push_back(entity); }
+		const std::vector<boost::shared_ptr<Entity>>& entities() const { return m_entities; }
 
-        template <typename T>
-        const T& get(const std::string& key)
-        {
-            PROFILE;
-            boost::lock_guard<boost::mutex> lock(m_mutex);
-            auto found = m_data.find(key);
+		template <typename T>
+		const T& get(const std::string& key) const
+		{
+			PROFILE;
+			boost::lock_guard<boost::mutex> lock(m_mutex);
+			auto found = m_data.find(key);
 
-            if (found == m_data.end()) {
-                LOGE << "Database get key \"" << key << "\" doesn't exist";
-            }
+			if (found == m_data.end()) {
+				LOGE << "Database get key \"" << key << "\" doesn't exist";
+			}
 
-            assert(found != m_data.end());
-            return boost::any_cast<const T&>(found->second);
-        }
+			assert(found != m_data.end());
+			return boost::any_cast<const T&>(found->second);
+		}
 
-        void remove(const std::string& key);
+		void remove(const std::string& key);
 
-        template <typename T>
-        void set(const std::string& key, const T& value)
-        {
-            PROFILE;
-            boost::lock_guard<boost::mutex> lock(m_mutex);
-            auto found = m_data.find(key);
+		template <typename T>
+		void set(const std::string& key, const T& value)
+		{
+			PROFILE;
+			boost::lock_guard<boost::mutex> lock(m_mutex);
+			auto found = m_data.find(key);
 
-            if (found == m_data.end()) {
-                LOGD << "Adding key \"" << key << "\" with type " << typeid(T).name();
+			if (found == m_data.end()) {
+				LOGD << "Adding key \"" << key << "\" with type " << typeid(T).name();
 
-                m_data.insert(std::make_pair(key, boost::any(value)));
-            } else {
+				m_data.insert(std::make_pair(key, boost::any(value)));
+			} else {
 				assert(boost::is_arithmetic<T>::value);
-                found->second = value;
-            }
-        }
+				found->second = value;
+			}
+		}
 
-    private:
-        boost::mutex m_mutex;
-        std::vector<boost::shared_ptr<Entity>> m_entities;
-        boost::unordered_map<std::string, boost::any> m_data;
-    };
+	private:
+		mutable boost::mutex m_mutex;
+		std::vector<boost::shared_ptr<Entity>> m_entities;
+		boost::unordered_map<std::string, boost::any> m_data;
+	};
 } // namespace ramen
 
 #endif // DATABASE_H

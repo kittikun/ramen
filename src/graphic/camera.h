@@ -27,6 +27,9 @@ namespace ramen
 		Camera();
 
 		void lookAt(glm::vec3 at);
+
+		const glm::mat4x4& view() const { return m_view; }
+
 	private:
 		glm::vec3 m_position;
 		glm::mat4x4 m_view;
