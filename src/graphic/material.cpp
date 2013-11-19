@@ -40,6 +40,8 @@ namespace ramen {
 		if (!m_pProgram->link()) {
 			return false;
 		}
+
+		return true;
 	}
 
 	void Material::mvp(const glm::mat4x4& mvp) const

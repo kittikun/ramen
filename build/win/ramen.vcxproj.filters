@@ -87,6 +87,12 @@
     <ClCompile Include="..\..\src\graphic\material.cpp">
       <Filter>source\graphic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\io\entityManipulator.cpp">
+      <Filter>source\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphic\color.cpp">
+      <Filter>source\graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h">
@@ -156,6 +162,12 @@
       <Filter>source\graphic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\graphic\material.h">
+      <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\io\entityManipulator.h">
+      <Filter>source\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphic\color.h">
       <Filter>source\graphic</Filter>
     </ClInclude>
   </ItemGroup>

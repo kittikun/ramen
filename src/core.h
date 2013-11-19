@@ -26,47 +26,50 @@
 
 namespace ramen
 {
-    class Builder;
-    struct CoreComponents;
-    class Database;
-    class FBXManager;
-    class Filesystem;
-    class Graphic;
-    class Resmon;
-    class Settings;
+	class Builder;
+	class Database;
+	class EntityManipulator;
+	class FBXManager;
+	class Filesystem;
+	class FontManager;
+	class Graphic;
+	class Resmon;
+	class Settings;
+	struct CoreComponents;
 
-    class Core : boost::noncopyable
-    {
-    public:
-        Core();
-        ~Core();
+	class Core : boost::noncopyable
+	{
+	public:
+		Core();
+		~Core();
 
-        const bool initialize();
-        void run();
+		const bool initialize();
+		void run();
 
-        // slots
-        void slotError();
+		// slots
+		void slotError();
 
-    private:
-        void stop();
-        void fillCoreComponents(CoreComponents* out);
+	private:
+		void stop();
+		void fillCoreComponents(CoreComponents& out);
 
-    private:
-        // members
-        std::atomic<bool> m_bState;
-        boost::thread_group m_threads;
-        boost::shared_ptr<Builder> m_pBuilder; // shared_ptr because of signals2 tracking
-        boost::shared_ptr<Database> m_pDatabase;
-        boost::shared_ptr<FBXManager> m_pFbxManager;
-        boost::shared_ptr<Filesystem> m_pFilesystem;
-        boost::shared_ptr<Graphic> m_pGraphic; // shared_ptr because of signals2 trackings
-        boost::shared_ptr<Resmon> m_pResmon;
-        boost::shared_ptr<Settings> m_pSettings;
+	private:
+		// members
+		std::atomic<bool> m_bState;
+		std::unique_ptr<EntityManipulator> m_pManipulator;
+		boost::thread_group m_threads;
+		boost::shared_ptr<Builder> m_pBuilder; // shared_ptr because of signals2 tracking
+		boost::shared_ptr<Database> m_pDatabase;
+		boost::shared_ptr<FBXManager> m_pFbxManager;
+		boost::shared_ptr<Filesystem> m_pFilesystem;
+		boost::shared_ptr<Graphic> m_pGraphic; // shared_ptr because of signals2 trackings
+		boost::shared_ptr<Resmon> m_pResmon;
+		boost::shared_ptr<Settings> m_pSettings;
 
-        // signals
-        typedef boost::signals2::signal<void(const bool)> SigState;
-        SigState m_sigState;
-    };
+		// signals
+		typedef boost::signals2::signal<void(const bool)> SigState;
+		SigState m_sigState;
+	};
 } // namespace ramen
 
 #endif // CORE_H

@@ -78,7 +78,7 @@ namespace ramen
 	const bool MeshRender::setupGL()
 	{
 		PROFILE;
-		uint32_t size;
+		size_t size;
 
 		// Create VBOs
 		m_pMesh->vbos().resize(Mesh::VBOIndexCount);

@@ -14,33 +14,26 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef CORE_COMPONENTS_H
-#define CORE_COMPONENTS_H
+#ifndef ENTITY_MANIPULATOR_H
+#define ENTITY_MANIPULATOR_H
+
+#include <SDL.h>
+#include <boost/shared_ptr.hpp>
+
+#include "../log.h"
 
 namespace ramen
 {
-	class Builder;
-	class Core;
-	class Database;
-	class FBXManager;
-	class Filesystem;
-	class FontManager;
-	class Graphic;
-	class Settings;
+	class Entity;
 
-	// Limit functions parameters when initalizing components
-	struct CoreComponents
+	class EntityManipulator : boost::noncopyable
 	{
-		CoreComponents() : core(nullptr) {}
-		boost::shared_ptr<FBXManager> fbxManager;
-		boost::shared_ptr<Database> database;
-		boost::shared_ptr<Builder> builder;
-		boost::shared_ptr<Filesystem> filesystem;
-		boost::shared_ptr<FontManager> fontManager;
-		boost::shared_ptr<Graphic> graphic;
-		boost::shared_ptr<Settings> settings;
-		Core* core;
+	public:
+		void processInput(const SDL_Event& event);
+
+	private:
+		boost::shared_ptr<Entity> m_pEntity;
 	};
 } // namespace ramen
 
-#endif // CORE_COMPONENTS_H
+#endif // ENTITY_MANIPULATOR_H

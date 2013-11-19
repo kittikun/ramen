@@ -25,6 +25,8 @@
 #include "settings.h"
 #include "builder/builder.h"
 #include "graphic/graphic.h"
+#include "graphic/font.h"
+#include "io/entityManipulator.h"
 #include "io/filesystem.h"
 #include "io/fbx.h"
 #include "perfmon/profiler.h"
@@ -39,6 +41,7 @@ namespace ramen
 {
 	Core::Core()
 		: m_bState(false)
+		, m_pManipulator(new EntityManipulator())
 		, m_pBuilder(new Builder())
 		, m_pDatabase(new Database())
 		, m_pFbxManager(new FBXManager())
@@ -57,15 +60,15 @@ namespace ramen
 		profiler::dump();
 	}
 
-	void Core::fillCoreComponents(CoreComponents* out)
+	void Core::fillCoreComponents(CoreComponents& out)
 	{
-		out->builder = m_pBuilder;
-		out->core = this;
-		out->database = m_pDatabase;
-		out->fbxManager = m_pFbxManager;
-		out->filesystem = m_pFilesystem;
-		out->graphic = m_pGraphic;
-		out->settings = m_pSettings;
+		out.builder = m_pBuilder;
+		out.core = this;
+		out.database = m_pDatabase;
+		out.fbxManager = m_pFbxManager;
+		out.filesystem = m_pFilesystem;
+		out.graphic = m_pGraphic;
+		out.settings = m_pSettings;
 	}
 
 	const bool Core::initialize()
@@ -73,7 +76,7 @@ namespace ramen
 		PROFILE;
 		CoreComponents components;
 
-		fillCoreComponents(&components);
+		fillCoreComponents(components);
 
 		LOGC << "Initializing SDL..";
 		if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -85,17 +88,17 @@ namespace ramen
 			return false;
 		}
 
-		if (!m_pSettings->initialize(&components)) {
+		if (!m_pSettings->initialize(components)) {
 			return false;
 		}
 
-		if (!m_pGraphic->initialize(&components)) {
+		if (!m_pGraphic->initialize(components)) {
 			return false;
 		}
 
-		m_pResmon->initialize(&components);
+		m_pResmon->initialize(components);
 
-		m_pFbxManager->initialialize(&components);
+		m_pFbxManager->initialialize(components);
 		boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");
 		m_pBuilder->addJob(scene->createJobMesh());
 
@@ -135,18 +138,14 @@ namespace ramen
 
 		while (m_bState.load()) {
 			while (SDL_PollEvent(&e)) {
+				m_pManipulator->processInput(e);
+
 				switch (e.type) {
 				case SDL_WINDOWEVENT:
 					{
 						if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
 							LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
 						}
-					}
-					break;
-
-				case SDL_KEYDOWN:
-					{
-						stop();
 					}
 					break;
 

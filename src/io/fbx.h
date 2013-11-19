@@ -24,41 +24,41 @@
 
 namespace ramen
 {
-    struct CoreComponents;
-    class Database;
-    class Filesystem;
-    class Job;
+	struct CoreComponents;
+	class Database;
+	class Filesystem;
+	class Job;
 
-    class FBXScene
-    {
-    public:
-        FBXScene(FbxScene* scene, const boost::shared_ptr<Database>& database);
+	class FBXScene
+	{
+	public:
+		FBXScene(FbxScene* scene, const boost::shared_ptr<Database>& database);
 
-        boost::shared_ptr<Job> createJobMesh();
+		boost::shared_ptr<Job> createJobMesh();
 
-    private:
-        FbxNode* findNode(FbxNodeAttribute::EType type);
+	private:
+		FbxNode* findNode(FbxNodeAttribute::EType type);
 
-    private:
-        boost::shared_ptr<Database> m_pDatabase;
-        FbxScene* m_pScene;
-    };
+	private:
+		boost::shared_ptr<Database> m_pDatabase;
+		FbxScene* m_pScene;
+	};
 
-    class FBXManager
-    {
-    public:
-        FBXManager();
-        ~FBXManager();
+	class FBXManager
+	{
+	public:
+		FBXManager();
+		~FBXManager();
 
-        const bool initialialize(const CoreComponents* components);
+		const bool initialialize(const CoreComponents& components);
 
-        boost::shared_ptr<FBXScene> loadScene(const std::string& filename);
+		boost::shared_ptr<FBXScene> loadScene(const std::string& filename);
 
-    private:
-        FbxManager* m_pFbxManager;
-        boost::shared_ptr<Database> m_pDatabase;
-        boost::shared_ptr<Filesystem> m_pFilesystem;
-    };
+	private:
+		FbxManager* m_pFbxManager;
+		boost::shared_ptr<Database> m_pDatabase;
+		boost::shared_ptr<Filesystem> m_pFilesystem;
+	};
 } // namespace ramen
 
 #endif // FBX_H

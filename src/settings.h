@@ -23,21 +23,21 @@
 
 namespace ramen
 {
-    struct CoreComponents;
-    class Filesystem;
+	struct CoreComponents;
+	class Filesystem;
 
-    class Settings : boost::noncopyable
-    {
-    public:
-        const bool initialize(const CoreComponents* components);
+	class Settings : boost::noncopyable
+	{
+	public:
+		const bool initialize(const CoreComponents& components);
 
-        template <typename T>
-        const T get(const std::string& name) const { return m_properties.get<T>(name); }
+		template <typename T>
+		const T get(const std::string& name) const { return m_properties.get<T>(name); }
 
-    private:
-        boost::property_tree::ptree m_properties;
-        boost::shared_ptr<Filesystem> m_pFileSystem;
-    };
+	private:
+		boost::property_tree::ptree m_properties;
+		boost::shared_ptr<Filesystem> m_pFileSystem;
+	};
 } // namespace ramen
 
 #endif // SETTINGS_H

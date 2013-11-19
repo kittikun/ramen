@@ -24,21 +24,21 @@
 
 namespace ramen
 {
-    const bool Settings::initialize(const CoreComponents* components)
-    {
-        std::string configPath;
+	const bool Settings::initialize(const CoreComponents& components)
+	{
+		std::string configPath;
 
-        m_pFileSystem = components->filesystem;
+		m_pFileSystem = components.filesystem;
 
-        configPath = m_pFileSystem->resourcePathAbs(Filesystem::ResourceType::Default, "settings.ini");
-        if (configPath.empty()) {
-            return false;
-        }
+		configPath = m_pFileSystem->resourcePathAbs(Filesystem::ResourceType::Default, "settings.ini");
+		if (configPath.empty()) {
+			return false;
+		}
 
-        LOGI << "Loading settings..";
+		LOGI << "Loading settings..";
 
-        boost::property_tree::read_ini(configPath, m_properties);
+		boost::property_tree::read_ini(configPath, m_properties);
 
-        return true;
-    }
+		return true;
+	}
 } // namespace ramen

@@ -22,17 +22,17 @@
 
 namespace ramen
 {
-    //-------------------------------------------------------------------------------------
-    // SHADER
-    //-------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------
+	// SHADER
+	//-------------------------------------------------------------------------------------
 	boost::shared_ptr<Filesystem> Shader::m_pFilesystem;
 
-    Shader::Shader(const GLenum type)
-        : m_eType(type)
-    {
-        m_iShaderID = glCreateShader(m_eType);
-        VERIFYGL();
-    }
+	Shader::Shader(const GLenum type)
+		: m_eType(type)
+	{
+		m_iShaderID = glCreateShader(m_eType);
+		VERIFYGL();
+	}
 
 	Shader::Shader(const GLenum type, const std::string& filename)
 		: m_eType(type)
@@ -43,57 +43,57 @@ namespace ramen
 		loadFromFile(filename);
 	}
 
-    Shader::~Shader()
-    {
+	Shader::~Shader()
+	{
 		glDeleteShader(m_iShaderID);
-    }
+	}
 
-    const bool Shader::compile()
-    {
-        GLint compiled;
+	const bool Shader::compile()
+	{
+		GLint compiled;
 
-        if (m_iShaderID == 0) {
-            LOGE << "Cannot compile shader with an ID of 0";
-            return false;
-        }
+		if (m_iShaderID == 0) {
+			LOGE << "Cannot compile shader with an ID of 0";
+			return false;
+		}
 
-        glCompileShader(m_iShaderID);
-        VERIFYGL();
+		glCompileShader(m_iShaderID);
+		VERIFYGL();
 
-        // Check the compile status
-        glGetShaderiv(m_iShaderID, GL_COMPILE_STATUS, &compiled);
+		// Check the compile status
+		glGetShaderiv(m_iShaderID, GL_COMPILE_STATUS, &compiled);
 
-        if (!compiled) {
-            GLint infoLen = 0;
-            glGetShaderiv(m_iShaderID, GL_INFO_LOG_LENGTH, &infoLen);
+		if (!compiled) {
+			GLint infoLen = 0;
+			glGetShaderiv(m_iShaderID, GL_INFO_LOG_LENGTH, &infoLen);
 
-            if (infoLen > 1) {
-                std::vector<char> infoLog(infoLen);
-                GLsizei srcLen;
+			if (infoLen > 1) {
+				std::vector<char> infoLog(infoLen);
+				GLsizei srcLen;
 
-                glGetShaderInfoLog(m_iShaderID, infoLen, NULL, &infoLog[0]);
-                LOGE << "Error compiling shader:\n" << std::string(infoLog.begin(), infoLog.end());
+				glGetShaderInfoLog(m_iShaderID, infoLen, NULL, &infoLog[0]);
+				LOGE << "Error compiling shader:\n" << std::string(infoLog.begin(), infoLog.end());
 
-                glGetShaderiv(m_iShaderID, GL_SHADER_SOURCE_LENGTH, &infoLen);
-                infoLog.resize(infoLen);
+				glGetShaderiv(m_iShaderID, GL_SHADER_SOURCE_LENGTH, &infoLen);
+				infoLog.resize(infoLen);
 
-                glGetShaderSource(m_iShaderID, infoLen, &srcLen, &infoLog[0]);
-                LOGE << "Shader source:\n" << std::string(infoLog.begin(), infoLog.end());
-            }
+				glGetShaderSource(m_iShaderID, infoLen, &srcLen, &infoLog[0]);
+				LOGE << "Shader source:\n" << std::string(infoLog.begin(), infoLog.end());
+			}
 
-            return false;
-        }
+			return false;
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    const bool Shader::loadFromMemory(const GLchar** data) const
-    {
-        glShaderSource(m_iShaderID, 1, data, nullptr);
-        VERIFYGL_RET();
+	const bool Shader::loadFromMemory(const GLchar** data) const
+	{
+		glShaderSource(m_iShaderID, 1, data, nullptr);
+		VERIFYGL_RET();
 
-        return true;
-    }
+		return true;
+	}
 
 	const bool Shader::loadFromFile(const std::string& filename) const
 	{
@@ -114,97 +114,102 @@ namespace ramen
 		m_pFilesystem = filesystem;
 	}
 
-    //-------------------------------------------------------------------------------------
-    // PROGRAM
-    //-------------------------------------------------------------------------------------
-    Program::Program()
-    {
-        m_iProgram = glCreateProgram();
-    }
+	//-------------------------------------------------------------------------------------
+	// PROGRAM
+	//-------------------------------------------------------------------------------------
+	Program::Program()
+	{
+		m_iProgram = glCreateProgram();
+	}
 
 	Program::Program(const boost::shared_ptr<Shader>& vert, const boost::shared_ptr<Shader>& frag)
 	{
 		m_iProgram = glCreateProgram();
-		assert(attachShader(vert));
-		assert(attachShader(frag));
+
+		if (!attachShader(vert)) {
+			LOGE << "Failed to attach vertex shader in constructor";
+		}
+
+		if (!attachShader(frag)) {
+			LOGE << "Failed to attach vertex shader in constructor";
+		}
 	}
 
+	Program::~Program()
+	{
+		glDeleteProgram(m_iProgram);
+	}
 
-    Program::~Program()
-    {
-        glDeleteProgram(m_iProgram);
-    }
+	const bool Program::attachShader(const boost::shared_ptr<Shader>& shader)
+	{
+		// Check if the shader wasn't already attached
+		GLuint id = shader->shaderID();
+		auto iter = m_shaders.find(id);
 
-    const bool Program::attachShader(const boost::shared_ptr<Shader>& shader)
-    {
-        // Check if the shader wasn't already attached
-        GLuint id = shader->shaderID();
-        auto iter = m_shaders.find(id);
+		if (iter != m_shaders.end()) {
+			LOGE << "Shader " << id << " was already attached";
+			return false;
+		}
 
-        if (iter != m_shaders.end()) {
-            LOGE << "Shader " << id << " was already attached";
-            return false;
-        }
+		glAttachShader(m_iProgram, id);
+		VERIFYGL_RET();
 
-        glAttachShader(m_iProgram, id);
-        VERIFYGL_RET();
+		m_shaders.insert(std::make_pair(id, shader));
 
-        m_shaders.insert(std::make_pair(id, shader));
+		return true;
+	}
 
-        return true;
-    }
+	const GLint Program::attribLocation(const std::string& name) const
+	{
+		GLint ret = glGetAttribLocation(m_iProgram, name.c_str());
+		VERIFYGL();
 
-    const GLint Program::attribLocation(const std::string& name) const
-    {
-        GLint ret = glGetAttribLocation(m_iProgram, name.c_str());
-        VERIFYGL();
-
-        return ret;    }
+		return ret;    }
 
 	void Program::bindAttribLocation(GLuint index, const std::string& name)
 	{
 		glBindAttribLocation(m_iProgram, index, name.c_str());
 	}
 
-    const GLint Program::uniformLocation(const std::string& name) const
-    {
-        GLint ret = glGetUniformLocation(m_iProgram, name.c_str());
-        VERIFYGL();
+	const GLint Program::uniformLocation(const std::string& name) const
+	{
+		GLint ret = glGetUniformLocation(m_iProgram, name.c_str());
+		VERIFYGL();
 
-        return ret;
-    }
+		return ret;
+	}
 
-    const bool Program::link()
-    {
-        GLint linked;
+	const bool Program::link()
+	{
+		GLint linked;
 
-        glLinkProgram(m_iProgram);
-        glGetProgramiv(m_iProgram, GL_LINK_STATUS, &linked);
+		glLinkProgram(m_iProgram);
+		glGetProgramiv(m_iProgram, GL_LINK_STATUS, &linked);
 
-        if (!linked) {
-            GLint infoLen = 0;
-            glGetProgramiv(m_iProgram, GL_INFO_LOG_LENGTH, &infoLen);
+		if (!linked) {
+			GLint infoLen = 0;
+			glGetProgramiv(m_iProgram, GL_INFO_LOG_LENGTH, &infoLen);
 
-            if (infoLen > 1) {
-                char* infoLog = new char[infoLen];
+			if (infoLen > 1) {
+				char* infoLog = new char[infoLen];
 
-                glGetProgramInfoLog(m_iProgram, infoLen, NULL, infoLog);
-                LOGE << "Error linking program " << infoLog;
+				glGetProgramInfoLog(m_iProgram, infoLen, NULL, infoLog);
+				LOGE << "Error linking program " << infoLog;
 
-                delete(infoLog);
-            }
+				delete(infoLog);
+			}
 
-            return false;
-        }
+			return false;
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    const bool Program::use()
-    {
-        glUseProgram(m_iProgram);
-        VERIFYGL_RET();
+	const bool Program::use()
+	{
+		glUseProgram(m_iProgram);
+		VERIFYGL_RET();
 
-        return true;
-    }
+		return true;
+	}
 } // namespace ramen

@@ -34,6 +34,7 @@
 #include "../io/filesystem.h"
 #include "../perfmon/profiler.h"
 #include "../utility.h"
+#include "color.h"
 #include "font.h"
 #include "graphicUtility.h"
 
@@ -181,23 +182,23 @@ namespace ramen
 		return true;
 	}
 
-	bool Graphic::initialize(const CoreComponents* components)
+	bool Graphic::initialize(const CoreComponents& components)
 	{
-		glm::ivec2 size(components->settings->get<int>("windowWidth"), components->settings->get<int>("windowHeight"));
+		glm::ivec2 size(components.settings->get<int>("windowWidth"), components.settings->get<int>("windowHeight"));
 
 		if (!createWindow(size)) {
 			return false;
 		}
 
+		m_pDatabase = components.database;
+
 		if (!m_pFontManager->initialize(components)) {
 			return false;
 		}
 
-		m_pDatabase = components->database;
+		Shader::setFilesystem(components.filesystem);
 
-		Shader::setFilesystem(components->filesystem);
-
-		m_sigError.connect(SigError::slot_type(&Core::slotError, components->core));
+		m_sigError.connect(SigError::slot_type(&Core::slotError, components.core));
 
 		return true;
 	}
@@ -252,21 +253,15 @@ namespace ramen
 			glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			m_pFontManager->setActiveFont("dim48");
-			m_pFontManager->setFontColor(1, 1, 0, 1);
-			m_pFontManager->drawText("Ramen Framework", glm::vec2(10, 700));
-			m_pFontManager->setActiveFont("dim16");
-			m_pFontManager->setFontColor(0, 1, 1, 1);
-			m_pFontManager->drawText("by kittikun", glm::vec2(50, 730));
-			m_pFontManager->setActiveFont("vera16");
-			m_pFontManager->setFontColor(1, 1, 1, 1);
-			std::string resmon = boost::str(boost::format("%1$1.0f fps, cpu %2%, mem %3%, virt %4%")
+			m_pFontManager->addText("Ramen Framework", "dim48", color::yellow, glm::vec2(10, 700));
+			m_pFontManager->addText("by kittikun", "dim16", color::cyan, glm::vec2(50, 730));
+
+			const std::string fpsText = boost::str(boost::format("%1$1.0f fps cpu %2%, mem %3%, virt %4%")
 				% (1000000 / boost::accumulators::rolling_mean(m_fps))
 				% m_pDatabase->get<uint32_t>("cpu")
-				% utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("physical memory"))
-				% utility::readableSizeByte<uint32_t>(m_pDatabase->get<uint32_t>("virtual memory")));
-			m_pFontManager->drawText(resmon, glm::vec2(10, 26));
-			VERIFYGL();
+				% utility::readableSizeByte<size_t>(m_pDatabase->get<size_t>("physical memory"))
+				% utility::readableSizeByte<size_t>(m_pDatabase->get<size_t>("virtual memory")));
+			m_pFontManager->addText(fpsText, "vera16", color::cyan, glm::vec2(10, 26));
 
 			boost::shared_ptr<Camera> camera = m_pDatabase->get<boost::shared_ptr<Camera>>("camera");
 
@@ -283,6 +278,8 @@ namespace ramen
 			BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
 				entity->draw();
 			}
+
+			m_pFontManager->drawText();
 
 			swapbuffers();
 

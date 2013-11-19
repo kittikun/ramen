@@ -35,166 +35,168 @@
 #include "../database.h"
 #include "../log.h"
 #include "../settings.h"
+#include "../utility.h"
+#include "../graphic/color.h"
 
 namespace ramen
 {
 #if defined(_WIN32)
-    static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
-    static HANDLE self;
+	static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
+	static HANDLE self;
 #elif defined(__unix__)
-    static clock_t lastCPU, lastSysCPU, lastUserCPU;
+	static clock_t lastCPU, lastSysCPU, lastUserCPU;
 
-    static int parseLine(char* line)
-    {
-        int i = strlen(line);
-        while (*line < '0' || *line > '9')
-            line++;
-        line[i - 3] = '\0';
-        i = atoi(line);
-        return i;
-    }
+	static int parseLine(char* line)
+	{
+		int i = strlen(line);
+		while (*line < '0' || *line > '9')
+			line++;
+		line[i - 3] = '\0';
+		i = atoi(line);
+		return i;
+	}
 #endif
 
-    Resmon::Resmon()
-        : m_timer(m_io, boost::chrono::milliseconds(1))
-    {
-    }
+	Resmon::Resmon()
+		: m_timer(m_io, boost::chrono::milliseconds(1))
+	{
+	}
 
-    void Resmon::initialize(const CoreComponents* components)
-    {
-        m_timer.async_wait(boost::bind(&Resmon::update, this));
-        m_pDatabase = components->database;
-        m_iWaitTime = components->settings->get<int>("resmonTimer");
+	void Resmon::initialize(const CoreComponents& components)
+	{
+		m_timer.async_wait(boost::bind(&Resmon::update, this));
+		m_pDatabase = components.database;
+		m_iWaitTime = components.settings->get<int>("resmonTimer");
 
 #if defined(_WIN32)
-        SYSTEM_INFO sysInfo;
-        FILETIME ftime, fsys, fuser;
+		SYSTEM_INFO sysInfo;
+		FILETIME ftime, fsys, fuser;
 
-        GetSystemInfo(&sysInfo);
-        m_iNumProcessors = sysInfo.dwNumberOfProcessors;
+		GetSystemInfo(&sysInfo);
+		m_iNumProcessors = sysInfo.dwNumberOfProcessors;
 
-        GetSystemTimeAsFileTime(&ftime);
-        memcpy(&lastCPU, &ftime, sizeof(FILETIME));
+		GetSystemTimeAsFileTime(&ftime);
+		memcpy(&lastCPU, &ftime, sizeof(FILETIME));
 
-        self = GetCurrentProcess();
-        GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
-        memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
-        memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
+		self = GetCurrentProcess();
+		GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+		memcpy(&lastSysCPU, &fsys, sizeof(FILETIME));
+		memcpy(&lastUserCPU, &fuser, sizeof(FILETIME));
 #elif defined(__unix__)
-        FILE* file;
-        struct tms timeSample;
-        char line[128];
+		FILE* file;
+		struct tms timeSample;
+		char line[128];
 
-        lastCPU = times(&timeSample);
-        lastSysCPU = timeSample.tms_stime;
-        lastUserCPU = timeSample.tms_utime;
+		lastCPU = times(&timeSample);
+		lastSysCPU = timeSample.tms_stime;
+		lastUserCPU = timeSample.tms_utime;
 
-        file = fopen("/proc/cpuinfo", "r");
-        m_iNumProcessors = 0;
-        while (fgets(line, 128, file) != NULL) {
-            if (strncmp(line, "processor", 9) == 0)
-                m_iNumProcessors++;
-        }
-        fclose(file);
+		file = fopen("/proc/cpuinfo", "r");
+		m_iNumProcessors = 0;
+		while (fgets(line, 128, file) != NULL) {
+			if (strncmp(line, "processor", 9) == 0)
+				m_iNumProcessors++;
+		}
+		fclose(file);
 #endif
-    }
+	}
 
-    void Resmon::run()
-    {
-        LOGP << "Starting resource monitor thread..";
+	void Resmon::run()
+	{
+		LOGP << "Starting resource monitor thread..";
 
-        m_bState.store(true);
-        m_io.run();
-        LOGP << "Exiting resource monitor thread..";
-    }
+		m_bState.store(true);
+		m_io.run();
+		LOGP << "Exiting resource monitor thread..";
+	}
 
-    void Resmon::update()
-    {
-        updateCPU();
-        updateMemory();
+	void Resmon::update()
+	{
+		updateCPU();
+		updateMemory();
 
-        if (m_bState.load()) {
-            m_timer.expires_at(m_timer.expires_at() +  boost::chrono::milliseconds(m_iWaitTime));
-            m_timer.async_wait(boost::bind(&Resmon::update, this));
-        }
-    }
+		if (m_bState.load()) {
+			m_timer.expires_at(m_timer.expires_at() +  boost::chrono::milliseconds(m_iWaitTime));
+			m_timer.async_wait(boost::bind(&Resmon::update, this));
+		}
+	}
 
-    void Resmon::updateCPU() const
-    {
+	void Resmon::updateCPU() const
+	{
 #if defined(_WIN32)
-        FILETIME ftime, fsys, fuser;
-        ULARGE_INTEGER now, sys, user;
-        double percent;
+		FILETIME ftime, fsys, fuser;
+		ULARGE_INTEGER now, sys, user;
+		double percent;
 
-        GetSystemTimeAsFileTime(&ftime);
-        memcpy(&now, &ftime, sizeof(FILETIME));
+		GetSystemTimeAsFileTime(&ftime);
+		memcpy(&now, &ftime, sizeof(FILETIME));
 
-        GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
-        memcpy(&sys, &fsys, sizeof(FILETIME));
-        memcpy(&user, &fuser, sizeof(FILETIME));
-        percent = static_cast<double>((sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart));
-        percent /= (now.QuadPart - lastCPU.QuadPart);
-        percent /= m_iNumProcessors;
-        lastCPU = now;
-        lastUserCPU = user;
-        lastSysCPU = sys;
-        m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent * 100));
+		GetProcessTimes(self, &ftime, &ftime, &fsys, &fuser);
+		memcpy(&sys, &fsys, sizeof(FILETIME));
+		memcpy(&user, &fuser, sizeof(FILETIME));
+		percent = static_cast<double>((sys.QuadPart - lastSysCPU.QuadPart) + (user.QuadPart - lastUserCPU.QuadPart));
+		percent /= (now.QuadPart - lastCPU.QuadPart);
+		percent /= m_iNumProcessors;
+		lastCPU = now;
+		lastUserCPU = user;
+		lastSysCPU = sys;
+		m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent * 100));
 #elif defined (__unix__)
-        struct tms timeSample;
-        clock_t now;
-        double percent;
+		struct tms timeSample;
+		clock_t now;
+		double percent;
 
-        now = times(&timeSample);
-        if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
-            timeSample.tms_utime < lastUserCPU){
-                //Overflow detection. Just skip this value.
-                percent = -1.0;
-        }
-        else{
-            percent = (timeSample.tms_stime - lastSysCPU) +
-                (timeSample.tms_utime - lastUserCPU);
-            percent /= (now - lastCPU);
-            percent /= m_iNumProcessors;
-            percent *= 100;
-        }
-        lastCPU = now;
-        lastSysCPU = timeSample.tms_stime;
-        lastUserCPU = timeSample.tms_utime;
-        m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent));
+		now = times(&timeSample);
+		if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
+			timeSample.tms_utime < lastUserCPU){
+				//Overflow detection. Just skip this value.
+				percent = -1.0;
+		}
+		else{
+			percent = (timeSample.tms_stime - lastSysCPU) +
+				(timeSample.tms_utime - lastUserCPU);
+			percent /= (now - lastCPU);
+			percent /= m_iNumProcessors;
+			percent *= 100;
+		}
+		lastCPU = now;
+		lastSysCPU = timeSample.tms_stime;
+		lastUserCPU = timeSample.tms_utime;
+		m_pDatabase->set<uint32_t>("cpu", static_cast<uint32_t>(percent));
 #endif
-    }
+	}
 
-    void Resmon::updateMemory() const
-    {
+	void Resmon::updateMemory() const
+	{
 #if defined(_WIN32)
-        PROCESS_MEMORY_COUNTERS pmc;
-        if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
-            m_pDatabase->set<uint32_t>("virtual memory", pmc.PagefileUsage);
-            m_pDatabase->set<uint32_t>("physical memory", pmc.WorkingSetSize);
-        }
+		PROCESS_MEMORY_COUNTERS pmc;
+		if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+			m_pDatabase->set<size_t>("virtual memory", pmc.PagefileUsage);
+			m_pDatabase->set<size_t>("physical memory", pmc.WorkingSetSize);
+		}
 #elif defined(__unix__)
-        FILE* file = fopen("/proc/self/status", "r");
-        char line[128];
+		FILE* file = fopen("/proc/self/status", "r");
+		char line[128];
 
-        while (fgets(line, 128, file) != NULL){
-            if (strncmp(line, "VmSize:", 7) == 0){
-                m_pDatabase->set<uint32_t>("virtual memory",parseLine(line) * 1000);
-            }
+		while (fgets(line, 128, file) != NULL){
+			if (strncmp(line, "VmSize:", 7) == 0){
+				m_pDatabase->set<uint32_t>("virtual memory",parseLine(line) * 1000);
+			}
 
-            if (strncmp(line, "VmRSS:", 6) == 0){
-                m_pDatabase->set<uint32_t>("physical memory",parseLine(line) * 1000);
-            }
-        }
-        fclose(file);
+			if (strncmp(line, "VmRSS:", 6) == 0){
+				m_pDatabase->set<uint32_t>("physical memory",parseLine(line) * 1000);
+			}
+		}
+		fclose(file);
 #endif
-    }
+	}
 
-    void Resmon::slotState(const bool state)
-    {
-        m_bState.store(state);
+	void Resmon::slotState(const bool state)
+	{
+		m_bState.store(state);
 
-        if (!state) {
-            m_io.stop();
-        }
-    }
+		if (!state) {
+			m_io.stop();
+		}
+	}
 } // namespace ramen

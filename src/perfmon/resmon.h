@@ -25,33 +25,33 @@
 
 namespace ramen
 {
-    struct CoreComponents;
-    class Database;
+	struct CoreComponents;
+	class Database;
 
-    class Resmon : boost::noncopyable
-    {
-    public:
-        Resmon();
+	class Resmon : boost::noncopyable
+	{
+	public:
+		Resmon();
 
-        void initialize(const CoreComponents* components);
-        void run();
+		void initialize(const CoreComponents& components);
+		void run();
 
-        // slots
-        void slotState(const bool state);
+		// slots
+		void slotState(const bool state);
 
-    private:
-        void update();
-        void updateCPU() const;
-        void updateMemory() const;
+	private:
+		void update();
+		void updateCPU() const;
+		void updateMemory() const;
 
-    private:
-        int m_iWaitTime;
-        int m_iNumProcessors;
-        boost::asio::io_service m_io;
-        boost::asio::basic_waitable_timer<boost::chrono::system_clock> m_timer;
-        boost::shared_ptr<Database> m_pDatabase;
-        std::atomic<bool> m_bState;
-    };
+	private:
+		int m_iWaitTime;
+		int m_iNumProcessors;
+		boost::asio::io_service m_io;
+		boost::asio::basic_waitable_timer<boost::chrono::system_clock> m_timer;
+		boost::shared_ptr<Database> m_pDatabase;
+		std::atomic<bool> m_bState;
+	};
 } // namespace ramen
 
 #endif // PERFMON_H

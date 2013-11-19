@@ -23,78 +23,88 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 #include <boost/utility.hpp>
 #include <GLES2/gl2.h>
 #include <glm/glm.hpp>
 
 namespace ramen
 {
-    struct CoreComponents;
-    class Program;
-    class Filesystem;
-    class Settings;
+	struct CoreComponents;
+	class Program;
+	class Filesystem;
+	class Settings;
 
-    class FontAtlas : boost::noncopyable
-    {
-    public:
-        struct Character
-        {
-            glm::vec2 advance;
-            glm::vec2 bmpSize;
-            glm::vec2 bmpTopLeft;
-            glm::vec2 texOffset;
-        };
+	class FontAtlas : boost::noncopyable
+	{
+	public:
+		struct Character
+		{
+			glm::vec2 advance;
+			glm::vec2 bmpSize;
+			glm::vec2 bmpTopLeft;
+			glm::vec2 texOffset;
+		};
 
-        FontAtlas();
-        ~FontAtlas();
+		FontAtlas();
+		~FontAtlas();
 
-        void initialize(const FT_Face fontFamilly, const unsigned char fontSize, const int maxTexWidth);
+		void initialize(const FT_Face fontFamilly, const unsigned char fontSize, const int maxTexWidth);
 
-        const GLuint texID() const { return m_iTexID; }
-        const Character& charAt(const unsigned int index) const { return m_characters[index]; }
-        const glm::ivec2 texSize() const { return m_texSize; }
+		const GLuint texID() const { return m_iTexID; }
+		const Character& charAt(const unsigned int index) const { return m_characters[index]; }
+		const glm::ivec2 texSize() const { return m_texSize; }
 
-    private:
-        void calcRequiredTexSize(const FT_Face fontFamilly, const int maxTexWidth);
-        void createTexture(const FT_Face fontFamilly, const int maxTexWidth);
+	private:
+		void calcRequiredTexSize(const FT_Face fontFamilly, const int maxTexWidth);
+		void createTexture(const FT_Face fontFamilly, const int maxTexWidth);
 
-    private:
-        GLuint m_iTexID;
-        glm::ivec2 m_texSize;
-        std::vector<Character> m_characters;
-    };
+	private:
+		GLuint m_iTexID;
+		glm::ivec2 m_texSize;
+		std::vector<Character> m_characters;
+	};
 
-    class FontManager : boost::noncopyable
-    {
-    public:
-        FontManager();
-        ~FontManager();
+	class FontManager : boost::noncopyable
+	{
+	public:
+		FontManager();
+		~FontManager();
 
-        const bool initialize(const CoreComponents* components);
-        const bool initializeGL();
+		const bool initialize(const CoreComponents& components);
+		const bool initializeGL();
 
-        const bool loadFontFamillyFromFile(const std::string& name, const std::string& filename);
-        const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
-        const bool createFont(const std::string& name, const std::string& fontFamilly, const int fontSize);
+		const bool loadFontFamillyFromFile(const std::string& name, const std::string& filename);
+		const bool loadFontFamillyFromMemory(const std::string& name, const unsigned char* data, const unsigned int size);
+		const bool createFont(const std::string& name, const std::string& fontFamilly, const int fontSize);
 
-        void drawText(const std::string& text, const glm::vec2& pos) const;
+		void addText(const std::string& text, const std::string& font, const glm::vec4& color, const glm::vec2& pos);
+		void drawText();
 
-        const bool setActiveFont(const std::string& name);
-        const void setFontColor(const glm::vec4& color) { m_color = color; }
-        const void setFontColor(const float r, const float g, const float b, const float a) { m_color = glm::vec4(r, g, b, a); }
+		struct TextCache
+		{
+			TextCache(const std::string& str, const glm::vec2& pos) : text(str), position(pos) {}
+			std::string text;
+			glm::vec2 position;
+		};
 
-    private:
-        boost::shared_ptr<Filesystem> m_pFilesystem;
-        boost::shared_ptr<Program> m_pProgram;
-        boost::shared_ptr<Settings> m_pSettings;
-        FontAtlas const* m_pActiveFont;
-        FT_Library m_FTLibrary;
-        glm::vec4 m_color;
-        glm::vec2 m_scaleFactor;
-        GLuint m_vbo;
-        boost::unordered_map<std::string, FT_Face> m_fonts;
-        boost::unordered_map<std::string, boost::shared_ptr<FontAtlas>> m_fontAtlases;
-    };
+	private:
+		boost::mutex m_mutex;
+		boost::shared_ptr<Filesystem> m_pFilesystem;
+		boost::shared_ptr<Program> m_pProgram;
+		boost::shared_ptr<Settings> m_pSettings;
+		boost::unordered_map<std::string, FT_Face> m_fonts;
+		boost::unordered_map<std::string, boost::shared_ptr<FontAtlas>> m_fontAtlases;
+
+		typedef boost::unordered_map<glm::vec4, std::vector<TextCache>> ColorMap;
+		typedef boost::unordered_map<std::string, ColorMap> CacheMap;
+		CacheMap m_cache;
+
+		FT_Library m_FTLibrary;
+		glm::vec2 m_scaleFactor;
+		GLuint m_vbo;
+		std::vector<glm::vec4> m_texcoords; // to avoid allocation on resize
+	};
 } // namespace ramen
 
 #endif // FONT_H

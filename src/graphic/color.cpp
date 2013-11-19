@@ -14,33 +14,18 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef CORE_COMPONENTS_H
-#define CORE_COMPONENTS_H
+#include "color.h"
 
 namespace ramen
 {
-	class Builder;
-	class Core;
-	class Database;
-	class FBXManager;
-	class Filesystem;
-	class FontManager;
-	class Graphic;
-	class Settings;
-
-	// Limit functions parameters when initalizing components
-	struct CoreComponents
+	namespace color
 	{
-		CoreComponents() : core(nullptr) {}
-		boost::shared_ptr<FBXManager> fbxManager;
-		boost::shared_ptr<Database> database;
-		boost::shared_ptr<Builder> builder;
-		boost::shared_ptr<Filesystem> filesystem;
-		boost::shared_ptr<FontManager> fontManager;
-		boost::shared_ptr<Graphic> graphic;
-		boost::shared_ptr<Settings> settings;
-		Core* core;
-	};
+		const glm::vec4 black = glm::vec4(0.f, 0.f, 0.f, 1.f);
+		const glm::vec4 blue = glm::vec4(0.f, 0.f, 1.f, 1.f);
+		const glm::vec4 cyan = glm::vec4(0.f, 1.f, 1.f, 1.f);
+		const glm::vec4 green = glm::vec4(0.f, 1.f, 0.f, 1.f);
+		const glm::vec4 red = glm::vec4(1.f, 0.f, 0.f, 1.f);
+		const glm::vec4 white = glm::vec4(1.f, 1.f, 1.f, 1.f);
+		const glm::vec4 yellow = glm::vec4(1.f, 1.f, 0.f, 1.f);
+	} // namespace color
 } // namespace ramen
-
-#endif // CORE_COMPONENTS_H

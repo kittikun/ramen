@@ -20,6 +20,7 @@
 #include <string>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
+#include <glm/glm.hpp>
 
 // Enable VERIFY_GL_ON in order to get detailed information about failing tests,
 // such as the line number and failure circumstances.
@@ -37,12 +38,12 @@
 
 namespace ramen
 {
-    namespace graphicUtility
-    {
-        const std::string glEnumtoString(const GLenum value);
-        const bool VerifyEGL(const EGLint expectedError, const char *file, unsigned line);
-        const bool VerifyGL(const GLenum expectedError, const char *file, unsigned line);
-    } // namespace graphicUtility
+	namespace graphicUtility
+	{
+		const std::string glEnumtoString(const GLenum value);
+		const bool VerifyEGL(const EGLint expectedError, const char *file, unsigned line);
+		const bool VerifyGL(const GLenum expectedError, const char *file, unsigned line);
+	} // namespace graphicUtility
 } // namespace ramen
 
 #endif // GRAPHIC_UTILITY_H
