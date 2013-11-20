@@ -28,6 +28,8 @@
 
 namespace ramen
 {
+	const uint32_t MeshRender::CompoID_MeshRender = 0x00000000;
+
 	MeshRender::MeshRender(const boost::shared_ptr<Mesh>& m_pMesh)
 		: m_pMesh(m_pMesh)
 	{

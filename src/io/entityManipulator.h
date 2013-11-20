@@ -19,20 +19,25 @@
 
 #include <SDL.h>
 #include <boost/shared_ptr.hpp>
-
-#include "../log.h"
+#include <boost/utility.hpp>
 
 namespace ramen
 {
-	class Entity;
+	class Database;
+	struct CoreComponents;
 
 	class EntityManipulator : boost::noncopyable
 	{
 	public:
+		EntityManipulator();
+
+		void initialize(const CoreComponents& components);
+
 		void processInput(const SDL_Event& event);
 
 	private:
-		boost::shared_ptr<Entity> m_pEntity;
+		boost::shared_ptr<Database> m_pDatabase;
+		size_t m_iCurrent;
 	};
 } // namespace ramen
 

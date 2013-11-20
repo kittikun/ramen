@@ -41,6 +41,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "material.h"
+#include "../entity/positionable.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ramen
@@ -273,9 +274,12 @@ namespace ramen
 
 			glm::rotate(model, 90.f, glm::vec3(1.f, 0.f, 0.f));
 
-			material->mvp(proj * camera->view() * model);
-
 			BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
+				entity->update();
+
+				boost::shared_ptr<Positionable> positionable = entity->getComponent<Positionable>(Positionable::CompoID_Positionable);
+				material->mvp(proj * camera->view() * positionable->model());
+
 				entity->draw();
 			}
 

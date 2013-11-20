@@ -34,6 +34,9 @@ namespace ramen
 		void draw();
 		const bool setupGL();
 
+	public:
+		static const uint32_t CompoID_MeshRender;
+
 	private:
 		boost::shared_ptr<Mesh> m_pMesh;
 	};

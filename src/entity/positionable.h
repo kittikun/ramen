@@ -14,41 +14,38 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef POSITIONABLE_H
+#define POSITIONABLE_H
 
-#include <vector>
 #include <boost/shared_ptr.hpp>
-#include <boost/utility.hpp>
+#include <glm/glm.hpp>
+
+#include "entity.h"
 
 namespace ramen
 {
-	class Component : boost::noncopyable
+	class Positionable final : public Component
 	{
 	public:
-		virtual ~Component() {};
+		Positionable();
 
-		virtual void draw() {};
-		virtual void update() {};
-	};
-
-	class Entity : boost::noncopyable
-	{
-	public:
-		void addComponent(const boost::shared_ptr<Component>& component);
-
-		void draw();
 		void update();
 
-		template <typename T>
-		boost::shared_ptr<T> getComponent(const uint32_t id)
-		{
-			return boost::dynamic_pointer_cast<T>(m_components[id]);
-		}
+		const glm::mat4x4& model() const { return m_model; }
+
+		const glm::vec3& translation() const { return m_translation; }
+		void setTranslation(const glm::vec3& translation);
+
+	public:
+		static const uint32_t CompoID_Positionable;
 
 	private:
-		std::vector<boost::shared_ptr<Component>> m_components;
+		bool m_dirty;
+		glm::mat4x4 m_model;
+		glm::vec3 m_translation;
+		glm::vec3 m_rotation; // euler angles
+		glm::vec3 m_scale;
 	};
 } // namespace ramen
 
-#endif // ENTITY_H
+#endif // POSITIONABLE_H

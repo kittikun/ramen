@@ -34,6 +34,7 @@
 
 #include "entity/entity.h"
 #include "entity/meshrender.h"
+#include "entity/positionable.h"
 #include "graphic/camera.h"
 #include "graphic/material.h"
 
@@ -96,6 +97,7 @@ namespace ramen
 			return false;
 		}
 
+		m_pManipulator->initialize(components);
 		m_pResmon->initialize(components);
 
 		m_pFbxManager->initialialize(components);
@@ -105,8 +107,10 @@ namespace ramen
 		// entity
 		boost::shared_ptr<Entity> entity(new Entity());
 		boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
+		boost::shared_ptr<Positionable> positionable(new Positionable());
 
 		entity->addComponent(boost::dynamic_pointer_cast<Component>(meshRender));
+		entity->addComponent(boost::dynamic_pointer_cast<Component>(positionable));
 		m_pDatabase->addEntity(entity);
 
 		// camera

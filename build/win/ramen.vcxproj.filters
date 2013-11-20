@@ -93,6 +93,9 @@
     <ClCompile Include="..\..\src\graphic\color.cpp">
       <Filter>source\graphic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\entity\positionable.cpp">
+      <Filter>source\entity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h">
@@ -169,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\graphic\color.h">
       <Filter>source\graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\entity\positionable.h">
+      <Filter>source\entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
