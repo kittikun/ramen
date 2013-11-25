@@ -32,10 +32,10 @@
 #include "perfmon/profiler.h"
 #include "perfmon/resmon.h"
 
+#include "entity/camera.h"
 #include "entity/entity.h"
 #include "entity/meshrender.h"
 #include "entity/positionable.h"
-#include "graphic/camera.h"
 #include "graphic/material.h"
 
 namespace ramen
@@ -47,6 +47,7 @@ namespace ramen
 		, m_pDatabase(new Database())
 		, m_pFbxManager(new FBXManager())
 		, m_pFilesystem(new Filesystem())
+		, m_pFontManager(new FontManager())
 		, m_pGraphic(new Graphic())
 		, m_pResmon(new Resmon())
 		, m_pSettings(new Settings())
@@ -68,6 +69,7 @@ namespace ramen
 		out.database = m_pDatabase;
 		out.fbxManager = m_pFbxManager;
 		out.filesystem = m_pFilesystem;
+		out.fontManager = m_pFontManager;
 		out.graphic = m_pGraphic;
 		out.settings = m_pSettings;
 	}
@@ -93,29 +95,48 @@ namespace ramen
 			return false;
 		}
 
+		if (!m_pFontManager->initialize(components)) {
+			return false;
+		}
+
 		if (!m_pGraphic->initialize(components)) {
 			return false;
 		}
 
 		m_pManipulator->initialize(components);
 		m_pResmon->initialize(components);
-
 		m_pFbxManager->initialialize(components);
+
+		m_pDatabase->set<boost::shared_ptr<EntityManipulator>>("activeManipulator", m_pManipulator);
+
+		// fbx scene
 		boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");
 		m_pBuilder->addJob(scene->createJobMesh());
 
-		// entity
-		boost::shared_ptr<Entity> entity(new Entity());
-		boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
-		boost::shared_ptr<Positionable> positionable(new Positionable());
+		// model
+		{
+			boost::shared_ptr<Entity> entity(new Entity("model"));
+			boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
+			boost::shared_ptr<Positionable> positionable(new Positionable());
 
-		entity->addComponent(boost::dynamic_pointer_cast<Component>(meshRender));
-		entity->addComponent(boost::dynamic_pointer_cast<Component>(positionable));
-		m_pDatabase->addEntity(entity);
+			entity->addComponent(meshRender);
+			entity->addComponent(positionable);
+			m_pDatabase->addEntity(entity);
+		}
 
 		// camera
-		boost::shared_ptr<Camera> camera(new Camera());
-		m_pDatabase->set<boost::shared_ptr<Camera>>("camera", camera);
+		{
+			boost::shared_ptr<Entity> entity(new Entity("camera"));
+			boost::shared_ptr<Camera> camera(new Camera());
+			boost::shared_ptr<Positionable> positionable(new Positionable());
+
+			positionable->setTranslation(glm::vec3(0.f, 0.f, -50.f));
+
+			entity->addComponent(positionable);
+			entity->addComponent(camera);
+			m_pDatabase->addEntity(entity);
+			m_pDatabase->set<boost::shared_ptr<Entity>>("activeCamera", entity);
+		}
 
 		// material
 		boost::shared_ptr<Material> material(new Material());
@@ -149,6 +170,14 @@ namespace ramen
 					{
 						if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
 							LOGC << "ID " << e.window.windowID << " width " << e.window.data1 << " height " << e.window.data2;
+						}
+					}
+					break;
+
+				case SDL_KEYDOWN:
+					{
+						if (e.key.keysym.sym == SDLK_ESCAPE) {
+							stop();
 						}
 					}
 					break;

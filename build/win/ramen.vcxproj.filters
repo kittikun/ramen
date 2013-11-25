@@ -81,9 +81,6 @@
     <ClCompile Include="..\..\src\entity\meshrender.cpp">
       <Filter>source\entity</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\graphic\camera.cpp">
-      <Filter>source\graphic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\graphic\material.cpp">
       <Filter>source\graphic</Filter>
     </ClCompile>
@@ -94,6 +91,9 @@
       <Filter>source\graphic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\entity\positionable.cpp">
+      <Filter>source\entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\entity\camera.cpp">
       <Filter>source\entity</Filter>
     </ClCompile>
   </ItemGroup>
@@ -161,9 +161,6 @@
     <ClInclude Include="..\..\src\entity\meshrender.h">
       <Filter>source\entity</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\graphic\camera.h">
-      <Filter>source\graphic</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\graphic\material.h">
       <Filter>source\graphic</Filter>
     </ClInclude>
@@ -174,6 +171,9 @@
       <Filter>source\graphic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\entity\positionable.h">
+      <Filter>source\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\entity\camera.h">
       <Filter>source\entity</Filter>
     </ClInclude>
   </ItemGroup>

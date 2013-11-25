@@ -23,7 +23,9 @@
 
 namespace ramen
 {
+	class Entity;
 	class Database;
+	class FontManager;
 	struct CoreComponents;
 
 	class EntityManipulator : boost::noncopyable
@@ -31,12 +33,13 @@ namespace ramen
 	public:
 		EntityManipulator();
 
+		void draw();
 		void initialize(const CoreComponents& components);
-
 		void processInput(const SDL_Event& event);
 
 	private:
 		boost::shared_ptr<Database> m_pDatabase;
+		boost::shared_ptr<FontManager> m_pFontManager;
 		size_t m_iCurrent;
 	};
 } // namespace ramen

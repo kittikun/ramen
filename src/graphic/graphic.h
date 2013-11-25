@@ -58,9 +58,9 @@ namespace ramen
 	private:
 		boost::accumulators::accumulator_set<uint64_t, boost::accumulators::features<boost::accumulators::tag::rolling_mean>> m_fps;
 		boost::shared_ptr<Database> m_pDatabase;
+		boost::shared_ptr<FontManager> m_pFontManager;
 		SDL_Window* m_pWindow;
 		std::atomic<bool> m_bState;
-		std::unique_ptr<FontManager> m_pFontManager;
 		void* m_pContext;
 
 		// signals

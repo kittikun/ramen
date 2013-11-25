@@ -20,22 +20,23 @@
 
 namespace ramen
 {
-	void Entity::addComponent(const boost::shared_ptr<Component>& component)
+	Entity::Entity(const std::string& name)
+		: m_strName(name)
 	{
-		m_components.push_back(component);
+
 	}
 
 	void Entity::draw()
 	{
-		BOOST_FOREACH(auto component, m_components) {
-			component->draw();
+		BOOST_FOREACH(auto iter, m_components) {
+			iter.second->draw();
 		}
 	}
 
 	void Entity::update()
 	{
-		BOOST_FOREACH(auto component, m_components) {
-			component->update();
+		BOOST_FOREACH(auto iter, m_components) {
+			iter.second->update();
 		}
 	}
 } // namespace ramen

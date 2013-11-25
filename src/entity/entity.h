@@ -17,12 +17,15 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include <vector>
 #include <boost/shared_ptr.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 
 namespace ramen
 {
+	class Entity;
+
 	class Component : boost::noncopyable
 	{
 	public:
@@ -30,24 +33,42 @@ namespace ramen
 
 		virtual void draw() {};
 		virtual void update() {};
+
+	protected:
+		Entity* m_entity;
+
+		friend class Entity;
 	};
 
 	class Entity : boost::noncopyable
 	{
 	public:
-		void addComponent(const boost::shared_ptr<Component>& component);
+		Entity(const std::string& name);
 
 		void draw();
 		void update();
 
 		template <typename T>
-		boost::shared_ptr<T> getComponent(const uint32_t id)
+		void addComponent(const boost::shared_ptr<T>& component)
 		{
-			return boost::dynamic_pointer_cast<T>(m_components[id]);
+			BOOST_STATIC_ASSERT(boost::is_base_of<Component, T>::value);
+
+			m_components[T::id] = boost::dynamic_pointer_cast<Component>(component);
+			component->m_entity = this;
 		}
 
+		template <typename T>
+		boost::shared_ptr<T> getComponent()
+		{
+			BOOST_STATIC_ASSERT(boost::is_base_of<Component, T>::value);
+			return boost::dynamic_pointer_cast<T>(m_components[T::id]);
+		}
+
+		const std::string& name() { return m_strName; }
+
 	private:
-		std::vector<boost::shared_ptr<Component>> m_components;
+		boost::unordered_map<uint32_t, boost::shared_ptr<Component>> m_components;
+		std::string m_strName;
 	};
 } // namespace ramen
 

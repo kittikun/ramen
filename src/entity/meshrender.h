@@ -29,13 +29,12 @@ namespace ramen
 	class MeshRender final : public Component
 	{
 	public:
+		static const uint32_t id;
+
 		MeshRender(const boost::shared_ptr<Mesh>& mesh);
 
 		void draw();
 		const bool setupGL();
-
-	public:
-		static const uint32_t CompoID_MeshRender;
 
 	private:
 		boost::shared_ptr<Mesh> m_pMesh;

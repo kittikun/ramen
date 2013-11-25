@@ -79,7 +79,7 @@ namespace ramen
 		const bool createFont(const std::string& name, const std::string& fontFamilly, const int fontSize);
 
 		void addText(const std::string& text, const std::string& font, const glm::vec4& color, const glm::vec2& pos);
-		void drawText();
+		void draw();
 
 		struct TextCache
 		{

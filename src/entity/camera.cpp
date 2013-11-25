@@ -18,18 +18,24 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "positionable.h"
+
 namespace ramen
 {
+	const uint32_t Camera::id = 0x00000002;
+
 	Camera::Camera()
-		: m_position(0.f, 10.f, -10.f)
 	{
 	}
 
-	void Camera::lookAt(glm::vec3 at)
+	void Camera::lookAt(glm::vec3 target)
 	{
-		glm::vec3 up(0.f, 1.f, 0.f);
+		static glm::vec3 up(0.f, 1.f, 0.f);
+		boost::shared_ptr<Positionable> positionable = m_entity->getComponent<Positionable>();
 
-		m_view = glm::lookAt(m_position, at, up);
+
+		m_target = target;
+		m_view = glm::lookAt(positionable->translation(), m_target, up);
 	}
 
 } // namespace ramen

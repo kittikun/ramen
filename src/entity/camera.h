@@ -19,11 +19,15 @@
 
 #include <glm/glm.hpp>
 
+#include "entity.h"
+
 namespace ramen
 {
-	class Camera
+	class Camera final : public Component
 	{
 	public:
+		static const uint32_t id;
+
 		Camera();
 
 		void lookAt(glm::vec3 at);
@@ -31,7 +35,7 @@ namespace ramen
 		const glm::mat4x4& view() const { return m_view; }
 
 	private:
-		glm::vec3 m_position;
+		glm::vec3 m_target;
 		glm::mat4x4 m_view;
 	};
 } // namespace ramen

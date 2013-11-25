@@ -38,11 +38,13 @@
 #include "font.h"
 #include "graphicUtility.h"
 
-#include "camera.h"
-#include "shader.h"
-#include "material.h"
-#include "../entity/positionable.h"
+// to remove
 #include <glm/gtc/matrix_transform.hpp>
+#include "material.h"
+#include "shader.h"
+#include "../entity/camera.h"
+#include "../entity/positionable.h"
+#include "../io/entityManipulator.h"
 
 namespace ramen
 {
@@ -192,10 +194,7 @@ namespace ramen
 		}
 
 		m_pDatabase = components.database;
-
-		if (!m_pFontManager->initialize(components)) {
-			return false;
-		}
+		m_pFontManager = components.fontManager;
 
 		Shader::setFilesystem(components.filesystem);
 
@@ -264,26 +263,27 @@ namespace ramen
 				% utility::readableSizeByte<size_t>(m_pDatabase->get<size_t>("virtual memory")));
 			m_pFontManager->addText(fpsText, "vera16", color::cyan, glm::vec2(10, 26));
 
-			boost::shared_ptr<Camera> camera = m_pDatabase->get<boost::shared_ptr<Camera>>("camera");
+			boost::shared_ptr<EntityManipulator> manipulator = m_pDatabase->get<boost::shared_ptr<EntityManipulator>>("activeManipulator");
+			manipulator->draw();
+
+			boost::shared_ptr<Entity> cameraEntity = m_pDatabase->get<boost::shared_ptr<Entity>>("activeCamera");
+			boost::shared_ptr<Camera> camera = cameraEntity->getComponent<Camera>();
 
 			camera->lookAt(glm::vec3());
 			material->use();
 
-			glm::mat4x4 proj = glm::perspective(90.f, float(size.x) / float(size.y), 0.1f, 100.f);
-			glm::mat4x4 model;
-
-			glm::rotate(model, 90.f, glm::vec3(1.f, 0.f, 0.f));
+			glm::mat4x4 proj = glm::perspective(45.f, float(size.x) / float(size.y), 0.1f, 100.f);
 
 			BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
 				entity->update();
 
-				boost::shared_ptr<Positionable> positionable = entity->getComponent<Positionable>(Positionable::CompoID_Positionable);
+				boost::shared_ptr<Positionable> positionable = entity->getComponent<Positionable>();
 				material->mvp(proj * camera->view() * positionable->model());
 
 				entity->draw();
 			}
 
-			m_pFontManager->drawText();
+			m_pFontManager->draw();
 
 			swapbuffers();
 

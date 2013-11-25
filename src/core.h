@@ -18,7 +18,6 @@
 #define CORE_H
 
 #include <atomic>
-#include <memory>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/thread.hpp>
@@ -56,12 +55,13 @@ namespace ramen
 	private:
 		// members
 		std::atomic<bool> m_bState;
-		std::unique_ptr<EntityManipulator> m_pManipulator;
 		boost::thread_group m_threads;
 		boost::shared_ptr<Builder> m_pBuilder; // shared_ptr because of signals2 tracking
 		boost::shared_ptr<Database> m_pDatabase;
+		boost::shared_ptr<EntityManipulator> m_pManipulator;
 		boost::shared_ptr<FBXManager> m_pFbxManager;
 		boost::shared_ptr<Filesystem> m_pFilesystem;
+		boost::shared_ptr<FontManager> m_pFontManager;
 		boost::shared_ptr<Graphic> m_pGraphic; // shared_ptr because of signals2 trackings
 		boost::shared_ptr<Resmon> m_pResmon;
 		boost::shared_ptr<Settings> m_pSettings;

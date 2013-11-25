@@ -27,6 +27,8 @@ namespace ramen
 	class Positionable final : public Component
 	{
 	public:
+		static const uint32_t id;
+
 		Positionable();
 
 		void update();
@@ -35,9 +37,6 @@ namespace ramen
 
 		const glm::vec3& translation() const { return m_translation; }
 		void setTranslation(const glm::vec3& translation);
-
-	public:
-		static const uint32_t CompoID_Positionable;
 
 	private:
 		bool m_dirty;

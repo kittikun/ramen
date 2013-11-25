@@ -22,15 +22,15 @@
 #include <boost/shared_ptr.hpp>
 #include <glm/ext.hpp>
 
+#include "graphic.h"
+#include "shader.h"
+#include "graphicUtility.h"
 #include "../coreComponents.h"
 #include "../log.h"
 #include "../settings.h"
 #include "../utility.h"
 #include "../io/filesystem.h"
 #include "../perfmon/profiler.h"
-#include "graphic.h"
-#include "shader.h"
-#include "graphicUtility.h"
 
 namespace boost
 {
@@ -209,7 +209,7 @@ namespace ramen
 		auto foundDup = m_fontAtlases.find(name);
 
 		if (foundDup != m_fontAtlases.end()) {
-			LOGW << "A font named '" << name << "' already exists, abording";
+			LOGW << "A font named '" << name << "' already exists, aborting";
 			return false;
 		}
 
@@ -221,7 +221,7 @@ namespace ramen
 		return true;
 	}
 
-	void FontManager::drawText()
+	void FontManager::draw()
 	{
 		PROFILE;
 		boost::lock_guard<boost::mutex> lock(m_mutex);

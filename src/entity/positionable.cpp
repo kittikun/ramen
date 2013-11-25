@@ -8,7 +8,7 @@
 
 namespace ramen
 {
-	const uint32_t Positionable::CompoID_Positionable = 0x00000001;
+	const uint32_t Positionable::id = 0x00000001;
 
 	Positionable::Positionable()
 		: m_dirty(true)

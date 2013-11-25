@@ -23,10 +23,10 @@
     <ClCompile Include="..\..\src\builder\meshbuilder.cpp" />
     <ClCompile Include="..\..\src\core.cpp" />
     <ClCompile Include="..\..\src\database.cpp" />
+    <ClCompile Include="..\..\src\entity\camera.cpp" />
     <ClCompile Include="..\..\src\entity\entity.cpp" />
     <ClCompile Include="..\..\src\entity\meshrender.cpp" />
     <ClCompile Include="..\..\src\entity\positionable.cpp" />
-    <ClCompile Include="..\..\src\graphic\camera.cpp" />
     <ClCompile Include="..\..\src\graphic\color.cpp" />
     <ClCompile Include="..\..\src\graphic\font.cpp" />
     <ClCompile Include="..\..\src\graphic\graphic.cpp" />
@@ -51,10 +51,10 @@
     <ClInclude Include="..\..\src\core.h" />
     <ClInclude Include="..\..\src\coreComponents.h" />
     <ClInclude Include="..\..\src\database.h" />
+    <ClInclude Include="..\..\src\entity\camera.h" />
     <ClInclude Include="..\..\src\entity\entity.h" />
     <ClInclude Include="..\..\src\entity\meshrender.h" />
     <ClInclude Include="..\..\src\entity\positionable.h" />
-    <ClInclude Include="..\..\src\graphic\camera.h" />
     <ClInclude Include="..\..\src\graphic\color.h" />
     <ClInclude Include="..\..\src\graphic\font.h" />
     <ClInclude Include="..\..\src\graphic\graphic.h" />

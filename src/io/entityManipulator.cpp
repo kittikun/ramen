@@ -16,10 +16,14 @@
 
 #include "entityManipulator.h"
 
+#include <glm/glm.hpp>
+
 #include "../coreComponents.h"
 #include "../database.h"
 #include "../entity/entity.h"
 #include "../entity/positionable.h"
+#include "../graphic/color.h"
+#include "../graphic/font.h"
 
 namespace ramen
 {
@@ -28,13 +32,40 @@ namespace ramen
 	{
 	}
 
+	void EntityManipulator::draw()
+	{
+		const glm::vec2 offset(10, 47);
+
+		m_pFontManager->addText(m_pDatabase->entities()[m_iCurrent]->name(), "vera16", color::yellow, offset);
+
+		boost::shared_ptr<Positionable> positionable = m_pDatabase->entities()[m_iCurrent]->getComponent<Positionable>();
+
+		if (positionable) {
+			boost::format fmt("trans (%1%, %2%, %3%)");
+			std::string toto = boost::str(fmt % positionable->translation().x
+				% positionable->translation().y
+				% positionable->translation().z);
+
+			m_pFontManager->addText(toto, "vera16", color::yellow, offset + glm::vec2(0.f, 21.f));
+
+
+		}
+
+
+		m_pFontManager->addText(m_pDatabase->entities()[m_iCurrent]->name(), "vera16", color::yellow, offset);
+	}
+
 	void EntityManipulator::initialize(const CoreComponents& components)
 	{
 		m_pDatabase = components.database;
+		m_pFontManager = components.fontManager;
 	}
 
 	void EntityManipulator::processInput(const SDL_Event& event)
 	{
+		boost::shared_ptr<Positionable> positionable = m_pDatabase->entities()[m_iCurrent]->getComponent<Positionable>();
+		const glm::vec3& pos = positionable->translation();
+
 		switch (event.type)
 		{
 		case SDL_KEYDOWN:
@@ -43,18 +74,33 @@ namespace ramen
 				{
 				case SDLK_UP:
 					{
-						boost::shared_ptr<Positionable> positionable = m_pDatabase->entities()[m_iCurrent]->getComponent<Positionable>(Positionable::CompoID_Positionable);
-
-						const glm::vec3& pos = positionable->translation();
-						positionable->setTranslation(pos + glm::vec3(0.f, 0.01f, 0.f));
+						positionable->setTranslation(pos + glm::vec3(0.f, 1.f, 0.f));
 					}
+					break;
+
 				case SDLK_DOWN:
 					{
-						boost::shared_ptr<Positionable> positionable = m_pDatabase->entities()[m_iCurrent]->getComponent<Positionable>(Positionable::CompoID_Positionable);
-
-						const glm::vec3& pos = positionable->translation();
-						positionable->setTranslation(pos + glm::vec3(0.f, -0.01f, 0.f));
+						positionable->setTranslation(pos + glm::vec3(0.f, -1.f, 0.f));
 					}
+					break;
+
+				case SDLK_LEFT:
+					{
+						positionable->setTranslation(pos + glm::vec3(1.f, 0.f, 0.f));
+					}
+					break;
+
+				case SDLK_RIGHT:
+					{
+						positionable->setTranslation(pos + glm::vec3(-1.f, 0.f, 0.f));
+					}
+					break;
+
+				case SDLK_TAB:
+					{
+						m_iCurrent = (m_iCurrent + 1) % m_pDatabase->entities().size();
+					}
+					break;
 				}
 			}
 			break;
