@@ -17,11 +17,16 @@ SET(EXE_SRC	${SRC_PATH}/core.cpp
 		${SRC_PATH}/settings.cpp
 		${SRC_PATH}/builder/builder.cpp
 		${SRC_PATH}/builder/meshbuilder.cpp
+		${SRC_PATH}/entity/camera.cpp
+		${SRC_PATH}/entity/entity.cpp
+		${SRC_PATH}/entity/meshrender.cpp
+		${SRC_PATH}/builder/meshbuilder.cpp
 		${SRC_PATH}/graphic/font.cpp
 		${SRC_PATH}/graphic/graphic.cpp
 		${SRC_PATH}/graphic/mesh.cpp
 		${SRC_PATH}/graphic/shader.cpp
 		${SRC_PATH}/graphic/graphicUtility.cpp
+		${SRC_PATH}/io/entityManipulator.cpp
 		${SRC_PATH}/io/fbx.cpp
 		${SRC_PATH}/io/fbxUtility.cpp
 		${SRC_PATH}/io/filesystem.cpp

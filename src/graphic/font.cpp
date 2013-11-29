@@ -264,7 +264,7 @@ namespace ramen
 					BOOST_FOREACH(auto& textData, colorIter.second) {
 						glm::vec2 posScaled = glm::vec2(-1 + textData.position.x * m_scaleFactor.x, 1 - textData.position.y * m_scaleFactor.y);
 
-						for (auto i = 0; i < textData.text.size(); ++i) {
+						for (size_t i = 0; i < textData.text.size(); ++i) {
 							const FontAtlas::Character& ch = font->charAt(textData.text[i]);
 							glm::vec2 pos2;
 							glm::vec2 size;

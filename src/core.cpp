@@ -42,9 +42,9 @@ namespace ramen
 {
 	Core::Core()
 		: m_bState(false)
-		, m_pManipulator(new EntityManipulator())
 		, m_pBuilder(new Builder())
 		, m_pDatabase(new Database())
+        , m_pManipulator(new EntityManipulator())
 		, m_pFbxManager(new FBXManager())
 		, m_pFilesystem(new Filesystem())
 		, m_pFontManager(new FontManager())
