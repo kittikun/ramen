@@ -185,11 +185,11 @@ namespace ramen
 
 		while (fgets(line, 128, file) != NULL){
 			if (strncmp(line, "VmSize:", 7) == 0){
-				m_pDatabase->set<uint32_t>("virtual memory",parseLine(line) * 1000);
+				m_pDatabase->set<size_t>("virtual memory",parseLine(line) * 1000);
 			}
 
 			if (strncmp(line, "VmRSS:", 6) == 0){
-				m_pDatabase->set<uint32_t>("physical memory",parseLine(line) * 1000);
+				m_pDatabase->set<size_t>("physical memory",parseLine(line) * 1000);
 			}
 		}
 		fclose(file);

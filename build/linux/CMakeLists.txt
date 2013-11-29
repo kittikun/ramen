@@ -20,9 +20,12 @@ SET(EXE_SRC	${SRC_PATH}/core.cpp
 		${SRC_PATH}/entity/camera.cpp
 		${SRC_PATH}/entity/entity.cpp
 		${SRC_PATH}/entity/meshrender.cpp
+		${SRC_PATH}/entity/positionable.cpp
 		${SRC_PATH}/builder/meshbuilder.cpp
+		${SRC_PATH}/graphic/color.cpp
 		${SRC_PATH}/graphic/font.cpp
 		${SRC_PATH}/graphic/graphic.cpp
+		${SRC_PATH}/graphic/material.cpp
 		${SRC_PATH}/graphic/mesh.cpp
 		${SRC_PATH}/graphic/shader.cpp
 		${SRC_PATH}/graphic/graphicUtility.cpp

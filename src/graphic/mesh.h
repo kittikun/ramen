@@ -53,7 +53,6 @@ namespace ramen
         };
 
         Mesh();
-        ~Mesh() { int i = 0; }
 
         const bool hasNormal() const { return m_bHasNormal; }
         const bool hasUV() const { return m_bHasUV; }

@@ -21,12 +21,21 @@
 #include FT_FREETYPE_H
 
 #include <vector>
+
+#include <glm/glm.hpp>
+
+// odd arrangement for linux build
+namespace boost
+{
+	std::size_t hash_value(glm::vec4 const& val);
+}
+
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/utility.hpp>
 #include <GLES2/gl2.h>
-#include <glm/glm.hpp>
+
 
 namespace ramen
 {

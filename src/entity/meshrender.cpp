@@ -72,7 +72,7 @@ namespace ramen
 			glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid *>(offset));
 		}
 
-		for (int i = 0; i < Mesh::VBOIndexCount; ++i) {
+		for (unsigned int i = 0; i < Mesh::VBOIndexCount; ++i) {
 			glDisableVertexAttribArray(i);
 		}
 	}
