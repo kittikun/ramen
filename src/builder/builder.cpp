@@ -21,6 +21,11 @@
 
 namespace ramen
 {
+	Builder::~Builder()
+	{
+		LOGB << "Destroying Builder..";
+	}
+
     void Builder::addJob(const boost::shared_ptr<Job>& job)
     {
 		if (job->prepare()) {

@@ -43,6 +43,8 @@ namespace ramen
     class Builder : boost::noncopyable
     {
     public:
+		~Builder();
+
         void run();
         void addJob(const boost::shared_ptr<Job>& job);
 

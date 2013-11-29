@@ -174,8 +174,6 @@ namespace ramen
 
 	FontManager::~FontManager()
 	{
-		LOGGFX << "Destroying font manager..";
-
 		if (m_FTLibrary) {
 			FT_Done_FreeType(m_FTLibrary);
 		}

@@ -32,6 +32,7 @@ namespace ramen
 	{
 	public:
 		Resmon();
+		~Resmon();
 
 		void initialize(const CoreComponents& components);
 		void run();
