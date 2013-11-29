@@ -32,6 +32,7 @@ namespace ramen
 	{
 	public:
 		EntityManipulator();
+		~EntityManipulator();
 
 		void draw();
 		void initialize(const CoreComponents& components);

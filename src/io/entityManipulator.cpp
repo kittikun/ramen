@@ -32,6 +32,11 @@ namespace ramen
 	{
 	}
 
+	EntityManipulator::~EntityManipulator()
+	{
+		LOGI << "Destroying EntityManipulator..";
+	}
+
 	void EntityManipulator::draw()
 	{
 		const glm::vec2 offset(10, 47);

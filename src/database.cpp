@@ -21,6 +21,11 @@
 
 namespace ramen
 {
+	Database::~Database()
+	{
+		LOGD << "Destroying Database..";
+	}
+
 	void Database::remove(const std::string& key)
 	{
 		boost::lock_guard<boost::mutex> lock(m_mutex);

@@ -23,37 +23,55 @@
 #include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/sources/severity_logger.hpp>
+#include <boost/circular_buffer.hpp>
 
-#define LOGB BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Builder)
-#define LOGC BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Core)
-#define LOGD BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Database)
-#define LOGGFX BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_GFX)
-#define LOGI BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Io)
-#define LOGP BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Perfmon)
-#define LOGW BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Warning)
-#define LOGE BOOST_LOG_SEV(ramen::boost_log::get(), ramen::Log_Error)
+#define LOGB BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Builder)
+#define LOGC BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Core)
+#define LOGD BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Database)
+#define LOGGFX BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_GFX)
+#define LOGI BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Io)
+#define LOGP BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Perfmon)
+#define LOGW BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Warning)
+#define LOGE BOOST_LOG_SEV(ramen::log::boost_log::get(), ramen::log::Log_Error)
 
 namespace ramen
 {
-    enum ELogLevel
-    {
-        Log_Builder,
-        Log_Core,
-        Log_Database,
-        Log_GFX,
-        Log_Io,
-        Log_Perfmon,
-        Log_Warning,
-        Log_Error
-    };
+	class FontManager;
+	struct CoreComponents;
 
-    BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(boost_log, boost::log::sources::severity_logger_mt<ELogLevel>)
+	namespace log
+	{
+		enum ELogLevel
+		{
+			Log_Builder,
+			Log_Core,
+			Log_Database,
+			Log_GFX,
+			Log_Io,
+			Log_Perfmon,
+			Log_Warning,
+			Log_Error
+		};
 
-    class Log
-    {
-    public:
-        static void initialize();
-    };
+		class LogData
+		{
+		public:
+			LogData(const CoreComponents& components);
+
+			void draw();
+
+			boost::circular_buffer<std::string>& buffer() { return m_buffer; }
+
+		private:
+			boost::circular_buffer<std::string> m_buffer;
+			boost::shared_ptr<FontManager> m_pFontManager;
+		};
+
+		BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(boost_log, boost::log::sources::severity_logger_mt<ELogLevel>)
+
+		void initialize();
+		void initializeGL(const CoreComponents& components);
+	};
 } // namespace ramen
 
 #endif // LOG_H

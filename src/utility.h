@@ -48,7 +48,7 @@ namespace ramen {
         const T calcNearestPowerofTwo(const T value)
         {
             BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
-            const double power = ceil(log(static_cast<double>(value)) / log(2));
+            const double power = ceil(::log(static_cast<double>(value)) / ::log(2));
 
             // cast in case T type is integral
             return T(pow(2, power));
@@ -65,7 +65,7 @@ namespace ramen {
             }
 
             const double dSize = static_cast<double>(size);
-            const int exp = static_cast<int>(log(dSize) / log(1024));
+            const int exp = static_cast<int>(::log(dSize) / ::log(1024));
             boost::format fmt;
 
             if (exp > 1)

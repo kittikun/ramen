@@ -62,6 +62,11 @@ namespace ramen
 	{
 	}
 
+	Resmon::~Resmon()
+	{
+		LOGP << "Destroying Resmon..";
+	}
+
 	void Resmon::initialize(const CoreComponents& components)
 	{
 		m_timer.async_wait(boost::bind(&Resmon::update, this));

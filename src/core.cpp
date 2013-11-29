@@ -52,7 +52,7 @@ namespace ramen
 		, m_pResmon(new Resmon())
 		, m_pSettings(new Settings())
 	{
-		Log::initialize();
+		log::initialize();
 		LOGC << "Creating core...";
 	}
 
@@ -99,6 +99,8 @@ namespace ramen
 			return false;
 		}
 
+		log::initializeGL(components);
+
 		if (!m_pGraphic->initialize(components)) {
 			return false;
 		}
@@ -107,7 +109,7 @@ namespace ramen
 		m_pResmon->initialize(components);
 		m_pFbxManager->initialialize(components);
 
-		m_pDatabase->set<boost::shared_ptr<EntityManipulator>>("activeManipulator", m_pManipulator);
+		m_pDatabase->set<boost::weak_ptr<EntityManipulator>>("activeManipulator", m_pManipulator);
 
 		// fbx scene
 		boost::shared_ptr<FBXScene> scene = m_pFbxManager->loadScene("teapot.fbx");

@@ -35,6 +35,8 @@ namespace ramen
 	class Database : boost::noncopyable
 	{
 	public:
+		~Database();
+
 		void addEntity(const boost::shared_ptr<Entity>& entity) { m_entities.push_back(entity); }
 		const std::vector<boost::shared_ptr<Entity>>& entities() const { return m_entities; }
 

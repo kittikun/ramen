@@ -52,7 +52,6 @@ namespace ramen
 		: m_fps(boost::accumulators::tag::rolling_window::window_size = 100)
 		, m_pWindow(nullptr)
 		, m_bState(false)
-		, m_pFontManager(new FontManager())
 		, m_pContext(nullptr)
 	{
 	}
@@ -263,8 +262,11 @@ namespace ramen
 				% utility::readableSizeByte<size_t>(m_pDatabase->get<size_t>("virtual memory")));
 			m_pFontManager->addText(fpsText, "vera16", color::cyan, glm::vec2(10, 26));
 
-			boost::shared_ptr<EntityManipulator> manipulator = m_pDatabase->get<boost::shared_ptr<EntityManipulator>>("activeManipulator");
+			boost::shared_ptr<EntityManipulator> manipulator = m_pDatabase->get<boost::weak_ptr<EntityManipulator>>("activeManipulator").lock();
 			manipulator->draw();
+
+			boost::shared_ptr<log::LogData> glLog = m_pDatabase->get<boost::shared_ptr<log::LogData>>("logData");
+			glLog->draw();
 
 			boost::shared_ptr<Entity> cameraEntity = m_pDatabase->get<boost::shared_ptr<Entity>>("activeCamera");
 			boost::shared_ptr<Camera> camera = cameraEntity->getComponent<Camera>();
