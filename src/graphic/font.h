@@ -23,12 +23,7 @@
 #include <vector>
 
 #include <glm/glm.hpp>
-
-// odd arrangement for linux build
-namespace boost
-{
-	std::size_t hash_value(glm::vec4 const& val);
-}
+#include "../glmUtility.h" // odd order for linux build
 
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>

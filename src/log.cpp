@@ -142,7 +142,7 @@ namespace ramen
 		void LogData::draw()
 		{
 			size_t size = m_buffer.size();
-			const glm::vec2 offset(10, 100);
+			const glm::vec2 offset(10, 150);
 
 			for (size_t i = 0; i < size; ++i) {
 				m_pFontManager->addText(m_buffer[i], "vera16", color::yellow, offset + glm::vec2(0.f, i * 21.f));

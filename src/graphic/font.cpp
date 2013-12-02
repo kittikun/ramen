@@ -32,21 +32,6 @@
 #include "../io/filesystem.h"
 #include "../perfmon/profiler.h"
 
-namespace boost
-{
-	std::size_t hash_value(glm::vec4 const& val)
-	{
-		std::size_t seed = 0;
-
-		boost::hash_combine(seed, val.x);
-		boost::hash_combine(seed, val.y);
-		boost::hash_combine(seed, val.z);
-		boost::hash_combine(seed, val.w);
-
-		return seed;
-	}
-}
-
 namespace ramen
 {
 	//-------------------------------------------------------------------------------------

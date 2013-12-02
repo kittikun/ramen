@@ -270,17 +270,15 @@ namespace ramen
 
 			boost::shared_ptr<Entity> cameraEntity = m_pDatabase->get<boost::shared_ptr<Entity>>("activeCamera");
 			boost::shared_ptr<Camera> camera = cameraEntity->getComponent<Camera>();
+			boost::shared_ptr<Positionable> cameraView = cameraEntity->getComponent<Positionable>();
 
-			camera->lookAt(glm::vec3());
 			material->use();
-
-			glm::mat4x4 proj = glm::perspective(45.f, float(size.x) / float(size.y), 0.1f, 100.f);
 
 			BOOST_FOREACH(auto entity, m_pDatabase->entities()) {
 				entity->update();
 
 				boost::shared_ptr<Positionable> positionable = entity->getComponent<Positionable>();
-				material->mvp(proj * camera->view() * positionable->model());
+				material->mvp(camera->proj() * cameraView->matrix() * positionable->matrix());
 
 				entity->draw();
 			}

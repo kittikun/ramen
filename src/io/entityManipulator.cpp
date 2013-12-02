@@ -17,6 +17,7 @@
 #include "entityManipulator.h"
 
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 #include "../coreComponents.h"
 #include "../database.h"
@@ -46,16 +47,9 @@ namespace ramen
 		boost::shared_ptr<Positionable> positionable = m_pDatabase->entities()[m_iCurrent]->getComponent<Positionable>();
 
 		if (positionable) {
-			boost::format fmt("trans (%1%, %2%, %3%)");
-			std::string toto = boost::str(fmt % positionable->translation().x
-				% positionable->translation().y
-				% positionable->translation().z);
-
-			m_pFontManager->addText(toto, "vera16", color::yellow, offset + glm::vec2(0.f, 21.f));
-
-
+			m_pFontManager->addText(glm::to_string(positionable->translation()), "vera16", color::yellow, offset + glm::vec2(0.f, 21.f));
+			m_pFontManager->addText(glm::to_string(positionable->rotation()), "vera16", color::yellow, offset + glm::vec2(0.f, 42.f));
 		}
-
 
 		m_pFontManager->addText(m_pDatabase->entities()[m_iCurrent]->name(), "vera16", color::yellow, offset);
 	}
@@ -77,29 +71,54 @@ namespace ramen
 			{
 				switch (event.key.keysym.sym)
 				{
+				case SDLK_w:
+					{
+						positionable->offsetTranslation(glm::vec3(0.f, 1.f, 0.f));
+					}
+					break;
+
+				case SDLK_s:
+					{
+						positionable->offsetTranslation(glm::vec3(0.f, -1.f, 0.f));
+					}
+					break;
+
+				case SDLK_a:
+					{
+						positionable->offsetTranslation(glm::vec3(1.f, 0.f, 0.f));
+					}
+					break;
+
+				case SDLK_d:
+					{
+						positionable->offsetTranslation(glm::vec3(-1.f, 0.f, 0.f));
+					}
+					break;
+
 				case SDLK_UP:
 					{
-						positionable->setTranslation(pos + glm::vec3(0.f, 1.f, 0.f));
+						positionable->offsetRotation(glm::vec3(0.f, 1.f, 0.f));
 					}
 					break;
 
 				case SDLK_DOWN:
 					{
-						positionable->setTranslation(pos + glm::vec3(0.f, -1.f, 0.f));
+						positionable->offsetRotation(glm::vec3(0.f, -1.f, 0.f));
 					}
 					break;
 
 				case SDLK_LEFT:
 					{
-						positionable->setTranslation(pos + glm::vec3(1.f, 0.f, 0.f));
+						positionable->offsetRotation(glm::vec3(-1.f, 0.f, 0.f));
 					}
 					break;
 
 				case SDLK_RIGHT:
 					{
-						positionable->setTranslation(pos + glm::vec3(-1.f, 0.f, 0.f));
+						positionable->offsetRotation(glm::vec3(1.f, 0.f, 0.f));
 					}
 					break;
+
 
 				case SDLK_TAB:
 					{

@@ -14,44 +14,15 @@
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#include "camera.h"
+#ifndef GLM_UTILITY_H
+#define GLM_UTILITY_H
 
-#include <glm/gtc/matrix_transform.hpp>
+#include <string>
+#include <glm/glm.hpp>
 
-#include "positionable.h"
-
-namespace ramen
+namespace boost
 {
-	const uint32_t Camera::id = 0x00000002;
+	std::size_t hash_value(glm::vec4 const& val);
+} // namespace boost
 
-	Camera::Camera()
-		: m_dirty(true)
-		, m_fFar(100.f)
-		, m_fFov(60.f)
-		, m_fNear(0.1f)
-		, m_fRatio(640.f / 480.f)
-	{
-	}
-
-	void Camera::setFov(const float fov)
-	{ 
-		m_fFov = fov; 
-		m_dirty = true;
-	}
-
-	void Camera::setNearFar(const float near, const float far)
-	{
-		m_fNear = near;
-		m_fFar = far;
-		m_dirty = true;
-	}
-
-	void Camera::update()
-	{
-		if (m_dirty) {
-			m_proj = glm::perspective(m_fFov, m_fRatio, m_fNear, m_fFar);
-			m_dirty = false;
-		}
-	}
-
-} // namespace ramen
+#endif // GLM_UTILITY_H

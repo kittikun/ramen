@@ -29,18 +29,33 @@ namespace ramen
 	public:
 		static const uint32_t id;
 
-		Positionable();
+		Positionable(const bool isCamera);
 
+		// component
 		void update();
 
-		const glm::mat4x4& model() const { return m_model; }
+		void lookAt(const glm::vec3& at);
 
+		void offsetTranslation(const glm::vec3& translation);
+		void setTranslation(const glm::vec3& val);
+
+		void offsetRotation(const glm::vec3& offset);
+		void setRotation(const glm::vec3& val);
+
+		const glm::vec4& forward() const { return m_matrix[2]; }
+		const glm::mat4x4& matrix() const { return m_matrix; }
+		const glm::vec4& right() const { return m_matrix[0]; }
+		const glm::vec3& rotation() const { return m_rotation; }
 		const glm::vec3& translation() const { return m_translation; }
-		void setTranslation(const glm::vec3& translation);
+		const glm::vec4& up() const { return m_matrix[1]; }
+
+	private:
+		void normalizeAngles();
 
 	private:
 		bool m_dirty;
-		glm::mat4x4 m_model;
+		bool m_isCamera;
+		glm::mat4x4 m_matrix;
 		glm::vec3 m_translation;
 		glm::vec3 m_rotation; // euler angles
 		glm::vec3 m_scale;

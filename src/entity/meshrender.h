@@ -33,7 +33,9 @@ namespace ramen
 
 		MeshRender(const boost::shared_ptr<Mesh>& mesh);
 
+		// component
 		void draw();
+
 		const bool setupGL();
 
 	private:

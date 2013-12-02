@@ -119,7 +119,7 @@ namespace ramen
 		{
 			boost::shared_ptr<Entity> entity(new Entity("model"));
 			boost::shared_ptr<MeshRender> meshRender(new MeshRender(m_pDatabase->get<boost::shared_ptr<Mesh>>("mesh")));
-			boost::shared_ptr<Positionable> positionable(new Positionable());
+			boost::shared_ptr<Positionable> positionable(new Positionable(false));
 
 			entity->addComponent(meshRender);
 			entity->addComponent(positionable);
@@ -130,9 +130,10 @@ namespace ramen
 		{
 			boost::shared_ptr<Entity> entity(new Entity("camera"));
 			boost::shared_ptr<Camera> camera(new Camera());
-			boost::shared_ptr<Positionable> positionable(new Positionable());
+			boost::shared_ptr<Positionable> positionable(new Positionable(true));
 
-			positionable->setTranslation(glm::vec3(0.f, 0.f, -50.f));
+			positionable->setTranslation(glm::vec3(0.f, 0.f, 50.f));
+			positionable->lookAt(glm::vec3());
 
 			entity->addComponent(positionable);
 			entity->addComponent(camera);

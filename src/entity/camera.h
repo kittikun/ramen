@@ -30,13 +30,21 @@ namespace ramen
 
 		Camera();
 
-		void lookAt(glm::vec3 at);
+		// component
+		void update();
 
-		const glm::mat4x4& view() const { return m_view; }
+		const glm::mat4x4& proj() const { return m_proj; }
+
+		void setFov(const float fov);
+		void setNearFar(const float near, const float far);
 
 	private:
-		glm::vec3 m_target;
-		glm::mat4x4 m_view;
+		bool m_dirty;
+		float m_fFar;
+		float m_fFov;
+		float m_fNear;
+		float m_fRatio;
+		glm::mat4x4 m_proj;
 	};
 } // namespace ramen
 
